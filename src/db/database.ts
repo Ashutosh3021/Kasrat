@@ -33,6 +33,7 @@ export interface PlanExercise {
   exercise: string
   enabled: boolean
   maxSets: number
+  sortOrder?: number
 }
 
 export interface Settings {
@@ -56,6 +57,7 @@ export interface Settings {
   showReorderHandles: boolean
   showPlanCounts: boolean
   hiddenTabs: string
+  tabOrder: string
   autoStartTimer: boolean
   repEstimation: boolean
   durationEstimation: boolean

@@ -20,6 +20,7 @@ export const DEFAULT_SETTINGS = {
   showReorderHandles: true,
   showPlanCounts: true,
   hiddenTabs: '',
+  tabOrder: '',
   autoStartTimer: true,
   repEstimation: true,
   durationEstimation: true,

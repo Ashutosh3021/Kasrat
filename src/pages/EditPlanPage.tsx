@@ -6,6 +6,7 @@ import Toggle from '../components/Toggle'
 import { useUIStore } from '../store/uiStore'
 import ExerciseModal from '../overlays/ExerciseModal'
 import DeleteConfirmation from '../overlays/DeleteConfirmation'
+import { useDragToReorder } from '../hooks/useDragToReorder'
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
@@ -26,7 +27,7 @@ export default function EditPlanPage() {
     setTitle(p.title)
     setActiveDays(p.days.split(',').map(Number).filter(n => !isNaN(n)))
     const exs = await db.plan_exercises.where('planId').equals(Number(id)).toArray()
-    setExercises(exs)
+    setExercises(exs.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)))
   }
 
   useEffect(() => { load() }, [id])
@@ -61,6 +62,16 @@ export default function EditPlanPage() {
     closeExerciseModal()
     load()
   }
+
+  async function handleReorder(newItems: PlanExercise[]) {
+    setExercises(newItems)
+    // Persist new order by updating each exercise's sort order
+    await Promise.all(
+      newItems.map((ex, i) => db.plan_exercises.update(ex.id!, { sortOrder: i }))
+    )
+  }
+
+  const { getHandleProps, getItemProps } = useDragToReorder(exercises, handleReorder)
 
   async function handleDeleteConfirm() {
     if (deleteConfirmTarget?.type === 'plan') {
@@ -108,10 +119,12 @@ export default function EditPlanPage() {
 
         <section className="flex flex-col gap-4">
           <h2 className="text-[22px] font-semibold text-white">Exercises</h2>
-          <div className="flex flex-col gap-4">
-            {exercises.map(ex => (
-              <div key={ex.id} className="bg-[#1b1b1d] p-3 rounded-lg flex items-center gap-4">
-                <GripVertical size={20} className="text-[#424754]" />
+          <div className="flex flex-col gap-4" data-drag-list>
+            {exercises.map((ex, i) => (
+              <div key={ex.id} className="bg-[#1b1b1d] p-3 rounded-lg flex items-center gap-4" {...getItemProps(i)}>
+                <span {...getHandleProps(i)}>
+                  <GripVertical size={20} className="text-[#424754]" />
+                </span>
                 <div className="flex-1 flex flex-col">
                   <span className="text-[17px] text-white">{ex.exercise}</span>
                   <span className="text-[13px] font-medium text-[#c2c6d6] mt-0.5">{ex.maxSets} sets</span>
