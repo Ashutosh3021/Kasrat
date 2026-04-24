@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, CheckCircle, Lock, MoreHorizontal, Camera, FileText, Flag } from 'lucide-react'
+import { ArrowLeft, Plus, CheckCircle, Lock, MoreHorizontal, Camera, FileText, Flag, Trash2 } from 'lucide-react'
 import { db, type Plan, type PlanExercise, type GymSet } from '../db/database'
 import { useTimerStore } from '../store/timerStore'
 import { useSettingsStore } from '../store/settingsStore'
@@ -18,6 +18,7 @@ export default function StartPlanPage() {
   // Local weight/reps inputs — one pair shared for the active exercise
   const [weight, setWeight] = useState('')
   const [reps, setReps] = useState('')
+  const [confirmDiscard, setConfirmDiscard] = useState(false)
 
   const planId = Number(id)
 
@@ -92,6 +93,24 @@ export default function StartPlanPage() {
   }
 
   function handleFinish() {
+    workout.finishSession()
+    navigate('/', { replace: true })
+  }
+
+  async function handleDiscard() {
+    // Delete every set that was logged during this session from Dexie
+    const keys = Object.values(workout.loggedSets)
+      .flat()
+      .map((_, i) => i) // we don't store DB ids in the store, so delete by planId + session start
+    // Delete all gym_sets written for this plan since the session started
+    if (workout.startedAt && workout.activePlanId) {
+      const since = workout.startedAt
+      const pid = workout.activePlanId
+      await db.gym_sets
+        .where('planId').equals(pid)
+        .filter(s => s.created >= since)
+        .delete()
+    }
     workout.finishSession()
     navigate('/', { replace: true })
   }
@@ -266,6 +285,37 @@ export default function StartPlanPage() {
           <Flag size={18} />
           Finish Session
         </button>
+
+        {/* Discard button */}
+        {!confirmDiscard ? (
+          <button
+            onClick={() => setConfirmDiscard(true)}
+            className="w-full border border-[#2C2C2E] text-[#8c909f] font-semibold text-[15px] h-12 rounded-lg flex items-center justify-center gap-2 hover:border-[#ffb4ab] hover:text-[#ffb4ab] transition-colors"
+          >
+            <Trash2 size={18} />
+            Discard Workout
+          </button>
+        ) : (
+          <div className="w-full bg-[#1C1C1E] border border-[#ffb4ab]/40 rounded-lg p-4 flex flex-col gap-3">
+            <p className="text-[15px] text-white font-semibold text-center">Discard this workout?</p>
+            <p className="text-[13px] text-[#c6c6cb] text-center">All sets logged in this session will be permanently deleted.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDiscard(false)}
+                className="flex-1 h-11 border border-[#2C2C2E] text-white rounded-lg font-semibold text-[15px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDiscard}
+                className="flex-1 h-11 bg-[#ffb4ab] text-[#690005] rounded-lg font-semibold text-[15px] flex items-center justify-center gap-2"
+              >
+                <Trash2 size={16} />
+                Discard
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
