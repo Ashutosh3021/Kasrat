@@ -17,6 +17,8 @@ export interface GymSet {
   planId?: number
   image?: string
   notes?: string
+  primaryMuscle?: string
+  secondaryMuscle?: string
 }
 
 export interface Plan {
@@ -75,12 +77,36 @@ export class KasratDB extends Dexie {
 
   constructor() {
     super('KasratDB')
+
+    // v1 — original schema (never change this block)
     this.version(1).stores({
       gym_sets: '++id, name, created, cardio, planId',
       plans: '++id, sequence, title',
       plan_exercises: '++id, planId, exercise',
-      settings: '++id'
+      settings: '++id',
     })
+
+    // v2 — adds primaryMuscle / secondaryMuscle to gym_sets.
+    // Dexie only needs store() changes when adding *indexed* columns.
+    // These two are plain data fields (not indexed), so the stores
+    // definition is identical — we just need the upgrade callback to
+    // back-fill existing rows.
+    this.version(2)
+      .stores({
+        gym_sets: '++id, name, created, cardio, planId',
+        plans: '++id, sequence, title',
+        plan_exercises: '++id, planId, exercise',
+        settings: '++id',
+      })
+      .upgrade(tx =>
+        tx
+          .table('gym_sets')
+          .toCollection()
+          .modify(row => {
+            if (row.primaryMuscle === undefined) row.primaryMuscle = 'Other'
+            if (row.secondaryMuscle === undefined) row.secondaryMuscle = null
+          })
+      )
   }
 }
 

@@ -1,9 +1,137 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play } from 'lucide-react'
+import { Play, ChevronRight } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { db, type Plan, type GymSet } from '../db/database'
 import { format } from '../utils/dateUtils'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ExerciseInSession {
+  name: string
+  sets: number
+  cardio: boolean
+}
+
+interface WorkoutSession {
+  /** Unique key: "<planId|'quick'>_<YYYY-MM-DD>" */
+  key: string
+  planId: number | null
+  planTitle: string
+  date: string          // YYYY-MM-DD
+  latestCreated: string // ISO — used for "2h ago" label and sort
+  exercises: ExerciseInSession[]
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Build session list from raw sets + plan title map */
+function buildSessions(
+  sets: GymSet[],
+  planTitles: Map<number, string>,
+): WorkoutSession[] {
+  // Only real sets (not hidden template rows)
+  const real = sets.filter(
+    s => !s.hidden || s.reps > 0 || s.weight > 0 || s.distance > 0,
+  )
+
+  const sessionMap = new Map<string, WorkoutSession>()
+
+  for (const s of real) {
+    const day = s.created.slice(0, 10)
+    const sessionKey = s.planId != null ? `${s.planId}_${day}` : `quick_${day}`
+
+    if (!sessionMap.has(sessionKey)) {
+      sessionMap.set(sessionKey, {
+        key: sessionKey,
+        planId: s.planId ?? null,
+        planTitle:
+          s.planId != null
+            ? (planTitles.get(s.planId) ?? 'Workout')
+            : 'Quick Workout',
+        date: day,
+        latestCreated: s.created,
+        exercises: [],
+      })
+    }
+
+    const session = sessionMap.get(sessionKey)!
+
+    // Update latest timestamp
+    if (s.created > session.latestCreated) session.latestCreated = s.created
+
+    // Accumulate set count per exercise
+    const existing = session.exercises.find(e => e.name === s.name)
+    if (existing) {
+      existing.sets += 1
+    } else {
+      session.exercises.push({ name: s.name, sets: 1, cardio: s.cardio })
+    }
+  }
+
+  // Sort sessions newest-first
+  return Array.from(sessionMap.values()).sort(
+    (a, b) =>
+      new Date(b.latestCreated).getTime() - new Date(a.latestCreated).getTime(),
+  )
+}
+
+// ─── Session card ─────────────────────────────────────────────────────────────
+
+interface SessionCardProps {
+  session: WorkoutSession
+  onTap: () => void
+}
+
+function SessionCard({ session, onTap }: SessionCardProps) {
+  // Show at most 4 exercises, then "+N more"
+  const visible = session.exercises.slice(0, 4)
+  const extra = session.exercises.length - visible.length
+
+  return (
+    <button
+      onClick={onTap}
+      className="w-full bg-[#1C1C1E] rounded-[8px] border border-[#2C2C2E] p-3 flex flex-col gap-3 text-left active:scale-[0.98] transition-transform hover:border-[#3B82F6]/40"
+    >
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[17px] font-semibold text-white leading-tight">
+            {session.planTitle}
+          </span>
+          <span className="text-[13px] font-medium text-[#c6c6cb]">
+            {format(session.latestCreated)}
+          </span>
+        </div>
+        <ChevronRight size={18} className="text-[#424754] shrink-0" />
+      </div>
+
+      {/* Exercise list */}
+      <div className="flex flex-col gap-1.5">
+        {visible.map(ex => (
+          <div key={ex.name} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">
+                {ex.cardio ? '🏃' : '🏋️'}
+              </span>
+              <span className="text-[15px] text-[#e4e2e4]">{ex.name}</span>
+            </div>
+            <span className="text-[13px] font-medium text-[#c6c6cb]">
+              {ex.sets} {ex.sets === 1 ? 'set' : 'sets'}
+            </span>
+          </div>
+        ))}
+        {extra > 0 && (
+          <span className="text-[13px] font-medium text-[#8c909f]">
+            +{extra} more exercise{extra > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+    </button>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -12,13 +140,14 @@ export default function HomePage() {
   const [weekSets, setWeekSets] = useState(0)
   const [weekExercises, setWeekExercises] = useState(0)
   const [mostUsed, setMostUsed] = useState('')
-  const [recentSets, setRecentSets] = useState<GymSet[]>([])
+  const [sessions, setSessions] = useState<WorkoutSession[]>([])
 
   const today = new Date()
   const dayOfWeek = today.getDay()
 
   useEffect(() => {
     async function load() {
+      // ── Today's plan ──────────────────────────────────────────────────────
       const plans = await db.plans.toArray()
       const todaysPlan = plans.find(p => {
         const days = p.days.split(',').map(Number)
@@ -26,26 +155,37 @@ export default function HomePage() {
       })
       setTodayPlan(todaysPlan ?? null)
       if (todaysPlan) {
-        const exs = todaysPlan.exercises.split(',').filter(Boolean)
-        setPlanExercises(exs)
+        setPlanExercises(todaysPlan.exercises.split(',').filter(Boolean))
       }
 
+      // ── Weekly stats ──────────────────────────────────────────────────────
       const weekStart = new Date()
       weekStart.setDate(weekStart.getDate() - weekStart.getDay())
       weekStart.setHours(0, 0, 0, 0)
       const allSets = await db.gym_sets.toArray()
       const weekSetsList = allSets.filter(s => new Date(s.created) >= weekStart)
       setWeekSets(weekSetsList.length)
-      const uniqueEx = new Set(weekSetsList.map(s => s.name))
-      setWeekExercises(uniqueEx.size)
+      setWeekExercises(new Set(weekSetsList.map(s => s.name)).size)
 
+      // ── Most used ─────────────────────────────────────────────────────────
       const counts: Record<string, number> = {}
       allSets.forEach(s => { counts[s.name] = (counts[s.name] ?? 0) + 1 })
       const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
       setMostUsed(top ? top[0] : 'None yet')
 
-      const recent = allSets.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime()).slice(0, 5)
-      setRecentSets(recent)
+      // ── Recent sessions (last 7 days) ─────────────────────────────────────
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const recentSets = allSets.filter(
+        s => new Date(s.created) >= sevenDaysAgo,
+      )
+
+      // Build plan-title lookup in one pass
+      const planTitles = new Map<number, string>(
+        plans.map(p => [p.id!, p.title]),
+      )
+
+      setSessions(buildSessions(recentSets, planTitles).slice(0, 5))
     }
     load()
   }, [dayOfWeek])
@@ -63,6 +203,7 @@ export default function HomePage() {
           <h1 className="text-[32px] font-bold leading-10 tracking-tight text-white mt-1">Ready to lift?</h1>
         </div>
 
+        {/* Today's plan card */}
         {todayPlan ? (
           <section className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex flex-col gap-4 relative overflow-hidden">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#3B82F6]/10 rounded-full blur-2xl" />
@@ -100,6 +241,7 @@ export default function HomePage() {
           </section>
         )}
 
+        {/* Weekly stats */}
         <section className="grid grid-cols-2 gap-3">
           <div className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex flex-col justify-between min-h-[100px]">
             <span className="text-[13px] font-medium text-[#c6c6cb]">This Week</span>
@@ -121,33 +263,31 @@ export default function HomePage() {
           </div>
         </section>
 
-        {recentSets.length > 0 && (
+        {/* Recent Activity — grouped by session */}
+        {sessions.length > 0 && (
           <section>
-            <h3 className="text-[22px] font-semibold text-white mb-4">Recent Activity</h3>
-            <div className="bg-[#1C1C1E] rounded-[8px] border border-[#2C2C2E] overflow-hidden">
-              <div className="px-3 py-2 bg-[#1b1b1d] border-b border-[#2C2C2E]">
-                <span className="text-[13px] font-medium text-[#c6c6cb]">Recent</span>
-              </div>
-              <div className="divide-y divide-[#2C2C2E]">
-                {recentSets.map(s => (
-                  <button
-                    key={s.id}
-                    onClick={() => navigate(`/graphs/${encodeURIComponent(s.name)}`)}
-                    className="flex items-center justify-between p-3 w-full hover:bg-[#1b1b1d] transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#2a2a2c] flex items-center justify-center text-[#c6c6cb]">
-                        <span className="text-lg">🏋️</span>
-                      </div>
-                      <div className="flex flex-col text-left">
-                        <span className="text-[15px] text-white">{s.name}</span>
-                        <span className="text-[13px] font-medium text-[#c6c6cb]">{s.weight} {s.unit} × {s.reps} reps</span>
-                      </div>
-                    </div>
-                    <span className="text-[13px] text-[#c6c6cb]">{format(s.created)}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[22px] font-semibold text-white">Recent Activity</h3>
+              <button
+                onClick={() => navigate('/history')}
+                className="text-[13px] font-medium text-[#3B82F6]"
+              >
+                See all
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {sessions.map(session => (
+                <SessionCard
+                  key={session.key}
+                  session={session}
+                  onTap={() =>
+                    // Navigate to history; if it was a plan session, the user
+                    // can search by plan name there. Deep-linking with a filter
+                    // query param is a future enhancement.
+                    navigate('/history')
+                  }
+                />
+              ))}
             </div>
           </section>
         )}

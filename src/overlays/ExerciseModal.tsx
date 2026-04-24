@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { X, Search, Plus, Check, ArrowLeft, ChevronRight } from 'lucide-react'
 import { db } from '../db/database'
+import { MuscleSelect } from '../pages/AddExercisePage'
 
 interface Props { planId: number; onClose: () => void }
 
@@ -10,6 +11,8 @@ interface CreateState {
   equipment: 'gym' | 'bodyweight' | null
   type: 'strength' | 'cardio' | null
   name: string
+  primaryMuscle: string
+  secondaryMuscle: string
 }
 
 const CATEGORIES = ['All', 'Chest', 'Back', 'Legs', 'Arms', 'Shoulders', 'Core', 'Cardio']
@@ -23,7 +26,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
   // Create flow
   const [creating, setCreating] = useState(false)
   const [createStep, setCreateStep] = useState<CreateStep>('equipment')
-  const [createState, setCreateState] = useState<CreateState>({ equipment: null, type: null, name: '' })
+  const [createState, setCreateState] = useState<CreateState>({ equipment: null, type: null, name: '', primaryMuscle: 'Chest', secondaryMuscle: '' })
   const [nameError, setNameError] = useState('')
 
   async function load() {
@@ -53,7 +56,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
   function startCreate() {
     setCreating(true)
     setCreateStep('equipment')
-    setCreateState({ equipment: null, type: null, name: '' })
+    setCreateState({ equipment: null, type: null, name: '', primaryMuscle: 'Chest', secondaryMuscle: '' })
     setNameError('')
   }
 
@@ -96,6 +99,8 @@ export default function ExerciseModal({ planId, onClose }: Props) {
       cardio: isCardio,
       restMs: 0,
       notes: category,
+      primaryMuscle: createState.primaryMuscle || 'Other',
+      secondaryMuscle: createState.secondaryMuscle || undefined,
     })
 
     // Immediately add to the plan
@@ -267,6 +272,20 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                     <p className="text-[#FF453A] text-[13px] font-medium">{nameError}</p>
                   )}
                 </div>
+
+                {/* Muscle groups */}
+                <MuscleSelect
+                  label="Primary Muscle Group"
+                  value={createState.primaryMuscle}
+                  onChange={v => setCreateState(s => ({ ...s, primaryMuscle: v }))}
+                  required
+                />
+                <MuscleSelect
+                  label="Secondary Muscle Group"
+                  value={createState.secondaryMuscle}
+                  onChange={v => setCreateState(s => ({ ...s, secondaryMuscle: v }))}
+                  includeNone
+                />
 
                 <button
                   onClick={saveCustomExercise}

@@ -11,6 +11,7 @@ import GraphsFilter from '../overlays/GraphsFilter'
 interface ExerciseSummary {
   name: string
   category: string
+  primaryMuscle: string
   lastUsed: string
   cardio: boolean
   totalSessions: number
@@ -189,6 +190,7 @@ export default function GraphsPage() {
           return {
             name,
             category: items[0].cardio ? 'Cardio' : (items[0].bodyWeight ? 'Bodyweight' : 'Strength'),
+            primaryMuscle: items[0].primaryMuscle || 'Other',
             lastUsed: sorted[0]?.created ?? items[0].created,
             cardio: items[0].cardio,
             totalSessions: new Set(real.map(s => s.created.slice(0, 10))).size,
@@ -277,13 +279,13 @@ export default function GraphsPage() {
                     i < filtered.length - 1 ? 'border-b border-[#2C2C2E]' : ''
                   }`}
                 >
-                  {/* Left: name + category pill */}
+                  {/* Left: name + muscle chip */}
                   <div className="flex flex-col gap-1 text-left">
                     <span className="text-[17px] text-white font-medium group-hover:text-[#3B82F6] transition-colors">
                       {ex.name}
                     </span>
                     <span className="inline-block px-2 py-0.5 bg-[#2C2C2E] text-white rounded-full text-[11px] w-fit">
-                      {ex.category}
+                      {ex.primaryMuscle}
                     </span>
                   </div>
 
