@@ -5,6 +5,8 @@ export interface LoggedSet {
   exercise: string
   weight: number
   reps: number
+  rpe?: number
+  rir?: number
 }
 
 interface WorkoutState {

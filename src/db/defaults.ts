@@ -28,6 +28,10 @@ export const DEFAULT_SETTINGS = {
   use24Hour: false,
   hideCategories: false,
   hideGlobalProgress: false,
+  // F2 – nutrition goals (0 = not set)
+  nutritionCaloriesGoal: 0,
+  nutritionProteinGoal: 0,
+  nutritionWaterGoal: 0,
 }
 
 export async function seedDatabase() {

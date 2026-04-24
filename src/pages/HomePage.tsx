@@ -333,6 +333,20 @@ export default function HomePage() {
             <span className="text-2xl">🕸️</span>
             <span className="text-[15px] font-medium text-white">Weekly Stats</span>
           </button>
+          <button
+            onClick={() => navigate('/calendar')}
+            className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+          >
+            <span className="text-2xl">📅</span>
+            <span className="text-[15px] font-medium text-white">Calendar</span>
+          </button>
+          <button
+            onClick={() => navigate('/nutrition')}
+            className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+          >
+            <span className="text-2xl">🥗</span>
+            <span className="text-[15px] font-medium text-white">Nutrition</span>
+          </button>
         </section>
       </main>
 

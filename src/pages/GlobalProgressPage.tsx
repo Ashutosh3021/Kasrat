@@ -1,20 +1,181 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Cell, LineChart, Line,
+} from 'recharts'
 import { db, type GymSet } from '../db/database'
+
+// ─── Brzycki 1RM ─────────────────────────────────────────────────────────────
+function brzycki(w: number, r: number): number | null {
+  if (w <= 0 || r <= 0 || r >= 37) return null
+  return Math.round(w * (36 / (37 - r)))
+}
+
+// ─── ISO week key ─────────────────────────────────────────────────────────────
+function isoWeek(dateStr: string): string {
+  const d = new Date(dateStr)
+  const day = d.getDay() === 0 ? 7 : d.getDay()
+  const mon = new Date(d)
+  mon.setDate(d.getDate() - day + 1)
+  return mon.toISOString().slice(0, 10)
+}
+
+const MUSCLE_GROUPS = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'] as const
+type MuscleGroup = typeof MUSCLE_GROUPS[number]
+
+// ─── By Muscle tab ────────────────────────────────────────────────────────────
+
+function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
+  const [muscle, setMuscle] = useState<MuscleGroup>('Chest')
+
+  const { ormData, volumeData } = useMemo(() => {
+    const real = allSets.filter(s => !s.hidden && !s.cardio && s.reps > 0 && s.weight > 0)
+    const forMuscle = real.filter(s => (s.primaryMuscle ?? 'Other') === muscle)
+
+    // Best 1RM per exercise
+    const ormMap: Record<string, number> = {}
+    forMuscle.forEach(s => {
+      const orm = brzycki(s.weight, s.reps)
+      if (orm != null) {
+        ormMap[s.name] = Math.max(ormMap[s.name] ?? 0, orm)
+      }
+    })
+    const ormData = Object.entries(ormMap)
+      .map(([name, orm]) => ({ name, orm }))
+      .sort((a, b) => b.orm - a.orm)
+
+    // Weekly volume (last 8 weeks)
+    const weekMap: Record<string, number> = {}
+    forMuscle.forEach(s => {
+      const wk = isoWeek(s.created)
+      weekMap[wk] = (weekMap[wk] ?? 0) + s.weight * s.reps
+    })
+    const volumeData = Object.keys(weekMap)
+      .sort()
+      .slice(-8)
+      .map(wk => ({
+        week: wk.slice(5),   // "MM-DD"
+        volume: Math.round(weekMap[wk]),
+      }))
+
+    return { ormData, volumeData }
+  }, [allSets, muscle])
+
+  const tooltipStyle = { background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 8, color: '#e4e2e4' }
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Muscle selector */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {MUSCLE_GROUPS.map(m => (
+          <button
+            key={m}
+            onClick={() => setMuscle(m)}
+            className={`shrink-0 px-4 py-2 rounded-full font-semibold text-[15px] transition-colors ${
+              muscle === m
+                ? 'bg-[#3B82F6] text-white'
+                : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
+            }`}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      {ormData.length === 0 && volumeData.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-[#A1A1A6] text-[15px]">No exercises for {muscle} yet</p>
+        </div>
+      ) : (
+        <>
+          {/* Best 1RM bar chart */}
+          {ormData.length > 0 && (
+            <section className="bg-[#1C1C1E] rounded-lg p-3 border border-[#2C2C2E]">
+              <p className="text-[15px] font-semibold text-white mb-1">Best Estimated 1RM</p>
+              <p className="text-[13px] text-[#A1A1A6] mb-4">Per exercise in {muscle}</p>
+              <div style={{ height: Math.max(ormData.length * 44, 120) }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={ormData} layout="vertical" margin={{ left: 8, right: 32 }}>
+                    <defs>
+                      <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%"   stopColor="#3B82F6" />
+                        <stop offset="100%" stopColor="#60A5FA" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" horizontal={false} />
+                    <XAxis type="number" tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fill: '#c2c6d6', fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={120}
+                    />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v} kg`, '1RM']} />
+                    <Bar dataKey="orm" radius={[0, 4, 4, 0]} fill="url(#barGrad)">
+                      {ormData.map((_, i) => (
+                        <Cell key={i} fill="url(#barGrad)" />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          )}
+
+          {/* Weekly volume line chart */}
+          {volumeData.length > 0 && (
+            <section className="bg-[#1C1C1E] rounded-lg p-3 border border-[#2C2C2E]">
+              <p className="text-[15px] font-semibold text-white mb-1">Weekly Volume</p>
+              <p className="text-[13px] text-[#A1A1A6] mb-4">Last 8 weeks · {muscle}</p>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={volumeData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" />
+                    <XAxis dataKey="week" tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${Number(v).toLocaleString()} kg`, 'Volume']} />
+                    <Line
+                      type="monotone"
+                      dataKey="volume"
+                      stroke="#3B82F6"
+                      strokeWidth={2}
+                      dot={{ fill: '#000', stroke: '#3B82F6', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+type Tab = 'strength' | 'cardio' | 'muscle'
 
 export default function GlobalProgressPage() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState<'strength' | 'cardio'>('strength')
+  const [tab, setTab] = useState<Tab>('strength')
+  const [allSets, setAllSets] = useState<GymSet[]>([])
   const [volumeData, setVolumeData] = useState<{ week: string; volume: number }[]>([])
   const [topMovements, setTopMovements] = useState<{ name: string; best: string; cardio: boolean }[]>([])
 
   useEffect(() => {
     async function load() {
       const sets = await db.gym_sets.toArray()
-      const filtered = sets.filter(s => tab === 'cardio' ? s.cardio : !s.cardio)
+      setAllSets(sets)
 
+      if (tab === 'muscle') return  // handled by ByMuscleTab
+
+      const filtered = sets.filter(s => tab === 'cardio' ? s.cardio : !s.cardio)
       const weekMap: Record<string, number> = {}
       filtered.forEach(s => {
         const d = new Date(s.created)
@@ -42,6 +203,8 @@ export default function GlobalProgressPage() {
     load()
   }, [tab])
 
+  const tooltipStyle = { background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 8, color: '#e4e2e4' }
+
   return (
     <div className="min-h-screen bg-black pb-24 pt-14">
       <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800 flex items-center px-4 h-14">
@@ -52,74 +215,80 @@ export default function GlobalProgressPage() {
       </header>
 
       <main className="px-4 py-3">
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-[22px] font-semibold text-white mb-4">Progress</h2>
           <div className="flex border-b border-[#424754] mb-4">
-            {(['strength', 'cardio'] as const).map(t => (
+            {(['strength', 'cardio', 'muscle'] as Tab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`flex-1 pb-2 border-b-2 font-semibold text-[15px] text-center transition-colors ${
-                  tab === t ? 'border-[#adc6ff] text-[#adc6ff]' : 'border-transparent text-[#c6c6cb]'
+                className={`flex-1 pb-2 border-b-2 font-semibold text-[15px] text-center transition-colors capitalize ${
+                  tab === t ? 'border-[#3B82F6] text-[#3B82F6]' : 'border-transparent text-[#c6c6cb]'
                 }`}
               >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
+                {t === 'muscle' ? 'By Muscle' : t.charAt(0).toUpperCase() + t.slice(1)}
               </button>
             ))}
           </div>
         </div>
 
-        <section className="bg-[#1f1f21] rounded-lg p-3 mb-8 border border-[#424754]">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-[17px] text-white">Aggregated Volume</h3>
-            <span className="text-[13px] font-medium text-[#c6c6cb]">Total {tab === 'cardio' ? 'km' : 'kg'}</span>
-          </div>
-          <div className="h-48 w-full">
-            {volumeData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={volumeData}>
-                  <defs>
-                    <linearGradient id="vGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#adc6ff" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#adc6ff" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" />
-                  <XAxis dataKey="week" tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 8, color: '#e4e2e4' }} />
-                  <Area type="monotone" dataKey="volume" stroke="#adc6ff" strokeWidth={2} fill="url(#vGrad)" dot={{ fill: '#adc6ff', r: 3 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-[#8c909f]">No data yet</div>
-            )}
-          </div>
-        </section>
+        {tab === 'muscle' ? (
+          <ByMuscleTab allSets={allSets} />
+        ) : (
+          <>
+            <section className="bg-[#1f1f21] rounded-lg p-3 mb-8 border border-[#424754]">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-[17px] text-white">Aggregated Volume</h3>
+                <span className="text-[13px] font-medium text-[#c6c6cb]">Total {tab === 'cardio' ? 'km' : 'kg'}</span>
+              </div>
+              <div className="h-48 w-full">
+                {volumeData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={volumeData}>
+                      <defs>
+                        <linearGradient id="vGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#adc6ff" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="#adc6ff" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" />
+                      <XAxis dataKey="week" tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <YAxis tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Area type="monotone" dataKey="volume" stroke="#adc6ff" strokeWidth={2} fill="url(#vGrad)" dot={{ fill: '#adc6ff', r: 3 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-[#8c909f]">No data yet</div>
+                )}
+              </div>
+            </section>
 
-        <section>
-          <h3 className="text-[22px] font-semibold text-white mb-4">Top Movements</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {topMovements.map(m => (
-              <button
-                key={m.name}
-                onClick={() => navigate(m.cardio ? `/cardio-graph/${encodeURIComponent(m.name)}` : `/graphs/${encodeURIComponent(m.name)}`)}
-                className="bg-[#1f1f21] rounded-lg p-3 border border-[#424754] flex items-center justify-between group hover:border-[#adc6ff] transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#353437] flex items-center justify-center text-[#adc6ff]">
-                    {m.cardio ? '🏃' : '🏋️'}
-                  </div>
-                  <div className="text-left">
-                    <h4 className="text-[17px] text-white">{m.name}</h4>
-                    <p className="text-[13px] font-medium text-[#c6c6cb]">Best: {m.best}</p>
-                  </div>
-                </div>
-                <ChevronRight size={20} className="text-[#c6c6cb] group-hover:text-[#adc6ff] transition-colors" />
-              </button>
-            ))}
-          </div>
-        </section>
+            <section>
+              <h3 className="text-[22px] font-semibold text-white mb-4">Top Movements</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {topMovements.map(m => (
+                  <button
+                    key={m.name}
+                    onClick={() => navigate(m.cardio ? `/cardio-graph/${encodeURIComponent(m.name)}` : `/graphs/${encodeURIComponent(m.name)}`)}
+                    className="bg-[#1f1f21] rounded-lg p-3 border border-[#424754] flex items-center justify-between group hover:border-[#adc6ff] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#353437] flex items-center justify-center text-[#adc6ff]">
+                        {m.cardio ? '🏃' : '🏋️'}
+                      </div>
+                      <div className="text-left">
+                        <h4 className="text-[17px] text-white">{m.name}</h4>
+                        <p className="text-[13px] font-medium text-[#c6c6cb]">Best: {m.best}</p>
+                      </div>
+                    </div>
+                    <ChevronRight size={20} className="text-[#c6c6cb] group-hover:text-[#adc6ff] transition-colors" />
+                  </button>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
       </main>
     </div>
   )

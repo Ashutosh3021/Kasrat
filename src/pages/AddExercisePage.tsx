@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ChevronDown } from 'lucide-react'
 import { db } from '../db/database'
 
 export const MUSCLE_GROUPS = [
@@ -11,7 +11,7 @@ export type MuscleGroup = typeof MUSCLE_GROUPS[number]
 
 const EXERCISE_TYPES = ['Strength', 'Cardio'] as const
 
-// Reusable muscle-group selector used here and in ExerciseModal
+// ─── Reusable muscle-group selector ──────────────────────────────────────────
 interface MuscleSelectProps {
   label: string
   value: string
@@ -45,12 +45,15 @@ export function MuscleSelect({ label, value, onChange, required, error, includeN
   )
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function AddExercisePage() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [type, setType] = useState<'strength' | 'cardio'>('strength')
   const [primaryMuscle, setPrimaryMuscle] = useState<string>('Chest')
   const [secondaryMuscle, setSecondaryMuscle] = useState<string>('')
+  const [cues, setCues] = useState('')
+  const [advancedOpen, setAdvancedOpen] = useState(false)
   const [nameError, setNameError] = useState('')
 
   async function save() {
@@ -71,6 +74,10 @@ export default function AddExercisePage() {
       primaryMuscle,
       secondaryMuscle: secondaryMuscle || undefined,
     })
+    // F5 – persist cues to exercise_meta
+    if (cues.trim()) {
+      await db.exercise_meta.put({ name: name.trim(), cues: cues.trim() })
+    }
     navigate(-1)
   }
 
@@ -122,20 +129,39 @@ export default function AddExercisePage() {
           </div>
 
           {/* Primary muscle */}
-          <MuscleSelect
-            label="Primary Muscle Group"
-            value={primaryMuscle}
-            onChange={setPrimaryMuscle}
-            required
-          />
+          <MuscleSelect label="Primary Muscle Group" value={primaryMuscle} onChange={setPrimaryMuscle} required />
 
           {/* Secondary muscle */}
-          <MuscleSelect
-            label="Secondary Muscle Group"
-            value={secondaryMuscle}
-            onChange={setSecondaryMuscle}
-            includeNone
-          />
+          <MuscleSelect label="Secondary Muscle Group" value={secondaryMuscle} onChange={setSecondaryMuscle} includeNone />
+
+          {/* F5 – Advanced / Coach's Cues (collapsible) */}
+          <div className="flex flex-col gap-0">
+            <button
+              onClick={() => setAdvancedOpen(o => !o)}
+              className="flex items-center justify-between py-2 text-[13px] font-medium text-[#c2c6d6] hover:text-white transition-colors"
+            >
+              <span>Advanced</span>
+              <ChevronDown
+                size={16}
+                className={`transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            <div
+              className="overflow-hidden transition-all duration-200"
+              style={{ maxHeight: advancedOpen ? '200px' : '0px' }}
+            >
+              <div className="flex flex-col gap-2 pt-1 pb-2">
+                <label className="text-[13px] font-medium text-[#c2c6d6]">Coach's Cues</label>
+                <textarea
+                  value={cues}
+                  onChange={e => setCues(e.target.value)}
+                  rows={3}
+                  placeholder="e.g., Keep elbows tucked, drive through heels…"
+                  className="w-full bg-[#131315] border border-[#424754] rounded-lg p-3 text-[15px] text-white placeholder-[#8c909f] focus:border-[#4d8eff] focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 

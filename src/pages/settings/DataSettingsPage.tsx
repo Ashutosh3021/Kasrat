@@ -93,6 +93,48 @@ export default function DataSettingsPage() {
             <Toggle checked={settings.durationEstimation} onChange={v => updateSetting('durationEstimation', v)} />
           </div>
         </section>
+
+        <section className="bg-[#1C1C1E] rounded-lg">
+          <div className="px-3 pt-3 pb-2">
+            <h2 className="font-semibold text-[15px] text-[#3B82F6]">Nutrition Goals</h2>
+          </div>
+          <div className="flex flex-col justify-center px-3 py-3 border-b border-[#2C2C2E] min-h-[56px]">
+            <div className="flex items-center justify-between">
+              <span className="text-[17px] text-white">Daily Calories</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={settings.nutritionCaloriesGoal ?? 0}
+                onChange={e => updateSetting('nutritionCaloriesGoal', Number(e.target.value))}
+                className="w-20 bg-[#2C2C2E] border border-[#353437] rounded-lg px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col justify-center px-3 py-3 border-b border-[#2C2C2E] min-h-[56px]">
+            <div className="flex items-center justify-between">
+              <span className="text-[17px] text-white">Daily Protein (g)</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={settings.nutritionProteinGoal ?? 0}
+                onChange={e => updateSetting('nutritionProteinGoal', Number(e.target.value))}
+                className="w-20 bg-[#2C2C2E] border border-[#353437] rounded-lg px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col justify-center px-3 py-3 min-h-[56px]">
+            <div className="flex items-center justify-between">
+              <span className="text-[17px] text-white">Daily Water (L)</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={settings.nutritionWaterGoal ?? 0}
+                onChange={e => updateSetting('nutritionWaterGoal', Number(e.target.value))}
+                className="w-20 bg-[#2C2C2E] border border-[#353437] rounded-lg px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
+              />
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   )
