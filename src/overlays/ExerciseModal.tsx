@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Search, Plus, Check, ArrowLeft, ChevronRight } from 'lucide-react'
+import { X, Search, Plus, Check, ArrowLeft, ChevronRight, Minus } from 'lucide-react'
 import { db } from '../db/database'
 import { MuscleSelect } from '../pages/AddExercisePage'
 
@@ -22,6 +22,8 @@ export default function ExerciseModal({ planId, onClose }: Props) {
   const [filter, setFilter] = useState('All')
   const [exercises, setExercises] = useState<{ name: string; category: string; cardio: boolean }[]>([])
   const [added, setAdded] = useState<Set<string>>(new Set())
+  // Per-exercise set counts for exercises added in this session
+  const [setCounts, setSetCounts] = useState<Record<string, number>>({})
 
   // Create flow
   const [creating, setCreating] = useState(false)
@@ -47,8 +49,20 @@ export default function ExerciseModal({ planId, onClose }: Props) {
 
   async function addExercise(name: string) {
     if (added.has(name)) return
-    await db.plan_exercises.add({ planId, exercise: name, enabled: true, maxSets: 3 })
+    const sets = setCounts[name] ?? 3
+    await db.plan_exercises.add({ planId, exercise: name, enabled: true, maxSets: sets })
     setAdded(prev => new Set([...prev, name]))
+  }
+
+  async function updateModalSets(name: string, delta: number) {
+    const current = setCounts[name] ?? 3
+    const next = Math.max(1, current + delta)
+    setSetCounts(prev => ({ ...prev, [name]: next }))
+    // If already added to the plan, persist the change immediately
+    if (added.has(name)) {
+      const existing = await db.plan_exercises.where('planId').equals(planId).filter(e => e.exercise === name).first()
+      if (existing?.id) await db.plan_exercises.update(existing.id, { maxSets: next })
+    }
   }
 
   // ── Create flow handlers ──────────────────────────────────────────────────
@@ -370,15 +384,35 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                               <span className="text-[#c2c6d6] text-[13px] font-medium">{ex.category}</span>
                             </div>
                           </div>
-                          <button
-                            onClick={() => addExercise(ex.name)}
-                            disabled={isAdded}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                              isAdded ? 'bg-[#4d8eff]/20' : 'border border-[#4d8eff] hover:bg-[#4d8eff] hover:text-[#00285d]'
-                            }`}
-                          >
-                            {isAdded ? <Check size={16} className="text-[#4d8eff]" /> : <Plus size={16} className="text-[#4d8eff]" />}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {/* Set count stepper — always visible */}
+                            <div className="flex items-center gap-1 bg-[#2C2C2E] rounded-full px-2 py-1">
+                              <button
+                                onClick={e => { e.stopPropagation(); updateModalSets(ex.name, -1) }}
+                                className="w-5 h-5 flex items-center justify-center text-[#adc6ff]"
+                              >
+                                <Minus size={12} />
+                              </button>
+                              <span className="text-[13px] font-semibold text-white w-4 text-center tabular-nums">
+                                {setCounts[ex.name] ?? 3}
+                              </span>
+                              <button
+                                onClick={e => { e.stopPropagation(); updateModalSets(ex.name, 1) }}
+                                className="w-5 h-5 flex items-center justify-center text-[#adc6ff]"
+                              >
+                                <Plus size={12} />
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => addExercise(ex.name)}
+                              disabled={isAdded}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                isAdded ? 'bg-[#4d8eff]/20' : 'border border-[#4d8eff] hover:bg-[#4d8eff] hover:text-[#00285d]'
+                              }`}
+                            >
+                              {isAdded ? <Check size={16} className="text-[#4d8eff]" /> : <Plus size={16} className="text-[#4d8eff]" />}
+                            </button>
+                          </div>
                         </div>
                       )
                     })}

@@ -4,7 +4,7 @@ interface Props { onClose: () => void }
 
 const RELEASES = [
   {
-    version: '1.0.0',
+    version: '1.1.16',
     date: 'Apr 2025',
     isNew: true,
     changes: [
@@ -31,7 +31,7 @@ export default function WhatsNewDialog({ onClose }: Props) {
         <main className="flex-1 px-4 pt-8 flex flex-col gap-4">
           <div className="flex flex-col gap-2 mb-4">
             <h1 className="text-[32px] font-bold leading-10 tracking-tight text-white">What's New</h1>
-            <p className="text-[13px] font-medium text-[#c6c6cb]">Version 1.0.0</p>
+            <p className="text-[13px] font-medium text-[#c6c6cb]">Version 1.1.16</p>
           </div>
 
           {RELEASES.map(r => (

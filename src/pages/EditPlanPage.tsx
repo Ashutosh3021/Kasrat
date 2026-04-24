@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, GripVertical } from 'lucide-react'
+import { ArrowLeft, Plus, GripVertical, Minus } from 'lucide-react'
 import { db, type Plan, type PlanExercise } from '../db/database'
 import Toggle from '../components/Toggle'
 import { useUIStore } from '../store/uiStore'
@@ -65,10 +65,15 @@ export default function EditPlanPage() {
 
   async function handleReorder(newItems: PlanExercise[]) {
     setExercises(newItems)
-    // Persist new order by updating each exercise's sort order
     await Promise.all(
       newItems.map((ex, i) => db.plan_exercises.update(ex.id!, { sortOrder: i }))
     )
+  }
+
+  async function updateSets(ex: PlanExercise, delta: number) {
+    const next = Math.max(1, ex.maxSets + delta)
+    await db.plan_exercises.update(ex.id!, { maxSets: next })
+    setExercises(prev => prev.map(e => e.id === ex.id ? { ...e, maxSets: next } : e))
   }
 
   const { getHandleProps, getItemProps } = useDragToReorder(exercises, handleReorder)
@@ -121,13 +126,28 @@ export default function EditPlanPage() {
           <h2 className="text-[22px] font-semibold text-white">Exercises</h2>
           <div className="flex flex-col gap-4" data-drag-list>
             {exercises.map((ex, i) => (
-              <div key={ex.id} className="bg-[#1b1b1d] p-3 rounded-lg flex items-center gap-4" {...getItemProps(i)}>
+              <div key={ex.id} className="bg-[#1b1b1d] p-3 rounded-lg flex items-center gap-3" {...getItemProps(i)}>
                 <span {...getHandleProps(i)}>
                   <GripVertical size={20} className="text-[#424754]" />
                 </span>
-                <div className="flex-1 flex flex-col">
-                  <span className="text-[17px] text-white">{ex.exercise}</span>
-                  <span className="text-[13px] font-medium text-[#c2c6d6] mt-0.5">{ex.maxSets} sets</span>
+                <div className="flex-1 flex flex-col min-w-0">
+                  <span className="text-[17px] text-white truncate">{ex.exercise}</span>
+                </div>
+                {/* Per-exercise set stepper */}
+                <div className="flex items-center gap-1.5 bg-[#131315] rounded-full px-2 py-1 shrink-0">
+                  <button
+                    onClick={() => updateSets(ex, -1)}
+                    className="w-6 h-6 flex items-center justify-center text-[#adc6ff] active:opacity-60"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className="text-[15px] font-semibold text-white w-4 text-center tabular-nums">{ex.maxSets}</span>
+                  <button
+                    onClick={() => updateSets(ex, 1)}
+                    className="w-6 h-6 flex items-center justify-center text-[#adc6ff] active:opacity-60"
+                  >
+                    <Plus size={14} />
+                  </button>
                 </div>
                 <Toggle checked={ex.enabled} onChange={() => toggleExercise(ex)} />
               </div>

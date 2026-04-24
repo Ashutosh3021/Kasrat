@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ChevronRight, Settings } from 'lucide-react'
 
+const GITHUB = 'https://github.com/Ashutosh3021/Kasrat'
+
 const LINKS = [
-  { icon: '🐛', label: 'Report a Bug', href: '#' },
-  { icon: '⭐', label: 'Rate the App', href: '#' },
-  { icon: '🔒', label: 'Privacy Policy', href: '#' },
-  { icon: '📄', label: 'Licenses', href: '#' },
-  { icon: '💻', label: 'GitHub Repository', href: '#' },
+  { icon: '🐛', label: 'Report a Bug', href: GITHUB },
+  { icon: '⭐', label: 'Rate the App', href: GITHUB },
+  { icon: '🔒', label: 'Privacy Policy', href: GITHUB },
+  { icon: '📄', label: 'Licenses', href: GITHUB },
+  { icon: '💻', label: 'GitHub Repository', href: GITHUB },
 ]
 
 export default function AboutPage() {
@@ -29,7 +31,7 @@ export default function AboutPage() {
             <span className="text-[64px] font-black text-[#00285d] leading-none italic">K</span>
           </div>
           <h1 className="text-[32px] font-bold leading-10 tracking-tight text-white mb-1">KASRAT</h1>
-          <p className="text-[13px] font-medium text-[#c6c6cb] tracking-widest uppercase mb-3">Version 1.0.0</p>
+          <p className="text-[13px] font-medium text-[#c6c6cb] tracking-widest uppercase mb-3">Version 1.1.16</p>
           <p className="text-[17px] text-[#c2c6d6] text-center max-w-[240px]">Track your gym progress</p>
         </header>
 
@@ -38,6 +40,8 @@ export default function AboutPage() {
             <a
               key={link.label}
               href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group bg-[#1f1f21] rounded-xl p-3 flex items-center justify-between active:scale-[0.98] transition-transform border border-transparent focus:border-[#adc6ff] outline-none"
             >
               <div className="flex items-center gap-4">

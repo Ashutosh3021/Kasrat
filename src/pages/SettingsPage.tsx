@@ -152,7 +152,7 @@ export default function SettingsPage() {
             <hr className="border-t border-[#353437] ml-4" />
             <button onClick={() => navigate('/about')} className="flex items-center justify-between h-12 px-3 hover:bg-[#353437]/30 transition-colors">
               <span className="text-[17px] text-white">About KASRAT</span>
-              <span className="text-[17px] text-[#c2c6d6]">1.0.0</span>
+              <span className="text-[17px] text-[#c2c6d6]">1.1.16</span>
             </button>
           </div>
         </section>
