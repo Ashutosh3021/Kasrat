@@ -68,6 +68,11 @@ export default function SettingsPage() {
               </div>
             </button>
             <hr className="border-t border-[#353437] ml-4" />
+            <button onClick={() => navigate('/body-measurements')} className="flex items-center justify-between h-12 px-3 hover:bg-[#353437]/30 transition-colors">
+              <span className="text-[17px] text-white">Body Measurements</span>
+              <ChevronRight size={20} className="text-[#c2c6d6]" />
+            </button>
+            <hr className="border-t border-[#353437] ml-4" />
             <div className="flex items-center justify-between h-12 px-3">
               <span className="text-[17px] text-white">Max Sets Default</span>
               <div className="flex items-center gap-4 bg-[#353437] rounded-full px-3 py-1">

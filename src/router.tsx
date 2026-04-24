@@ -20,6 +20,8 @@ import TimerSettingsPage from './pages/settings/TimerSettingsPage'
 import TabSettingsPage from './pages/settings/TabSettingsPage'
 import DataSettingsPage from './pages/settings/DataSettingsPage'
 import FormatSettingsPage from './pages/settings/FormatSettingsPage'
+import BodyMeasurementsPage from './pages/BodyMeasurementsPage'
+import StatsPage from './pages/StatsPage'
 
 export const router = createHashRouter([
   {
@@ -46,6 +48,8 @@ export const router = createHashRouter([
       { path: 'add-exercise', element: <AddExercisePage /> },
       { path: 'edit-set/:id', element: <EditSetPage /> },
       { path: 'about', element: <AboutPage /> },
+      { path: 'body-measurements', element: <BodyMeasurementsPage /> },
+      { path: 'stats', element: <StatsPage /> },
     ]
   }
 ])

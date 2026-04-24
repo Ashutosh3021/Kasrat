@@ -38,6 +38,19 @@ export interface PlanExercise {
   sortOrder?: number
 }
 
+export interface BodyMeasurement {
+  id?: number
+  created: string        // ISO date string, indexed
+  bodyWeight?: number
+  fatPercentage?: number
+  arms?: number
+  chest?: number
+  thigh?: number
+  calves?: number
+  waist?: number
+  notes?: string
+}
+
 export interface Settings {
   id?: number
   themeMode: string
@@ -74,11 +87,12 @@ export class KasratDB extends Dexie {
   plans!: Table<Plan>
   plan_exercises!: Table<PlanExercise>
   settings!: Table<Settings>
+  body_measurements!: Table<BodyMeasurement>
 
   constructor() {
     super('KasratDB')
 
-    // v1 — original schema (never change this block)
+    // v1 — original schema
     this.version(1).stores({
       gym_sets: '++id, name, created, cardio, planId',
       plans: '++id, sequence, title',
@@ -86,11 +100,7 @@ export class KasratDB extends Dexie {
       settings: '++id',
     })
 
-    // v2 — adds primaryMuscle / secondaryMuscle to gym_sets.
-    // Dexie only needs store() changes when adding *indexed* columns.
-    // These two are plain data fields (not indexed), so the stores
-    // definition is identical — we just need the upgrade callback to
-    // back-fill existing rows.
+    // v2 — back-fills primaryMuscle / secondaryMuscle on gym_sets
     this.version(2)
       .stores({
         gym_sets: '++id, name, created, cardio, planId',
@@ -99,14 +109,20 @@ export class KasratDB extends Dexie {
         settings: '++id',
       })
       .upgrade(tx =>
-        tx
-          .table('gym_sets')
-          .toCollection()
-          .modify(row => {
-            if (row.primaryMuscle === undefined) row.primaryMuscle = 'Other'
-            if (row.secondaryMuscle === undefined) row.secondaryMuscle = null
-          })
+        tx.table('gym_sets').toCollection().modify(row => {
+          if (row.primaryMuscle === undefined) row.primaryMuscle = 'Other'
+          if (row.secondaryMuscle === undefined) row.secondaryMuscle = null
+        })
       )
+
+    // v3 — adds body_measurements table
+    this.version(3).stores({
+      gym_sets: '++id, name, created, cardio, planId',
+      plans: '++id, sequence, title',
+      plan_exercises: '++id, planId, exercise',
+      settings: '++id',
+      body_measurements: '++id, created',
+    })
   }
 }
 

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, ChevronRight } from 'lucide-react'
+import { Play, ChevronRight, Dumbbell } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { db, type Plan, type GymSet } from '../db/database'
 import { format } from '../utils/dateUtils'
+import { useWorkoutStore } from '../store/workoutStore'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -135,12 +136,14 @@ function SessionCard({ session, onTap }: SessionCardProps) {
 
 export default function HomePage() {
   const navigate = useNavigate()
+  const { activePlanId, activePlanTitle } = useWorkoutStore()
   const [todayPlan, setTodayPlan] = useState<Plan | null>(null)
   const [planExercises, setPlanExercises] = useState<string[]>([])
   const [weekSets, setWeekSets] = useState(0)
   const [weekExercises, setWeekExercises] = useState(0)
   const [mostUsed, setMostUsed] = useState('')
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
+  const [showConflictDialog, setShowConflictDialog] = useState(false)
 
   const today = new Date()
   const dayOfWeek = today.getDay()
@@ -194,6 +197,14 @@ export default function HomePage() {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   const dateStr = `${dayNames[today.getDay()]}, ${today.getDate()} ${monthNames[today.getMonth()]}`
 
+  function handleStartPlan() {
+    if (activePlanId && activePlanId !== todayPlan?.id) {
+      setShowConflictDialog(true)
+    } else {
+      navigate(`/start-plan/${todayPlan!.id}`)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-black pb-24 pt-14">
       <TopBar />
@@ -202,6 +213,25 @@ export default function HomePage() {
           <p className="text-[13px] font-medium text-[#c6c6cb]">{dateStr}</p>
           <h1 className="text-[32px] font-bold leading-10 tracking-tight text-white mt-1">Ready to lift?</h1>
         </div>
+
+        {/* Resume banner */}
+        {activePlanId && (
+          <section className="bg-[#3B82F6]/10 border border-[#3B82F6]/40 rounded-[8px] p-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Dumbbell size={20} className="text-[#3B82F6] shrink-0" />
+              <div>
+                <p className="text-[15px] font-semibold text-white">Unfinished workout</p>
+                <p className="text-[13px] text-[#c6c6cb]">{activePlanTitle}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate(`/start-plan/${activePlanId}`)}
+              className="text-[#3B82F6] font-semibold text-[13px] shrink-0"
+            >
+              Resume →
+            </button>
+          </section>
+        )}
 
         {/* Today's plan card */}
         {todayPlan ? (
@@ -227,7 +257,7 @@ export default function HomePage() {
               ))}
             </div>
             <button
-              onClick={() => navigate(`/start-plan/${todayPlan.id}`)}
+              onClick={handleStartPlan}
               className="w-full bg-[#3B82F6] text-white font-semibold h-12 rounded-[12px] mt-2 flex items-center justify-center gap-2 z-10"
             >
               <Play size={18} fill="white" />
@@ -280,18 +310,56 @@ export default function HomePage() {
                 <SessionCard
                   key={session.key}
                   session={session}
-                  onTap={() =>
-                    // Navigate to history; if it was a plan session, the user
-                    // can search by plan name there. Deep-linking with a filter
-                    // query param is a future enhancement.
-                    navigate('/history')
-                  }
+                  onTap={() => navigate('/history')}
                 />
               ))}
             </div>
           </section>
         )}
+
+        {/* Quick links */}
+        <section className="grid grid-cols-2 gap-3 pb-4">
+          <button
+            onClick={() => navigate('/body-measurements')}
+            className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+          >
+            <span className="text-2xl">📏</span>
+            <span className="text-[15px] font-medium text-white">Body Stats</span>
+          </button>
+          <button
+            onClick={() => navigate('/stats')}
+            className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+          >
+            <span className="text-2xl">🕸️</span>
+            <span className="text-[15px] font-medium text-white">Weekly Stats</span>
+          </button>
+        </section>
       </main>
+
+      {/* Concurrent session conflict dialog */}
+      {showConflictDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-[#1C1C1E] rounded-[12px] border border-[#2C2C2E] p-6 flex flex-col gap-4">
+            <h3 className="text-[22px] font-semibold text-white">Workout in Progress</h3>
+            <p className="text-[15px] text-[#c6c6cb]">
+              <span className="text-white font-medium">{activePlanTitle}</span> is still active.
+              Finish it before starting a new one.
+            </p>
+            <button
+              onClick={() => { setShowConflictDialog(false); navigate(`/start-plan/${activePlanId}`) }}
+              className="w-full h-12 bg-[#3B82F6] text-white rounded-xl font-semibold text-[15px]"
+            >
+              Go to Current Session
+            </button>
+            <button
+              onClick={() => setShowConflictDialog(false)}
+              className="w-full h-12 border border-[#2C2C2E] text-white rounded-xl font-semibold text-[15px]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
