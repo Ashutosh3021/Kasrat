@@ -16,14 +16,16 @@ A minimalist, offline-first fitness tracker PWA built with React, TypeScript, an
 ## Tech Stack
 
 - **React 19** + **TypeScript 6**
-- **Vite 8** — Lightning-fast dev server and build tool
+- **Vite 7** — Lightning-fast dev server and build tool
 - **Tailwind CSS 4** — Utility-first styling with custom theme
 - **React Router 7** — Hash-based routing for GitHub Pages
 - **Zustand 5** — Lightweight state management
 - **Dexie.js 4** — IndexedDB wrapper for offline data
 - **Recharts 3** — Composable charting library
 - **Lucide React** — Beautiful icon set
-- **vite-plugin-pwa** — Service worker generation
+- **vite-plugin-pwa 1.2** — Service worker generation
+
+> **Note:** This project uses Vite 7 (not Vite 8) because `vite-plugin-pwa@1.2.0` does not yet support Vite 8. See [issue #923](https://github.com/vite-pwa/vite-plugin-pwa/issues/923) for tracking Vite 8 support.
 
 ## Project Structure
 
