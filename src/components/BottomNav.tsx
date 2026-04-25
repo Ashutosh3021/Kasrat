@@ -26,13 +26,14 @@ export default function BottomNav() {
           <button
             key={tab.key}
             onClick={() => navigate(tab.path)}
-            className={`flex flex-col items-center justify-center w-16 h-full rounded-lg transition-all duration-200 ${isActive ? 'text-[#3B82F6] scale-95' : 'text-zinc-500 hover:bg-zinc-900/50'}`}
+            className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${isActive ? 'text-[#3B82F6]' : 'text-[#A1A1A6]'}`}
           >
-            <Icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
-            <span className="text-[10px] font-medium tracking-tight mt-1">{tab.label}</span>
+            <Icon size={20} strokeWidth={1.5} />
+            <span className="text-[10px] font-medium mt-1">{tab.label}</span>
           </button>
         )
       })}
     </nav>
   )
 }
+

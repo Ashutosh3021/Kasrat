@@ -40,7 +40,7 @@ export default function TimerPage() {
             />
           </svg>
           <div className="z-10 flex flex-col items-center">
-            <span className="text-[72px] font-bold leading-none tracking-tighter text-white tabular-nums">
+            <span className="text-[72px] font-semibold leading-none tracking-tighter text-white tabular-nums">
               {formatSeconds(remaining)}
             </span>
             <span className="text-[13px] font-medium text-[#A1A1A6] mt-2 uppercase tracking-widest">remaining</span>
@@ -53,7 +53,7 @@ export default function TimerPage() {
               onClick={stop}
               className="w-16 h-16 rounded-full bg-[#FF3B30] flex items-center justify-center active:scale-90 transition-transform"
             >
-              <Square size={28} fill="white" className="text-white" />
+              <Square size={28} strokeWidth={1.5} fill="white" className="text-white" />
             </button>
             <span className="text-[13px] font-medium text-[#A1A1A6]">Stop</span>
           </div>
@@ -64,8 +64,8 @@ export default function TimerPage() {
               className="w-20 h-20 rounded-full bg-[#3B82F6] flex items-center justify-center active:scale-90 transition-transform shadow-[0_0_24px_rgba(59,130,246,0.3)]"
             >
               {running
-                ? <Pause size={36} fill="white" className="text-white" />
-                : <Play size={36} fill="white" className="text-white" />
+                ? <Pause size={36} strokeWidth={1.5} fill="white" className="text-white" />
+                : <Play size={36} strokeWidth={1.5} fill="white" className="text-white" />
               }
             </button>
             <span className="text-[13px] font-medium text-white">{running ? 'Pause' : 'Start'}</span>
@@ -76,7 +76,7 @@ export default function TimerPage() {
               onClick={addMinute}
               className="w-16 h-16 rounded-full border-2 border-[#3B82F6] flex items-center justify-center active:scale-90 transition-transform bg-transparent"
             >
-              <span className="text-[15px] font-semibold text-[#3B82F6]">+1</span>
+              <span className="text-[15px] font-medium text-[#3B82F6]">+1</span>
             </button>
             <span className="text-[13px] font-medium text-[#A1A1A6]">+1 min</span>
           </div>

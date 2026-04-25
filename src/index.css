@@ -14,14 +14,14 @@
   --color-on-background: #e4e2e4;
   --color-on-surface: #e4e2e4;
   --color-on-surface-variant: #c2c6d6;
-  --color-primary: #adc6ff;
-  --color-primary-container: #4d8eff;
-  --color-primary-fixed: #d8e2ff;
-  --color-primary-fixed-dim: #adc6ff;
-  --color-on-primary: #002e6a;
-  --color-on-primary-container: #00285d;
-  --color-on-primary-fixed: #001a42;
-  --color-on-primary-fixed-variant: #004395;
+  --color-primary: #3B82F6;
+  --color-primary-container: #3B82F6;
+  --color-primary-fixed: #3B82F6;
+  --color-primary-fixed-dim: #3B82F6;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #ffffff;
+  --color-on-primary-fixed: #ffffff;
+  --color-on-primary-fixed-variant: #ffffff;
   --color-secondary: #c6c6cb;
   --color-secondary-container: #48494d;
   --color-secondary-fixed: #e3e2e7;
@@ -47,7 +47,7 @@
   --color-inverse-surface: #e4e2e4;
   --color-inverse-on-surface: #303032;
   --color-inverse-primary: #005ac2;
-  --color-surface-tint: #adc6ff;
+  --color-surface-tint: #3B82F6;
   --color-brand-blue: #3B82F6;
   --color-divider-gray: #2C2C2E;
 
@@ -64,8 +64,8 @@
   --font-size-display: 32px;
   --line-height-display: 40px;
 
-  --radius-card: 8px;
-  --radius-btn: 12px;
+  --radius-card: 4px;
+  --radius-btn: 2px;
 }
 
 * {
@@ -77,6 +77,7 @@ html, body {
   background-color: #000000;
   color: #e4e2e4;
   font-family: 'Inter', sans-serif;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
@@ -99,3 +100,4 @@ html, body {
   to { transform: translateY(0); }
 }
 .animate-slideUp { animation: slideUp 0.3s ease-out; }
+

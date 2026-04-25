@@ -42,6 +42,7 @@ export interface PlanExercise {
   sortOrder?: number
   setType?: SetType
   supersetGroup?: string
+  supersetColor?: string
 }
 
 export interface ExerciseMeta {
@@ -71,6 +72,13 @@ export interface DailyNutrition {
   fats?: number       // grams
   water?: number      // litres
   notes?: string
+}
+
+export interface ExercisePreset {
+  name: string
+  primaryMuscle: string
+  secondaryMuscle: string | null
+  type: 'strength'
 }
 
 export interface Settings {
@@ -116,6 +124,7 @@ export class KasratDB extends Dexie {
   body_measurements!: Table<BodyMeasurement>
   exercise_meta!: Table<ExerciseMeta>
   daily_nutrition!: Table<DailyNutrition>
+  exercise_presets!: Table<ExercisePreset>
 
   constructor() {
     super('KasratDB')
@@ -167,6 +176,30 @@ export class KasratDB extends Dexie {
       body_measurements: '++id, created',
       exercise_meta: '&name',
       daily_nutrition: '&date',   // date is the primary key
+    })
+
+    // v6 – adds exercise_presets table for pre-seeded exercise library
+    this.version(6).stores({
+      gym_sets: '++id, name, created, cardio, planId',
+      plans: '++id, sequence, title',
+      plan_exercises: '++id, planId, exercise',
+      settings: '++id',
+      body_measurements: '++id, created',
+      exercise_meta: '&name',
+      daily_nutrition: '&date',
+      exercise_presets: '&name',  // name is the primary key
+    })
+
+    // v7 – adds supersetColor to plan_exercises for visual grouping
+    this.version(7).stores({
+      gym_sets: '++id, name, created, cardio, planId',
+      plans: '++id, sequence, title',
+      plan_exercises: '++id, planId, exercise',
+      settings: '++id',
+      body_measurements: '++id, created',
+      exercise_meta: '&name',
+      daily_nutrition: '&date',
+      exercise_presets: '&name',
     })
   }
 }

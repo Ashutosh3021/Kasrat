@@ -230,11 +230,12 @@ export default function GraphsPage() {
 
         {/* Search */}
         <div className="relative w-full">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+          <Search size={18} strokeWidth={1.5} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full h-12 bg-[#1C1C1E] border border-white/20 rounded-lg pl-12 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-[#3B82F6] text-[17px]"
+            className="w-full h-12 bg-[#1C1C1E] border border-white/20 pl-12 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-[#3B82F6] text-[17px]"
+            style={{ borderRadius: '2px' }}
             placeholder="Search exercises..."
           />
         </div>
@@ -245,11 +246,12 @@ export default function GraphsPage() {
             <button
               key={s}
               onClick={() => setSort(s)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full font-semibold text-[15px] transition-colors ${
+              className={`whitespace-nowrap px-4 py-2 font-medium text-[15px] transition-colors ${
                 sort === s
                   ? 'bg-[#3B82F6]/10 border border-[#3B82F6] text-[#3B82F6]'
                   : 'bg-[#1C1C1E] border border-[#2C2C2E] text-zinc-400'
               }`}
+              style={{ borderRadius: '2px' }}
             >
               {SORT_LABELS[s]}
             </button>
@@ -268,35 +270,36 @@ export default function GraphsPage() {
           ) : (
             <div className="flex flex-col">
               {filtered.map((ex, i) => (
-                <button
-                  key={ex.name}
-                  onClick={() => navigate(
-                    ex.cardio
-                      ? `/cardio-graph/${encodeURIComponent(ex.name)}`
-                      : `/graphs/${encodeURIComponent(ex.name)}`
-                  )}
-                  className={`flex items-center justify-between py-4 hover:bg-zinc-900/30 transition-colors px-2 -mx-2 rounded-lg group ${
-                    i < filtered.length - 1 ? 'border-b border-[#2C2C2E]' : ''
-                  }`}
-                >
-                  {/* Left: name + muscle chip */}
-                  <div className="flex flex-col gap-1 text-left">
-                    <span className="text-[17px] text-white font-medium group-hover:text-[#3B82F6] transition-colors">
-                      {ex.name}
-                    </span>
-                    <span className="inline-block px-2 py-0.5 bg-[#2C2C2E] text-white rounded-full text-[11px] w-fit">
-                      {ex.primaryMuscle}
-                    </span>
-                  </div>
+                  <button
+                    key={ex.name}
+                    onClick={() => navigate(
+                      ex.cardio
+                        ? `/cardio-graph/${encodeURIComponent(ex.name)}`
+                        : `/graphs/${encodeURIComponent(ex.name)}`
+                    )}
+                    className={`flex items-center justify-between py-4 hover:bg-zinc-900/30 transition-colors px-2 -mx-2 group ${
+                      i < filtered.length - 1 ? 'border-b border-[#2C2C2E]' : ''
+                    }`}
+                    style={{ borderRadius: '4px' }}
+                  >
+                    {/* Left: name + muscle chip */}
+                    <div className="flex flex-col gap-1 text-left">
+                      <span className="text-[17px] text-white font-normal group-hover:text-[#3B82F6] transition-colors">
+                        {ex.name}
+                      </span>
+                      <span className="inline-block px-2 py-0.5 bg-[#2C2C2E] text-white text-[11px] w-fit" style={{ borderRadius: '2px' }}>
+                        {ex.primaryMuscle}
+                      </span>
+                    </div>
 
-                  {/* Right: sparkline + trailing label */}
-                  <div className="flex items-center gap-4">
-                    <Sparkline values={ex.bestPerDay} color="#3B82F6" />
-                    <span className="text-[13px] font-medium text-zinc-500 w-20 text-right">
-                      {timeAgo(ex.lastUsed)}
-                    </span>
-                  </div>
-                </button>
+                    {/* Right: sparkline + trailing label */}
+                    <div className="flex items-center gap-4">
+                      <Sparkline values={ex.bestPerDay} color="#3B82F6" />
+                      <span className="text-[13px] font-medium text-zinc-500 w-20 text-right">
+                        {timeAgo(ex.lastUsed)}
+                      </span>
+                    </div>
+                  </button>
               ))}
             </div>
           )
@@ -305,16 +308,18 @@ export default function GraphsPage() {
 
       <button
         onClick={() => navigate('/add-exercise')}
-        className="fixed bottom-20 right-6 w-14 h-14 bg-[#3B82F6] rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95 transition-transform z-40"
+        className="fixed bottom-20 right-6 w-14 h-14 bg-[#3B82F6] flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95 transition-transform z-40"
+        style={{ borderRadius: '2px' }}
       >
-        <Plus size={24} className="text-white" />
+        <Plus size={24} strokeWidth={1.5} className="text-white" />
       </button>
 
       <button
         onClick={openGraphsFilter}
-        className="fixed bottom-20 right-24 w-12 h-12 bg-[#1C1C1E] border border-[#2C2C2E] rounded-full flex items-center justify-center active:scale-95 transition-transform z-40"
+        className="fixed bottom-20 right-24 w-12 h-12 bg-[#1C1C1E] border border-[#2C2C2E] flex items-center justify-center active:scale-95 transition-transform z-40"
+        style={{ borderRadius: '2px' }}
       >
-        <SlidersHorizontal size={20} className="text-zinc-400" />
+        <SlidersHorizontal size={20} strokeWidth={1.5} className="text-zinc-400" />
       </button>
 
       {graphsFilterOpen && <GraphsFilter onClose={closeGraphsFilter} />}

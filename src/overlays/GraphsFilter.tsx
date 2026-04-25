@@ -16,18 +16,18 @@ export default function GraphsFilter({ onClose }: Props) {
         onClick={e => e.stopPropagation()}
       >
         <div className="w-12 h-1 bg-[#2C2C2E] rounded-full mx-auto my-3" />
-        <div className="px-4 pb-4 flex justify-center border-b border-[#2C2C2E]">
+        <div className="px-3 pb-3 flex justify-center border-b border-[#2C2C2E]">
           <h2 className="text-[22px] font-semibold text-white">Filter Graphs</h2>
         </div>
-        <div className="flex-grow overflow-y-auto px-4 py-4 space-y-6">
+        <div className="flex-grow overflow-y-auto px-3 py-3 space-y-6">
           <section>
-            <div className="flex overflow-x-auto gap-3 pb-2">
+            <div className="flex overflow-x-auto gap-2 pb-2">
               {CATEGORIES.map(c => (
                 <button
                   key={c}
                   onClick={() => setSelected(c)}
-                  className={`shrink-0 px-5 py-2 rounded-full font-semibold text-[15px] transition-colors ${
-                    selected === c ? 'bg-[#4d8eff] text-[#00285d] ring-1 ring-[#adc6ff]/30' : 'bg-[#2C2C2E] text-white'
+                  className={`shrink-0 px-3 py-2 rounded-[2px] font-semibold text-[15px] transition-colors ${
+                    selected === c ? 'bg-[#3B82F6] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'
                   }`}
                 >
                   {c}
@@ -40,10 +40,10 @@ export default function GraphsFilter({ onClose }: Props) {
             <Toggle checked={includeCardio} onChange={setIncludeCardio} />
           </section>
         </div>
-        <div className="p-4 bg-[#1C1C1E] border-t border-[#2C2C2E]">
+        <div className="p-3 bg-[#1C1C1E] border-t border-[#2C2C2E]">
           <button
             onClick={onClose}
-            className="w-full h-12 bg-[#4d8eff] text-[#00285d] font-semibold text-[15px] rounded-xl active:scale-[0.98] transition-transform"
+            className="w-full h-12 bg-[#3B82F6] text-white font-semibold text-[15px] rounded-[2px] active:scale-[0.98] transition-transform"
           >
             Apply
           </button>

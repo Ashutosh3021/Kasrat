@@ -92,7 +92,8 @@ function SessionCard({ session, onTap }: SessionCardProps) {
   return (
     <button
       onClick={onTap}
-      className="w-full bg-[#1C1C1E] rounded-[8px] border border-[#2C2C2E] p-3 flex flex-col gap-3 text-left active:scale-[0.98] transition-transform hover:border-[#3B82F6]/40"
+      className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-3 text-left active:scale-[0.98] transition-transform hover:border-[#3B82F6]/40"
+      style={{ borderRadius: '4px' }}
     >
       {/* Header row */}
       <div className="flex items-center justify-between">
@@ -100,7 +101,7 @@ function SessionCard({ session, onTap }: SessionCardProps) {
           <span className="text-[17px] font-semibold text-white leading-tight">
             {session.planTitle}
           </span>
-          <span className="text-[13px] font-medium text-[#c6c6cb]">
+          <span className="text-[13px] font-medium text-[#A1A1A6]">
             {format(session.latestCreated)}
           </span>
         </div>
@@ -111,19 +112,14 @@ function SessionCard({ session, onTap }: SessionCardProps) {
       <div className="flex flex-col gap-1.5">
         {visible.map(ex => (
           <div key={ex.name} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-base leading-none">
-                {ex.cardio ? '🏃' : '🏋️'}
-              </span>
-              <span className="text-[15px] text-[#e4e2e4]">{ex.name}</span>
-            </div>
-            <span className="text-[13px] font-medium text-[#c6c6cb]">
+            <span className="text-[15px] text-[#e4e2e4]">{ex.name}</span>
+            <span className="text-[13px] font-medium text-[#A1A1A6]">
               {ex.sets} {ex.sets === 1 ? 'set' : 'sets'}
             </span>
           </div>
         ))}
         {extra > 0 && (
-          <span className="text-[13px] font-medium text-[#8c909f]">
+          <span className="text-[13px] font-medium text-[#A1A1A6]">
             +{extra} more exercise{extra > 1 ? 's' : ''}
           </span>
         )}
@@ -210,36 +206,35 @@ export default function HomePage() {
       <TopBar />
       <main className="px-4 space-y-8 max-w-2xl mx-auto">
         <div className="pt-4">
-          <p className="text-[13px] font-medium text-[#c6c6cb]">{dateStr}</p>
-          <h1 className="text-[32px] font-bold leading-10 tracking-tight text-white mt-1">Ready to lift?</h1>
+          <p className="text-[13px] font-medium text-[#A1A1A6]">{dateStr}</p>
+          <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white mt-1">Ready to lift?</h1>
         </div>
 
         {/* Resume banner */}
         {activePlanId && (
-          <section className="bg-[#3B82F6]/10 border border-[#3B82F6]/40 rounded-[8px] p-3 flex items-center justify-between">
+          <section className="bg-[#3B82F6]/10 border border-[#3B82F6]/40 p-3 flex items-center justify-between" style={{ borderRadius: '4px' }}>
             <div className="flex items-center gap-3">
-              <Dumbbell size={20} className="text-[#3B82F6] shrink-0" />
+              <Dumbbell size={20} strokeWidth={1.5} className="text-[#3B82F6] shrink-0" />
               <div>
-                <p className="text-[15px] font-semibold text-white">Unfinished workout</p>
-                <p className="text-[13px] text-[#c6c6cb]">{activePlanTitle}</p>
+                <p className="text-[15px] font-medium text-white">Unfinished workout</p>
+                <p className="text-[13px] text-[#A1A1A6]">{activePlanTitle}</p>
               </div>
             </div>
             <button
               onClick={() => navigate(`/start-plan/${activePlanId}`)}
-              className="text-[#3B82F6] font-semibold text-[13px] shrink-0"
+              className="text-[#3B82F6] font-medium text-[13px] shrink-0"
             >
-              Resume →
+              Resume
             </button>
           </section>
         )}
 
         {/* Today's plan card */}
         {todayPlan ? (
-          <section className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex flex-col gap-4 relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#3B82F6]/10 rounded-full blur-2xl" />
+          <section className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-4 relative overflow-hidden" style={{ borderRadius: '4px' }}>
             <div className="flex justify-between items-center z-10">
-              <h2 className="text-[22px] font-semibold leading-7 text-white">{todayPlan.title}</h2>
-              <div className="bg-[#2C2C2E] rounded-full px-3 py-1">
+              <h2 className="text-[22px] font-medium leading-7 text-white">{todayPlan.title}</h2>
+              <div className="bg-[#2C2C2E] px-3 py-1" style={{ borderRadius: '2px' }}>
                 <span className="text-[13px] font-medium text-white">Strength</span>
               </div>
             </div>
@@ -248,48 +243,49 @@ export default function HomePage() {
                 <div key={i}>
                   <div className="flex justify-between items-center mb-1.5">
                     <span className="text-[15px] text-white">{ex}</span>
-                    <span className="text-[13px] font-medium text-[#c6c6cb]">0/3 sets</span>
+                    <span className="text-[13px] font-medium text-[#A1A1A6]">0/3 sets</span>
                   </div>
-                  <div className="h-1.5 bg-[#2C2C2E] rounded-full w-full overflow-hidden">
-                    <div className="h-full bg-[#3B82F6] w-0 rounded-full" />
+                  <div className="h-1.5 bg-[#2C2C2E] w-full overflow-hidden" style={{ borderRadius: '2px' }}>
+                    <div className="h-full bg-[#3B82F6] w-0" style={{ borderRadius: '2px' }} />
                   </div>
                 </div>
               ))}
             </div>
             <button
               onClick={handleStartPlan}
-              className="w-full bg-[#3B82F6] text-white font-semibold h-12 rounded-[12px] mt-2 flex items-center justify-center gap-2 z-10"
+              className="w-full bg-[#3B82F6] text-white font-medium h-12 mt-2 flex items-center justify-center gap-2 z-10"
+              style={{ borderRadius: '2px' }}
             >
-              <Play size={18} fill="white" />
+              <Play size={18} strokeWidth={1.5} fill="white" />
               Start Workout
             </button>
           </section>
         ) : (
-          <section className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] text-center py-8">
-            <p className="text-[#c6c6cb] text-[15px]">No plan scheduled for today</p>
-            <button onClick={() => navigate('/plans')} className="mt-3 text-[#3B82F6] font-semibold text-[15px]">View Plans →</button>
+          <section className="bg-[#1C1C1E] border border-[#2C2C2E] text-center py-8" style={{ borderRadius: '4px' }}>
+            <p className="text-[#A1A1A6] text-[15px]">No plan scheduled for today</p>
+            <button onClick={() => navigate('/plans')} className="mt-3 text-[#3B82F6] font-medium text-[15px]">View Plans</button>
           </section>
         )}
 
         {/* Weekly stats */}
         <section className="grid grid-cols-2 gap-3">
-          <div className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex flex-col justify-between min-h-[100px]">
-            <span className="text-[13px] font-medium text-[#c6c6cb]">This Week</span>
+          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col justify-between min-h-[100px]" style={{ borderRadius: '4px' }}>
+            <span className="text-[13px] font-medium text-[#A1A1A6]">This Week</span>
             <div className="flex items-end gap-2">
-              <span className="text-[32px] font-bold leading-none text-white">{weekExercises}</span>
-              <span className="text-[13px] font-medium text-[#c6c6cb] mb-1">Exercises</span>
+              <span className="text-[32px] font-semibold leading-none text-white">{weekExercises}</span>
+              <span className="text-[13px] font-medium text-[#A1A1A6] mb-1">Exercises</span>
             </div>
           </div>
-          <div className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex flex-col justify-between min-h-[100px]">
-            <span className="text-[13px] font-medium text-[#c6c6cb]">This Week</span>
+          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col justify-between min-h-[100px]" style={{ borderRadius: '4px' }}>
+            <span className="text-[13px] font-medium text-[#A1A1A6]">This Week</span>
             <div className="flex items-end gap-2">
-              <span className="text-[32px] font-bold leading-none text-white">{weekSets}</span>
-              <span className="text-[13px] font-medium text-[#c6c6cb] mb-1">Sets</span>
+              <span className="text-[32px] font-semibold leading-none text-white">{weekSets}</span>
+              <span className="text-[13px] font-medium text-[#A1A1A6] mb-1">Sets</span>
             </div>
           </div>
-          <div className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex flex-col justify-between col-span-2 relative overflow-hidden min-h-[80px]">
-            <span className="text-[13px] font-medium text-[#c6c6cb] z-10">Most Used</span>
-            <span className="text-[22px] font-semibold text-white mt-1 z-10">{mostUsed}</span>
+          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col justify-between col-span-2 relative overflow-hidden min-h-[80px]" style={{ borderRadius: '4px' }}>
+            <span className="text-[13px] font-medium text-[#A1A1A6] z-10">Most Used</span>
+            <span className="text-[22px] font-medium text-white mt-1 z-10">{mostUsed}</span>
           </div>
         </section>
 
@@ -297,7 +293,7 @@ export default function HomePage() {
         {sessions.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[22px] font-semibold text-white">Recent Activity</h3>
+              <h3 className="text-[22px] font-medium text-white">Recent Activity</h3>
               <button
                 onClick={() => navigate('/history')}
                 className="text-[13px] font-medium text-[#3B82F6]"
@@ -321,30 +317,30 @@ export default function HomePage() {
         <section className="grid grid-cols-2 gap-3 pb-4">
           <button
             onClick={() => navigate('/body-measurements')}
-            className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+            style={{ borderRadius: '4px' }}
           >
-            <span className="text-2xl">📏</span>
             <span className="text-[15px] font-medium text-white">Body Stats</span>
           </button>
           <button
             onClick={() => navigate('/stats')}
-            className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+            style={{ borderRadius: '4px' }}
           >
-            <span className="text-2xl">🕸️</span>
             <span className="text-[15px] font-medium text-white">Weekly Stats</span>
           </button>
           <button
             onClick={() => navigate('/calendar')}
-            className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+            style={{ borderRadius: '4px' }}
           >
-            <span className="text-2xl">📅</span>
             <span className="text-[15px] font-medium text-white">Calendar</span>
           </button>
           <button
             onClick={() => navigate('/nutrition')}
-            className="bg-[#1C1C1E] rounded-[8px] p-3 border border-[#2C2C2E] flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#3B82F6]/40 transition-colors"
+            style={{ borderRadius: '4px' }}
           >
-            <span className="text-2xl">🥗</span>
             <span className="text-[15px] font-medium text-white">Nutrition</span>
           </button>
         </section>
@@ -353,21 +349,23 @@ export default function HomePage() {
       {/* Concurrent session conflict dialog */}
       {showConflictDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-[#1C1C1E] rounded-[12px] border border-[#2C2C2E] p-6 flex flex-col gap-4">
-            <h3 className="text-[22px] font-semibold text-white">Workout in Progress</h3>
-            <p className="text-[15px] text-[#c6c6cb]">
+          <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
+            <h3 className="text-[22px] font-medium text-white">Workout in Progress</h3>
+            <p className="text-[15px] text-[#A1A1A6]">
               <span className="text-white font-medium">{activePlanTitle}</span> is still active.
               Finish it before starting a new one.
             </p>
             <button
               onClick={() => { setShowConflictDialog(false); navigate(`/start-plan/${activePlanId}`) }}
-              className="w-full h-12 bg-[#3B82F6] text-white rounded-xl font-semibold text-[15px]"
+              className="w-full h-12 bg-[#3B82F6] text-white font-medium text-[15px]"
+              style={{ borderRadius: '2px' }}
             >
               Go to Current Session
             </button>
             <button
               onClick={() => setShowConflictDialog(false)}
-              className="w-full h-12 border border-[#2C2C2E] text-white rounded-xl font-semibold text-[15px]"
+              className="w-full h-12 border border-[#2C2C2E] text-white font-medium text-[15px]"
+              style={{ borderRadius: '2px' }}
             >
               Cancel
             </button>

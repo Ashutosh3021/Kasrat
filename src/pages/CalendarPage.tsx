@@ -57,7 +57,7 @@ function DaySheet({ date, sets, onClose, onViewAll }: DaySheetProps) {
   return (
     <div className="fixed inset-0 bg-black/70 z-[80] flex flex-col justify-end animate-fadeIn" onClick={onClose}>
       <div
-        className="bg-[#1C1C1E] rounded-t-2xl border-t border-[#2C2C2E] p-4 flex flex-col gap-4 animate-slideUp max-h-[70dvh] overflow-y-auto"
+        className="bg-[#1C1C1E] rounded-t-[4px] border-t border-[#2C2C2E] p-3 flex flex-col gap-3 animate-slideUp max-h-[70dvh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="w-12 h-1 bg-[#353437] rounded-full mx-auto" />
@@ -67,7 +67,7 @@ function DaySheet({ date, sets, onClose, onViewAll }: DaySheetProps) {
             <p className="text-[13px] text-[#A1A1A6]">{sets.length} sets · {Math.round(totalVol).toLocaleString()} kg volume</p>
           </div>
           <button onClick={onClose} className="p-2 text-[#A1A1A6] hover:text-white">
-            <X size={20} />
+            <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
@@ -76,7 +76,7 @@ function DaySheet({ date, sets, onClose, onViewAll }: DaySheetProps) {
         ) : (
           <div className="flex flex-col gap-2">
             {exercises.map(([name, count]) => (
-              <div key={name} className="flex items-center justify-between bg-[#131315] rounded-lg px-3 py-2.5">
+              <div key={name} className="flex items-center justify-between bg-[#131315] rounded-[4px] px-3 py-2">
                 <span className="text-[15px] text-white">{name}</span>
                 <span className="text-[13px] font-medium text-[#A1A1A6]">{count} {count === 1 ? 'set' : 'sets'}</span>
               </div>
@@ -87,7 +87,7 @@ function DaySheet({ date, sets, onClose, onViewAll }: DaySheetProps) {
         {exercises.length > 0 && (
           <button
             onClick={onViewAll}
-            className="w-full h-11 bg-[#3B82F6] text-white rounded-xl font-semibold text-[15px]"
+            className="w-full h-11 bg-[#3B82F6] text-white rounded-[2px] font-semibold text-[15px]"
           >
             View in History
           </button>
@@ -164,9 +164,9 @@ export default function CalendarPage() {
   return (
     <div className="min-h-screen bg-black pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-4 h-14">
+      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
-          <ArrowLeft size={22} />
+          <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
         <h1 className="text-[22px] font-semibold text-white absolute left-1/2 -translate-x-1/2">
           Workout Calendar
@@ -174,15 +174,15 @@ export default function CalendarPage() {
         <div className="w-10" />
       </header>
 
-      <main className="px-4 pt-4 max-w-lg mx-auto flex flex-col gap-6">
+      <main className="px-3 pt-3 max-w-lg mx-auto flex flex-col gap-6">
 
         {/* Month navigator */}
         <div className="flex items-center justify-between">
           <button onClick={prevMonth} className="p-2 text-[#3B82F6] hover:opacity-80">
-            <ChevronLeft size={22} />
+            <ChevronLeft size={22} strokeWidth={1.5} />
           </button>
           <div className="flex items-center gap-3">
-            <span className="text-[22px] font-bold text-white">
+            <span className="text-[22px] font-semibold text-white">
               {MONTH_NAMES[month]} {year}
             </span>
             {/* Heat-map legend */}
@@ -200,7 +200,7 @@ export default function CalendarPage() {
             disabled={year === today.getFullYear() && month === today.getMonth()}
             className="p-2 text-[#3B82F6] disabled:opacity-30"
           >
-            <ChevronRight size={22} />
+            <ChevronRight size={22} strokeWidth={1.5} />
           </button>
         </div>
 
@@ -228,7 +228,7 @@ export default function CalendarPage() {
                 onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                 style={{ backgroundColor: bg }}
                 className={`
-                  aspect-square rounded-lg flex items-center justify-center text-[13px] font-semibold
+                  aspect-square rounded-[4px] flex items-center justify-center text-[13px] font-semibold
                   transition-all active:scale-90 min-h-[44px]
                   ${isToday ? 'ring-2 ring-[#3B82F6] ring-offset-1 ring-offset-black' : ''}
                   ${isSelected ? 'ring-2 ring-white ring-offset-1 ring-offset-black' : ''}
@@ -259,7 +259,7 @@ export default function CalendarPage() {
                       setMonth(date.getMonth())
                       setSelectedDate(d)
                     }}
-                    className="shrink-0 bg-[#1C1C1E] border border-[#2C2C2E] rounded-xl px-3 py-2 flex flex-col items-center gap-0.5 hover:border-[#3B82F6]/50 transition-colors"
+                    className="shrink-0 bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 flex flex-col items-center gap-0.5 hover:border-[#3B82F6]/50 transition-colors"
                   >
                     <span className="text-[13px] font-semibold text-white">{label}</span>
                     <span className="text-[11px] text-[#A1A1A6]">{exCount} ex</span>

@@ -16,22 +16,22 @@ export default function TimerSettingsPage() {
 
   return (
     <div className="min-h-screen bg-black pb-8">
-      <header className="fixed top-0 left-0 w-full z-50 bg-black border-b border-neutral-900 flex items-center justify-between h-14 px-4">
+      <header className="fixed top-0 left-0 w-full z-50 bg-black border-b border-neutral-900 flex items-center justify-between h-14 px-3">
         <button onClick={() => navigate(-1)} className="text-zinc-500 hover:text-[#3B82F6] p-2 -ml-2">
-          <ArrowLeft size={24} />
+          <ArrowLeft size={24} strokeWidth={1.5} />
         </button>
         <span className="text-xl font-black italic tracking-tighter text-[#3B82F6] absolute left-1/2 -translate-x-1/2">KASRAT</span>
         <div className="w-8" />
       </header>
 
-      <main className="pt-24 px-4 pb-12 max-w-[390px] mx-auto flex flex-col gap-8 w-full">
-        <h1 className="text-[32px] font-bold leading-10 tracking-tight text-white">Timer Settings</h1>
+      <main className="pt-24 px-3 pb-12 max-w-[390px] mx-auto flex flex-col gap-8 w-full">
+        <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white">Timer Settings</h1>
 
         <section>
-          <div className="bg-[#1b1b1d] rounded-xl p-3 flex items-center justify-between">
+          <div className="bg-[#1C1C1E] rounded-[4px] p-3 flex items-center justify-between">
             <div>
               <p className="text-[17px] text-white">Rest Timers Enabled</p>
-              <p className="text-[13px] font-medium text-[#c2c6d6] mt-1">Master switch for all workout timers</p>
+              <p className="text-[13px] font-medium text-[#A1A1A6] mt-1">Master switch for all workout timers</p>
             </div>
             <Toggle checked={settings.restTimers} onChange={v => updateSetting('restTimers', v)} />
           </div>
@@ -39,25 +39,24 @@ export default function TimerSettingsPage() {
 
         <section className="flex flex-col gap-4">
           <h2 className="text-[22px] font-semibold text-white">Default Duration</h2>
-          <div className="bg-[#1b1b1d] rounded-xl p-6 flex flex-col items-center gap-6">
+          <div className="bg-[#1C1C1E] rounded-[4px] p-6 flex flex-col items-center gap-6">
             <div className="relative w-48 h-48 flex items-center justify-center">
               <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle className="stroke-[#353437]" cx="50" cy="50" fill="none" r={RADIUS} strokeWidth="4" />
+                <circle className="stroke-[#2C2C2E]" cx="50" cy="50" fill="none" r={RADIUS} strokeWidth="4" />
                 <circle
                   cx="50" cy="50" fill="none" r={RADIUS}
-                  stroke="#4d8eff"
+                  stroke="#3B82F6"
                   strokeWidth="4"
                   strokeDasharray={CIRCUMFERENCE}
                   strokeDashoffset={dashOffset}
                   strokeLinecap="round"
-                  style={{ filter: 'drop-shadow(0 0 8px rgba(77,142,255,0.4))' }}
                 />
               </svg>
               <div className="flex flex-col items-center">
-                <span className="text-[48px] tracking-tighter font-bold text-white leading-none">
+                <span className="text-[48px] tracking-tighter font-semibold text-white leading-none">
                   {formatSeconds(settings.timerDuration)}
                 </span>
-                <span className="text-[13px] font-medium text-[#4d8eff] uppercase tracking-widest mt-2">Resting</span>
+                <span className="text-[13px] font-medium text-[#3B82F6] uppercase tracking-widest mt-2">Resting</span>
               </div>
             </div>
             <div className="w-full flex flex-col gap-2">
@@ -68,9 +67,9 @@ export default function TimerSettingsPage() {
                 step={15}
                 value={settings.timerDuration}
                 onChange={e => updateSetting('timerDuration', Number(e.target.value))}
-                className="w-full accent-[#4d8eff]"
+                className="w-full accent-[#3B82F6]"
               />
-              <div className="flex justify-between w-full text-[13px] font-medium text-[#c2c6d6]">
+              <div className="flex justify-between w-full text-[13px] font-medium text-[#A1A1A6]">
                 <span>0:30</span>
                 <span>10:00</span>
               </div>
@@ -80,16 +79,16 @@ export default function TimerSettingsPage() {
 
         <section className="flex flex-col gap-4">
           <h2 className="text-[22px] font-semibold text-white">Alerts & Behavior</h2>
-          <div className="bg-[#1b1b1d] rounded-xl flex flex-col overflow-hidden">
-            <div className="p-3 flex items-center justify-between border-b border-[#353437]">
+          <div className="bg-[#1C1C1E] rounded-[4px] flex flex-col overflow-hidden">
+            <div className="p-3 flex items-center justify-between border-b border-[#2C2C2E]">
               <div className="flex items-center gap-3">
                 <span className="text-[17px] text-white">Alarm Sound</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[17px] text-[#4d8eff]">{settings.alarmSound}</span>
+                <span className="text-[17px] text-[#3B82F6]">{settings.alarmSound}</span>
               </div>
             </div>
-            <div className="p-3 flex flex-col gap-4 border-b border-[#353437]">
+            <div className="p-3 flex flex-col gap-4 border-b border-[#2C2C2E]">
               <div className="flex items-center justify-between">
                 <span className="text-[17px] text-white">Vibrate on Alarm</span>
                 <Toggle checked={settings.vibrate} onChange={v => updateSetting('vibrate', v)} />
@@ -98,7 +97,7 @@ export default function TimerSettingsPage() {
             <div className="p-3 flex items-center justify-between">
               <div>
                 <p className="text-[17px] text-white">Auto-Start Timer</p>
-                <p className="text-[13px] font-medium text-[#c2c6d6] mt-0.5">Begin automatically when logging sets</p>
+                <p className="text-[13px] font-medium text-[#A1A1A6] mt-0.5">Begin automatically when logging sets</p>
               </div>
               <Toggle checked={settings.autoStartTimer} onChange={v => updateSetting('autoStartTimer', v)} />
             </div>

@@ -17,11 +17,12 @@ export default function DayPills({ activeDays, onToggle, readonly }: DayPillsPro
             key={d}
             onClick={() => !readonly && onToggle?.(d)}
             disabled={readonly}
-            className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
+            className={`w-7 h-7 flex items-center justify-center text-[11px] font-medium transition-colors border ${
               active
-                ? 'bg-[#adc6ff] text-[#002e6a] shadow-[0_0_8px_rgba(173,198,255,0.3)]'
-                : 'border border-[#424754] text-[#424754]'
+                ? 'bg-[#3B82F6] text-white border-[#3B82F6]'
+                : 'border-[#424754] text-[#424754]'
             }`}
+            style={{ borderRadius: '2px' }}
           >
             {DAYS[i]}
           </button>
@@ -30,3 +31,4 @@ export default function DayPills({ activeDays, onToggle, readonly }: DayPillsPro
     </div>
   )
 }
+

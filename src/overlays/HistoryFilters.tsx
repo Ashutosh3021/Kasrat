@@ -13,14 +13,13 @@ export default function HistoryFilters({ onClose }: Props) {
         onClick={e => e.stopPropagation()}
       >
         <div className="w-12 h-1 bg-[#2C2C2E] rounded-full mx-auto my-3" />
-        <div className="px-4 pb-4 flex justify-center border-b border-[#2C2C2E]">
+        <div className="px-3 pb-3 flex justify-center border-b border-[#2C2C2E]">
           <h2 className="text-[22px] font-semibold text-white">Filter History</h2>
         </div>
-        <div className="px-4 py-4 flex gap-3">
-          <div className="flex-1 bg-[#1b1b1d] rounded-lg p-3 border border-[#424754] flex items-center gap-2">
-            <span className="text-lg">📅</span>
+        <div className="px-3 py-3 flex gap-3">
+          <div className="flex-1 bg-[#1C1C1E] rounded-[4px] p-3 border border-[#2C2C2E] flex items-center gap-2">
             <div className="flex flex-col flex-1">
-              <label className="text-[13px] font-medium text-[#c2c6d6] mb-0.5">From</label>
+              <label className="text-[13px] font-medium text-[#A1A1A6] mb-0.5">From</label>
               <input
                 type="date"
                 value={from}
@@ -29,10 +28,9 @@ export default function HistoryFilters({ onClose }: Props) {
               />
             </div>
           </div>
-          <div className="flex-1 bg-[#1b1b1d] rounded-lg p-3 border border-[#424754] flex items-center gap-2">
-            <span className="text-lg">📅</span>
+          <div className="flex-1 bg-[#1C1C1E] rounded-[4px] p-3 border border-[#2C2C2E] flex items-center gap-2">
             <div className="flex flex-col flex-1">
-              <label className="text-[13px] font-medium text-[#c2c6d6] mb-0.5">To</label>
+              <label className="text-[13px] font-medium text-[#A1A1A6] mb-0.5">To</label>
               <input
                 type="date"
                 value={to}
@@ -42,8 +40,8 @@ export default function HistoryFilters({ onClose }: Props) {
             </div>
           </div>
         </div>
-        <div className="p-4 border-t border-[#2C2C2E]">
-          <button onClick={onClose} className="w-full h-12 bg-[#4d8eff] text-[#00285d] font-semibold text-[15px] rounded-xl">
+        <div className="p-3 border-t border-[#2C2C2E]">
+          <button onClick={onClose} className="w-full h-12 bg-[#3B82F6] text-white font-semibold text-[15px] rounded-[2px]">
             Apply
           </button>
         </div>

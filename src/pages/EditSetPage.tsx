@@ -38,7 +38,8 @@ function TinyInput({ label, value, onChange, min, max, placeholder }: TinyInputP
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onChange={e => onChange(e.target.value)}
-        className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] rounded-lg text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6] tabular-nums"
+        className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6] tabular-nums"
+        style={{ borderRadius: '2px' }}
       />
     </div>
   )
@@ -95,22 +96,22 @@ export default function EditSetPage() {
 
   return (
     <div className="min-h-screen bg-black pb-safe">
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-4 h-14 bg-black border-b border-[#2C2C2E]">
-        <button onClick={() => navigate(-1)} className="text-white flex items-center justify-center p-2 rounded-full hover:bg-[#1C1C1E]">
-          <ArrowLeft size={22} />
+      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-3 h-14 bg-black border-b border-[#2C2C2E]">
+        <button onClick={() => navigate(-1)} className="text-white flex items-center justify-center p-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
+          <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
-        <h1 className="text-[22px] font-semibold text-white">Edit Set</h1>
-        <button onClick={deleteSet} className="text-[#ffb4ab] flex items-center justify-center p-2 rounded-full hover:bg-[#1C1C1E]">
-          <Trash2 size={22} />
+        <h1 className="text-[22px] font-medium text-white">Edit Set</h1>
+        <button onClick={deleteSet} className="text-[#FF453A] flex items-center justify-center p-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
+          <Trash2 size={20} strokeWidth={1.5} />
         </button>
       </header>
 
-      <main className="pt-16 px-4 pb-24">
-        <div className="bg-[#1C1C1E] rounded-xl p-3 flex flex-col gap-4">
+      <main className="pt-16 px-3 pb-24">
+        <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
 
           {/* Exercise name */}
           <div>
-            <label className="text-[13px] font-medium text-[#c2c6d6] block mb-1">Exercise</label>
+            <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Exercise</label>
             <div className="text-[17px] text-white py-2">{set?.name}</div>
           </div>
           <div className="h-px bg-[#2C2C2E] w-full" />
@@ -118,40 +119,43 @@ export default function EditSetPage() {
           {/* Weight + Reps */}
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-[13px] font-medium text-[#c2c6d6] block mb-1">Weight ({settings.strengthUnit})</label>
+              <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Weight ({settings.strengthUnit})</label>
               <input
                 type="number"
                 inputMode="decimal"
                 value={weight}
                 onChange={e => setWeight(e.target.value)}
-                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] rounded-lg text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#4d8eff]"
+                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#3B82F6]"
+                style={{ borderRadius: '2px' }}
               />
             </div>
             <div className="flex-1">
-              <label className="text-[13px] font-medium text-[#c2c6d6] block mb-1">Reps</label>
+              <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Reps</label>
               <input
                 type="number"
                 inputMode="numeric"
                 value={reps}
                 onChange={e => setReps(e.target.value)}
-                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] rounded-lg text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#4d8eff]"
+                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#3B82F6]"
+                style={{ borderRadius: '2px' }}
               />
             </div>
           </div>
 
-          {/* F1 – RPE / RIR row */}
+          {/* RPE / RIR row */}
           {!set?.cardio && (
             <div className="flex items-end gap-4">
               <TinyInput label="RPE" value={rpe} onChange={setRpe} min={1} max={10} placeholder="1-10" />
               <TinyInput label="RIR" value={rir} onChange={setRir} min={0} max={5} placeholder="0-5" />
-              {/* F3 – live 1RM chip */}
+              {/* live 1RM chip */}
               <div className="flex-1 flex justify-end items-end pb-0.5">
                 <span
-                  className={`text-[12px] font-medium px-2 py-0.5 rounded-full transition-opacity duration-200 ${
+                  className={`text-[12px] font-medium px-2 py-0.5 transition-opacity duration-200 ${
                     orm != null
                       ? 'bg-[#1C1C1E] text-[#3B82F6] border border-[#3B82F6]/30 opacity-100'
                       : 'opacity-0'
                   }`}
+                  style={{ borderRadius: '2px' }}
                 >
                   ≈ 1RM: {orm ?? '—'} {settings.strengthUnit}
                 </span>
@@ -165,7 +169,7 @@ export default function EditSetPage() {
           <div className="flex justify-between items-center py-2">
             <div>
               <div className="text-[17px] text-white">Warmup Set</div>
-              <div className="text-[13px] font-medium text-[#c2c6d6]">Does not count towards volume</div>
+              <div className="text-[13px] font-medium text-[#A1A1A6]">Does not count towards volume</div>
             </div>
             <Toggle checked={warmup} onChange={setWarmup} />
           </div>
@@ -174,11 +178,12 @@ export default function EditSetPage() {
 
           {/* Notes */}
           <div>
-            <label className="text-[13px] font-medium text-[#c2c6d6] block mb-1">Notes</label>
+            <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Notes</label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] rounded-lg text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#4d8eff] resize-none"
+              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#3B82F6] resize-none"
+              style={{ borderRadius: '2px' }}
               rows={3}
               placeholder="Add notes..."
             />
@@ -186,8 +191,8 @@ export default function EditSetPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 w-full p-4 bg-black/90 backdrop-blur-md border-t border-[#2C2C2E] z-40 pb-safe">
-        <button onClick={save} className="w-full bg-[#3B82F6] text-white font-semibold text-[15px] h-12 rounded-xl flex items-center justify-center">
+      <div className="fixed bottom-0 left-0 w-full p-3 bg-black/90 backdrop-blur-md border-t border-[#2C2C2E] z-40 pb-safe">
+        <button onClick={save} className="w-full bg-[#3B82F6] text-white font-medium text-[15px] h-12 flex items-center justify-center" style={{ borderRadius: '2px' }}>
           Save Changes
         </button>
       </div>

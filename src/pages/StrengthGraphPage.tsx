@@ -56,20 +56,20 @@ export default function StrengthGraphPage() {
 
   return (
     <div className="min-h-screen bg-black pb-24">
-      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800 flex items-center px-4 h-14">
+      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-[#2C2C2E] flex items-center px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
-          <ArrowLeft size={22} />
+          <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
-        <h1 className="text-[32px] font-bold leading-10 tracking-tight text-white ml-2 flex items-center gap-2">
+        <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white ml-2 flex items-center gap-2">
           {decodeURIComponent(name ?? '')}
-          <button onClick={() => navigate(`/edit-graph/${name}`)} className="p-1 text-[#8c909f] hover:text-white">
-            <Edit2 size={18} />
+          <button onClick={() => navigate(`/edit-graph/${name}`)} className="p-1 text-[#A1A1A6] hover:text-white">
+            <Edit2 size={18} strokeWidth={1.5} />
           </button>
         </h1>
       </header>
 
-      <main className="pt-20 px-4 max-w-3xl mx-auto space-y-8">
-        <div className="bg-[#1C1C1E] rounded-lg p-3 relative overflow-hidden">
+      <main className="pt-20 px-3 max-w-3xl mx-auto space-y-8">
+        <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 relative overflow-hidden" style={{ borderRadius: '4px' }}>
           <div className="h-64">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -84,8 +84,8 @@ export default function StrengthGraphPage() {
                   <XAxis dataKey="date" tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 8, color: '#e4e2e4' }}
-                    labelStyle={{ color: '#adc6ff' }}
+                    contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
+                    labelStyle={{ color: '#3B82F6' }}
                   />
                   <Area
                     type={settings.curveLines ? 'monotone' : 'linear'}
@@ -98,7 +98,7 @@ export default function StrengthGraphPage() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-[#8c909f]">No data yet</div>
+              <div className="h-full flex items-center justify-center text-[#A1A1A6]">No data yet</div>
             )}
           </div>
         </div>
@@ -109,23 +109,25 @@ export default function StrengthGraphPage() {
               <button
                 key={m}
                 onClick={() => setMetric(m)}
-                className={`px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors ${
+                className={`px-4 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors ${
                   metric === m ? 'bg-[#3B82F6]/20 border border-[#3B82F6] text-[#3B82F6]' : 'bg-[#2C2C2E] text-white'
                 }`}
+                style={{ borderRadius: '2px' }}
               >
                 {m === 'orm' ? 'ORM' : m.charAt(0).toUpperCase() + m.slice(1)}
               </button>
             ))}
           </div>
 
-          <div className="flex gap-2 bg-[#1C1C1E] p-1 rounded-lg w-full">
+          <div className="flex gap-2 bg-[#1C1C1E] p-1 w-full" style={{ borderRadius: '4px' }}>
             {(['day', 'week', 'month', 'year'] as Agg[]).map(a => (
               <button
                 key={a}
                 onClick={() => setAgg(a)}
-                className={`flex-1 py-1.5 rounded text-[13px] font-medium text-center transition-colors ${
-                  agg === a ? 'bg-[#2C2C2E] text-white shadow-sm' : 'text-[#8c909f]'
+                className={`flex-1 py-1.5 text-[13px] font-medium text-center transition-colors ${
+                  agg === a ? 'bg-[#2C2C2E] text-white' : 'text-[#A1A1A6]'
                 }`}
+                style={{ borderRadius: '2px' }}
               >
                 {a.charAt(0).toUpperCase() + a.slice(1)}
               </button>
@@ -133,10 +135,10 @@ export default function StrengthGraphPage() {
           </div>
         </div>
 
-        <div className="bg-[#1C1C1E] rounded-lg p-3">
+        <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3" style={{ borderRadius: '4px' }}>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-[22px] font-semibold text-white">Recent Sets</h2>
-            <span className="text-[13px] font-medium text-[#8c909f]">Last {limit}</span>
+            <h2 className="text-[22px] font-medium text-white">Recent Sets</h2>
+            <span className="text-[13px] font-medium text-[#A1A1A6]">Last {limit}</span>
           </div>
           <div className="space-y-0">
             {Object.entries(byDay)
@@ -147,17 +149,17 @@ export default function StrengthGraphPage() {
                   <div className="w-2 h-2 rounded-full bg-[#3B82F6]" />
                   <span className="text-[17px] text-white">{formatDate(s.created)}</span>
                 </div>
-                <span className="text-[15px] font-semibold text-white">
+                <span className="text-[15px] font-medium text-white">
                   {s.weight} {settings.strengthUnit} × {s.reps} reps
-                  <span className="text-[#8c909f] text-[13px] font-normal ml-1">({metricLabel})</span>
+                  <span className="text-[#A1A1A6] text-[13px] font-normal ml-1">({metricLabel})</span>
                 </span>
               </div>
             ))}
           </div>
           <div className="mt-6 pt-4 border-t border-[#2C2C2E]">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[13px] font-medium text-[#8c909f]">Show sets</span>
-              <span className="text-[15px] font-semibold text-white">{limit}</span>
+              <span className="text-[13px] font-medium text-[#A1A1A6]">Show sets</span>
+              <span className="text-[15px] font-medium text-white">{limit}</span>
             </div>
             <input
               type="range" min={5} max={100} value={limit}

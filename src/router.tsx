@@ -24,6 +24,7 @@ import BodyMeasurementsPage from './pages/BodyMeasurementsPage'
 import StatsPage from './pages/StatsPage'
 import CalendarPage from './pages/CalendarPage'
 import NutritionPage from './pages/NutritionPage'
+import SwapWorkoutPage from './pages/SwapWorkoutPage'
 
 export const router = createHashRouter([
   {
@@ -54,6 +55,7 @@ export const router = createHashRouter([
       { path: 'stats', element: <StatsPage /> },
       { path: 'calendar', element: <CalendarPage /> },
       { path: 'nutrition', element: <NutritionPage /> },
+      { path: 'swap/:planId/:exerciseName', element: <SwapWorkoutPage /> },
     ]
   }
 ])

@@ -63,7 +63,7 @@ function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
     return { ormData, volumeData }
   }, [allSets, muscle])
 
-  const tooltipStyle = { background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 8, color: '#e4e2e4' }
+  const tooltipStyle = { background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }
 
   return (
     <div className="flex flex-col gap-6">
@@ -73,7 +73,7 @@ function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
           <button
             key={m}
             onClick={() => setMuscle(m)}
-            className={`shrink-0 px-4 py-2 rounded-full font-semibold text-[15px] transition-colors ${
+            className={`shrink-0 px-3 py-2 rounded-[2px] font-semibold text-[15px] transition-colors ${
               muscle === m
                 ? 'bg-[#3B82F6] text-white'
                 : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
@@ -92,7 +92,7 @@ function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
         <>
           {/* Best 1RM bar chart */}
           {ormData.length > 0 && (
-            <section className="bg-[#1C1C1E] rounded-lg p-3 border border-[#2C2C2E]">
+            <section className="bg-[#1C1C1E] rounded-[4px] p-3 border border-[#2C2C2E]">
               <p className="text-[15px] font-semibold text-white mb-1">Best Estimated 1RM</p>
               <p className="text-[13px] text-[#A1A1A6] mb-4">Per exercise in {muscle}</p>
               <div style={{ height: Math.max(ormData.length * 44, 120) }}>
@@ -105,11 +105,11 @@ function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" horizontal={false} />
-                    <XAxis type="number" tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <XAxis type="number" tick={{ fill: '#A1A1A6', fontSize: 11 }} tickLine={false} axisLine={false} />
                     <YAxis
                       type="category"
                       dataKey="name"
-                      tick={{ fill: '#c2c6d6', fontSize: 11 }}
+                      tick={{ fill: '#A1A1A6', fontSize: 11 }}
                       tickLine={false}
                       axisLine={false}
                       width={120}
@@ -128,15 +128,15 @@ function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
 
           {/* Weekly volume line chart */}
           {volumeData.length > 0 && (
-            <section className="bg-[#1C1C1E] rounded-lg p-3 border border-[#2C2C2E]">
+            <section className="bg-[#1C1C1E] rounded-[4px] p-3 border border-[#2C2C2E]">
               <p className="text-[15px] font-semibold text-white mb-1">Weekly Volume</p>
               <p className="text-[13px] text-[#A1A1A6] mb-4">Last 8 weeks · {muscle}</p>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={volumeData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" />
-                    <XAxis dataKey="week" tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <XAxis dataKey="week" tick={{ fill: '#A1A1A6', fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fill: '#A1A1A6', fontSize: 11 }} tickLine={false} axisLine={false} />
                     <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${Number(v).toLocaleString()} kg`, 'Volume']} />
                     <Line
                       type="monotone"
@@ -203,27 +203,27 @@ export default function GlobalProgressPage() {
     load()
   }, [tab])
 
-  const tooltipStyle = { background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 8, color: '#e4e2e4' }
+  const tooltipStyle = { background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }
 
   return (
     <div className="min-h-screen bg-black pb-24 pt-14">
-      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800 flex items-center px-4 h-14">
+      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800 flex items-center px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
-          <ArrowLeft size={22} />
+          <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
         <span className="text-xl font-black tracking-tighter text-[#3B82F6] absolute left-1/2 -translate-x-1/2">KASRAT</span>
       </header>
 
-      <main className="px-4 py-3">
+      <main className="px-3 py-3">
         <div className="mb-6">
           <h2 className="text-[22px] font-semibold text-white mb-4">Progress</h2>
-          <div className="flex border-b border-[#424754] mb-4">
+          <div className="flex border-b border-[#2C2C2E] mb-4">
             {(['strength', 'cardio', 'muscle'] as Tab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={`flex-1 pb-2 border-b-2 font-semibold text-[15px] text-center transition-colors capitalize ${
-                  tab === t ? 'border-[#3B82F6] text-[#3B82F6]' : 'border-transparent text-[#c6c6cb]'
+                  tab === t ? 'border-[#3B82F6] text-[#3B82F6]' : 'border-transparent text-[#A1A1A6]'
                 }`}
               >
                 {t === 'muscle' ? 'By Muscle' : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -236,10 +236,10 @@ export default function GlobalProgressPage() {
           <ByMuscleTab allSets={allSets} />
         ) : (
           <>
-            <section className="bg-[#1f1f21] rounded-lg p-3 mb-8 border border-[#424754]">
+            <section className="bg-[#1C1C1E] rounded-[4px] p-3 mb-8 border border-[#2C2C2E]">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-[17px] text-white">Aggregated Volume</h3>
-                <span className="text-[13px] font-medium text-[#c6c6cb]">Total {tab === 'cardio' ? 'km' : 'kg'}</span>
+                <span className="text-[13px] font-medium text-[#A1A1A6]">Total {tab === 'cardio' ? 'km' : 'kg'}</span>
               </div>
               <div className="h-48 w-full">
                 {volumeData.length > 0 ? (
@@ -247,19 +247,19 @@ export default function GlobalProgressPage() {
                     <AreaChart data={volumeData}>
                       <defs>
                         <linearGradient id="vGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#adc6ff" stopOpacity={0.3} />
-                          <stop offset="100%" stopColor="#adc6ff" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" />
-                      <XAxis dataKey="week" tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
-                      <YAxis tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <XAxis dataKey="week" tick={{ fill: '#A1A1A6', fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <YAxis tick={{ fill: '#A1A1A6', fontSize: 11 }} tickLine={false} axisLine={false} />
                       <Tooltip contentStyle={tooltipStyle} />
-                      <Area type="monotone" dataKey="volume" stroke="#adc6ff" strokeWidth={2} fill="url(#vGrad)" dot={{ fill: '#adc6ff', r: 3 }} />
+                      <Area type="monotone" dataKey="volume" stroke="#3B82F6" strokeWidth={2} fill="url(#vGrad)" dot={{ fill: '#3B82F6', r: 3 }} />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-[#8c909f]">No data yet</div>
+                  <div className="h-full flex items-center justify-center text-[#A1A1A6]">No data yet</div>
                 )}
               </div>
             </section>
@@ -271,18 +271,15 @@ export default function GlobalProgressPage() {
                   <button
                     key={m.name}
                     onClick={() => navigate(m.cardio ? `/cardio-graph/${encodeURIComponent(m.name)}` : `/graphs/${encodeURIComponent(m.name)}`)}
-                    className="bg-[#1f1f21] rounded-lg p-3 border border-[#424754] flex items-center justify-between group hover:border-[#adc6ff] transition-colors"
+                    className="bg-[#1C1C1E] rounded-[4px] p-3 border border-[#2C2C2E] flex items-center justify-between group hover:border-[#3B82F6] transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#353437] flex items-center justify-center text-[#adc6ff]">
-                        {m.cardio ? '🏃' : '🏋️'}
-                      </div>
                       <div className="text-left">
                         <h4 className="text-[17px] text-white">{m.name}</h4>
-                        <p className="text-[13px] font-medium text-[#c6c6cb]">Best: {m.best}</p>
+                        <p className="text-[13px] font-medium text-[#A1A1A6]">Best: {m.best}</p>
                       </div>
                     </div>
-                    <ChevronRight size={20} className="text-[#c6c6cb] group-hover:text-[#adc6ff] transition-colors" />
+                    <ChevronRight size={20} strokeWidth={1.5} className="text-[#A1A1A6] group-hover:text-[#3B82F6] transition-colors" />
                   </button>
                 ))}
               </div>

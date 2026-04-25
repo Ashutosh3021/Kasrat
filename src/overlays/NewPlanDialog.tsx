@@ -19,37 +19,40 @@ export default function NewPlanDialog({ onCreated }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md bg-[#1C1C1E] rounded-xl p-6 border border-[#2C2C2E] shadow-2xl">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[22px] font-semibold text-white">New Plan</h2>
-          <button onClick={closeNewPlan} className="p-2 hover:bg-[#2C2C2E] rounded-full transition-colors">
-            <X size={20} className="text-white" />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-md bg-[#1C1C1E] p-3 border border-[#2C2C2E]" style={{ borderRadius: '4px' }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[22px] font-medium text-white">New Plan</h2>
+          <button onClick={closeNewPlan} className="p-2 hover:bg-[#2C2C2E] transition-colors" style={{ borderRadius: '2px' }}>
+            <X size={20} strokeWidth={1.5} className="text-white" />
           </button>
         </div>
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="text-[13px] font-medium text-[#c2c6d6]">Plan Name</label>
+            <label className="text-[13px] font-medium text-[#A1A1A6]">Plan Name</label>
             <input
               autoFocus
               value={title}
               onChange={e => { setTitle(e.target.value); setError('') }}
               onKeyDown={e => e.key === 'Enter' && create()}
-              className="w-full bg-[#1C1C1E] border border-white rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-[#4d8eff] focus:border-transparent outline-none transition-all placeholder:text-[#424754] text-[17px]"
+              className="w-full bg-[#1C1C1E] border border-white px-3 py-3 text-white focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent outline-none transition-all placeholder:text-[#A1A1A6] text-[17px]"
+              style={{ borderRadius: '2px' }}
               placeholder="e.g., Push Day"
             />
-            {error && <p className="text-[#ffb4ab] text-[13px]">{error}</p>}
+            {error && <p className="text-[#FF453A] text-[13px]">{error}</p>}
           </div>
           <div className="flex flex-row gap-3 pt-4">
             <button
               onClick={closeNewPlan}
-              className="flex-1 h-12 rounded-xl border border-white text-white font-semibold text-[15px] hover:bg-white/10 active:scale-95 transition-all"
+              className="flex-1 h-12 border border-white text-white font-medium text-[15px] hover:bg-white/10 active:scale-95 transition-all"
+              style={{ borderRadius: '2px' }}
             >
               Cancel
             </button>
             <button
               onClick={create}
-              className="flex-1 h-12 rounded-xl bg-[#4d8eff] text-[#00285d] font-semibold text-[15px] hover:opacity-90 active:scale-95 transition-all shadow-[0_0_15px_rgba(77,142,255,0.15)]"
+              className="flex-1 h-12 bg-[#3B82F6] text-white font-medium text-[15px] hover:opacity-90 active:scale-95 transition-all"
+              style={{ borderRadius: '2px' }}
             >
               Create
             </button>

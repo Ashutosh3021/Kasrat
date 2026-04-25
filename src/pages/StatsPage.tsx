@@ -80,9 +80,9 @@ export default function StatsPage() {
   return (
     <div className="min-h-screen bg-black pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-4 h-14">
+      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
-          <ArrowLeft size={22} />
+          <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
         <h1 className="text-[22px] font-semibold text-white absolute left-1/2 -translate-x-1/2">
           Weekly Stats
@@ -90,15 +90,15 @@ export default function StatsPage() {
         <div className="w-10" />
       </header>
 
-      <main className="px-4 pt-6 max-w-2xl mx-auto flex flex-col gap-6">
+      <main className="px-3 pt-6 max-w-2xl mx-auto flex flex-col gap-6">
 
         {/* Week selector */}
-        <div className="flex items-center justify-between bg-[#1C1C1E] rounded-[8px] border border-[#2C2C2E] px-3 py-2">
+        <div className="flex items-center justify-between bg-[#1C1C1E] rounded-[4px] border border-[#2C2C2E] px-3 py-2">
           <button
             onClick={() => setWeekOffset(o => o - 1)}
             className="p-2 text-[#3B82F6] hover:opacity-80"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={20} strokeWidth={1.5} />
           </button>
           <span className="text-[15px] font-semibold text-white">{dateRange}</span>
           <button
@@ -106,32 +106,31 @@ export default function StatsPage() {
             disabled={weekOffset === 0}
             className="p-2 text-[#3B82F6] disabled:opacity-30"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={20} strokeWidth={1.5} />
           </button>
         </div>
 
         {!hasData ? (
           <div className="text-center py-20">
-            <p className="text-[40px] mb-4">🏋️</p>
             <p className="text-[17px] font-semibold text-white">No workouts this week</p>
-            <p className="text-[13px] text-[#c6c6cb] mt-2">Log some sets to see your muscle balance.</p>
+            <p className="text-[13px] text-[#A1A1A6] mt-2">Log some sets to see your muscle balance.</p>
           </div>
         ) : (
           <>
             {/* Sets radar */}
-            <section className="bg-[#1C1C1E] rounded-[8px] border border-[#2C2C2E] p-4 flex flex-col gap-2">
+            <section className="bg-[#1C1C1E] rounded-[4px] border border-[#2C2C2E] p-3 flex flex-col gap-2">
               <p className="text-[15px] font-semibold text-white">Sets per Muscle Group</p>
-              <p className="text-[13px] text-[#c6c6cb]">Total sets performed this week</p>
+              <p className="text-[13px] text-[#A1A1A6]">Total sets performed this week</p>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
                     <PolarGrid stroke="#2C2C2E" />
                     <PolarAngleAxis
                       dataKey="muscle"
-                      tick={{ fill: '#c6c6cb', fontSize: 12, fontWeight: 600 }}
+                      tick={{ fill: '#A1A1A6', fontSize: 12, fontWeight: 600 }}
                     />
                     <Tooltip
-                      contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 8, color: '#e4e2e4' }}
+                      contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
                       formatter={(v) => [`${v ?? 0} sets`, 'Sets']}
                     />
                     <Radar
@@ -148,26 +147,26 @@ export default function StatsPage() {
             </section>
 
             {/* Volume radar */}
-            <section className="bg-[#1C1C1E] rounded-[8px] border border-[#2C2C2E] p-4 flex flex-col gap-2">
+            <section className="bg-[#1C1C1E] rounded-[4px] border border-[#2C2C2E] p-3 flex flex-col gap-2">
               <p className="text-[15px] font-semibold text-white">Volume per Muscle Group</p>
-              <p className="text-[13px] text-[#c6c6cb]">Total kg lifted (reps × weight)</p>
+              <p className="text-[13px] text-[#A1A1A6]">Total kg lifted (reps × weight)</p>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
                     <PolarGrid stroke="#2C2C2E" />
                     <PolarAngleAxis
                       dataKey="muscle"
-                      tick={{ fill: '#c6c6cb', fontSize: 12, fontWeight: 600 }}
+                      tick={{ fill: '#A1A1A6', fontSize: 12, fontWeight: 600 }}
                     />
                     <Tooltip
-                      contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 8, color: '#e4e2e4' }}
+                      contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
                       formatter={(v) => [`${Number(v ?? 0).toLocaleString()} kg`, 'Volume']}
                     />
                     <Radar
                       name="Volume"
                       dataKey="volume"
-                      stroke="#adc6ff"
-                      fill="#adc6ff"
+                      stroke="#3B82F6"
+                      fill="#3B82F6"
                       fillOpacity={0.2}
                       strokeWidth={2}
                     />
@@ -177,9 +176,9 @@ export default function StatsPage() {
             </section>
 
             {/* Breakdown table */}
-            <section className="bg-[#1C1C1E] rounded-[8px] border border-[#2C2C2E] overflow-hidden">
+            <section className="bg-[#1C1C1E] rounded-[4px] border border-[#2C2C2E] overflow-hidden">
               <div className="px-3 py-2 border-b border-[#2C2C2E]">
-                <p className="text-[13px] font-medium text-[#c6c6cb] uppercase tracking-widest">Breakdown</p>
+                <p className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest">Breakdown</p>
               </div>
               {data.filter(d => d.sets > 0).map((d, i, arr) => (
                 <div
@@ -188,8 +187,8 @@ export default function StatsPage() {
                 >
                   <span className="text-[15px] text-white">{d.muscle}</span>
                   <div className="flex items-center gap-4">
-                    <span className="text-[13px] text-[#c6c6cb]">{d.sets} sets</span>
-                    <span className="text-[13px] font-semibold text-[#adc6ff]">{d.volume.toLocaleString()} kg</span>
+                    <span className="text-[13px] text-[#A1A1A6]">{d.sets} sets</span>
+                    <span className="text-[13px] font-semibold text-[#3B82F6]">{d.volume.toLocaleString()} kg</span>
                   </div>
                 </div>
               ))}

@@ -200,9 +200,7 @@ export function useDragToReorder<T>(
         transition:       'opacity 0.15s',
         outline:          isOver ? '2px solid #4d8eff' : undefined,
         borderRadius:     isOver ? '8px' : undefined,
-        // touch-action: none on the row prevents the browser from claiming
-        // the touch for scroll while a drag is in progress.
-        touchAction:      'none',
+        // Allow touch scrolling on the row itself - only the handle has touch-action: none
         userSelect:       'none',
         WebkitUserSelect: 'none',
       } as React.CSSProperties,
