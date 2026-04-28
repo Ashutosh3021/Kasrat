@@ -305,31 +305,41 @@ export default function EditPlanPage() {
     const isSuperset = ex.setType === 'superset'
     
     return (
-      <div key={ex.id} className="bg-[#1C1C1E] p-3 flex items-center gap-3" {...getItemProps(idx)} style={{ borderRadius: '4px' }}>
-        <span {...getHandleProps(idx)}>
-          <GripVertical size={20} strokeWidth={1.5} className="text-[#A1A1A6]" />
-        </span>
-        <div className="flex-1 flex flex-col min-w-0 gap-1">
-          <span className="text-[17px] text-white truncate">{ex.exercise}</span>
-          <SetTypeBadge type={ex.setType ?? 'normal'} />
+      <div key={ex.id} className="bg-[#1C1C1E] p-3 flex flex-col gap-3" {...getItemProps(idx)} style={{ borderRadius: '4px' }}>
+        {/* Top row: drag handle, exercise name, remove button */}
+        <div className="flex items-center gap-3">
+          <span {...getHandleProps(idx)}>
+            <GripVertical size={20} strokeWidth={1.5} className="text-[#A1A1A6]" />
+          </span>
+          <div className="flex-1 min-w-0 flex items-center gap-2">
+            <span className="text-[17px] text-white truncate">{ex.exercise}</span>
+            <SetTypeBadge type={ex.setType ?? 'normal'} />
+          </div>
+          <Toggle checked={ex.enabled} onChange={() => toggleExercise(ex)} />
         </div>
-        {/* Set type picker */}
-        <SetTypePicker value={ex.setType ?? 'normal'} onChange={v => updateSetType(ex, v)} />
-        {/* Partner picker (only show if superset) */}
-        {isSuperset && (
-          <PartnerPicker currentExercise={ex} allExercises={exercises} onLink={partnerId => linkSuperset(ex, partnerId)} />
-        )}
-        {/* Set count stepper */}
-        <div className="flex items-center gap-1.5 bg-[#2C2C2E] px-2 py-1 shrink-0" style={{ borderRadius: '2px' }}>
-          <button onClick={() => updateSets(ex, -1)} className="w-6 h-6 flex items-center justify-center text-[#3B82F6] active:opacity-60">
-            <Minus size={14} strokeWidth={1.5} />
-          </button>
-          <span className="text-[15px] font-medium text-white w-4 text-center tabular-nums">{ex.maxSets}</span>
-          <button onClick={() => updateSets(ex, 1)} className="w-6 h-6 flex items-center justify-center text-[#3B82F6] active:opacity-60">
-            <Plus size={14} strokeWidth={1.5} />
-          </button>
+
+        {/* Second row: set count stepper */}
+        <div className="flex items-center justify-between pl-8">
+          <span className="text-[13px] font-medium text-[#A1A1A6]">Sets</span>
+          <div className="flex items-center gap-1.5 bg-[#2C2C2E] px-2 py-1" style={{ borderRadius: '2px' }}>
+            <button onClick={() => updateSets(ex, -1)} className="w-6 h-6 flex items-center justify-center text-[#3B82F6] active:opacity-60">
+              <Minus size={14} strokeWidth={1.5} />
+            </button>
+            <span className="text-[15px] font-medium text-white w-4 text-center tabular-nums">{ex.maxSets}</span>
+            <button onClick={() => updateSets(ex, 1)} className="w-6 h-6 flex items-center justify-center text-[#3B82F6] active:opacity-60">
+              <Plus size={14} strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
-        <Toggle checked={ex.enabled} onChange={() => toggleExercise(ex)} />
+
+        {/* Third row: set type picker and partner picker */}
+        <div className="flex items-center gap-2 pl-8">
+          <span className="text-[13px] font-medium text-[#A1A1A6]">Type</span>
+          <SetTypePicker value={ex.setType ?? 'normal'} onChange={v => updateSetType(ex, v)} />
+          {isSuperset && (
+            <PartnerPicker currentExercise={ex} allExercises={exercises} onLink={partnerId => linkSuperset(ex, partnerId)} />
+          )}
+        </div>
       </div>
     )
   }

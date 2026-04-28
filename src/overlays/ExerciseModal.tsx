@@ -3,6 +3,8 @@ import { X, Search, Plus, Check, ChevronDown, ChevronRight, Minus } from 'lucide
 import { db, type ExercisePreset } from '../db/database'
 import { MUSCLE_GROUPS, type MuscleGroup } from '../data/exercisePresets'
 
+const EQUIPMENT_OPTIONS = ['Gym', 'Barbell only', 'Dumbbell only', 'Bodyweight', 'Cables', 'Machine', 'Kettlebell', 'Other'] as const
+
 interface Props { planId: number; onClose: () => void }
 
 export default function ExerciseModal({ planId, onClose }: Props) {
@@ -12,6 +14,13 @@ export default function ExerciseModal({ planId, onClose }: Props) {
   const [added, setAdded] = useState<Set<string>>(new Set())
   const [setCounts, setSetCounts] = useState<Record<string, number>>({})
   const [expandedGroups, setExpandedGroups] = useState<Set<MuscleGroup>>(new Set(MUSCLE_GROUPS))
+
+  // Inline create form state
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [createName, setCreateName] = useState('')
+  const [createMuscle, setCreateMuscle] = useState<string>(MUSCLE_GROUPS[0])
+  const [createEquipment, setCreateEquipment] = useState<string>(EQUIPMENT_OPTIONS[0])
+  const [createNameError, setCreateNameError] = useState('')
 
   async function load() {
     // Load presets
@@ -47,6 +56,46 @@ export default function ExerciseModal({ planId, onClose }: Props) {
     }
     
     setAdded(prev => new Set([...prev, name]))
+  }
+
+  function openCreateForm() {
+    setCreateName(search.trim())
+    setCreateMuscle(MUSCLE_GROUPS[0])
+    setCreateEquipment(EQUIPMENT_OPTIONS[0])
+    setCreateNameError('')
+    setShowCreateForm(true)
+  }
+
+  async function saveCustomExercise() {
+    const trimmed = createName.trim()
+    if (!trimmed) { setCreateNameError('Name is required'); return }
+
+    // Persist to exercise_meta
+    await db.exercise_meta.put({ name: trimmed })
+
+    // Create hidden gym_set template so it appears in exercise lists
+    const existing = await db.gym_sets.where('name').equals(trimmed).first()
+    if (!existing) {
+      await db.gym_sets.add({
+        name: trimmed,
+        reps: 0, weight: 0,
+        unit: 'kg',
+        created: new Date().toISOString(),
+        hidden: true,
+        bodyWeight: false,
+        duration: 0, distance: 0,
+        cardio: false,
+        restMs: 0,
+        primaryMuscle: createMuscle,
+        notes: createEquipment,
+      })
+    }
+
+    // Reload list and add to plan
+    await load()
+    await addExercise(trimmed, createMuscle)
+    setShowCreateForm(false)
+    setSearch('')
   }
 
   async function updateModalSets(name: string, delta: number) {
@@ -273,8 +322,92 @@ export default function ExerciseModal({ planId, onClose }: Props) {
             )}
 
             {filteredPresets.length === 0 && filteredCustom.length === 0 && search && (
-              <div className="text-center py-8">
-                <p className="text-[#A1A1A6] text-[15px]">No exercises found</p>
+              <div className="flex flex-col gap-3">
+                <div className="text-center py-4">
+                  <p className="text-[#A1A1A6] text-[15px]">No exercises found for "{search}"</p>
+                </div>
+
+                {!showCreateForm ? (
+                  <button
+                    onClick={openCreateForm}
+                    className="w-full flex items-center justify-center gap-2 border border-dashed border-[#3B82F6] text-[#3B82F6] font-medium text-[15px] py-3"
+                    style={{ borderRadius: '4px' }}
+                  >
+                    <Plus size={18} strokeWidth={1.5} />
+                    Create custom exercise
+                  </button>
+                ) : (
+                  <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-3" style={{ borderRadius: '4px' }}>
+                    <span className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest">New Exercise</span>
+
+                    {/* Name */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] font-medium text-[#A1A1A6]">
+                        Name<span className="text-[#FF453A] ml-0.5">*</span>
+                      </label>
+                      <input
+                        value={createName}
+                        onChange={e => { setCreateName(e.target.value); setCreateNameError('') }}
+                        className="w-full bg-black border border-[#2C2C2E] p-2.5 text-[15px] text-white placeholder-[#A1A1A6] focus:border-[#3B82F6] focus:outline-none"
+                        style={{ borderRadius: '2px' }}
+                        placeholder="Exercise name"
+                      />
+                      {createNameError && <p className="text-[#FF453A] text-[13px]">{createNameError}</p>}
+                    </div>
+
+                    {/* Muscle group */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] font-medium text-[#A1A1A6]">
+                        Muscle Group<span className="text-[#FF453A] ml-0.5">*</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={createMuscle}
+                          onChange={e => setCreateMuscle(e.target.value)}
+                          className="w-full bg-black border border-[#2C2C2E] p-2.5 text-[15px] text-white appearance-none focus:border-[#3B82F6] focus:outline-none"
+                          style={{ borderRadius: '2px' }}
+                        >
+                          {MUSCLE_GROUPS.map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
+                        <ChevronDown size={14} strokeWidth={1.5} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1A6] pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Equipment */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] font-medium text-[#A1A1A6]">Equipment</label>
+                      <div className="relative">
+                        <select
+                          value={createEquipment}
+                          onChange={e => setCreateEquipment(e.target.value)}
+                          className="w-full bg-black border border-[#2C2C2E] p-2.5 text-[15px] text-white appearance-none focus:border-[#3B82F6] focus:outline-none"
+                          style={{ borderRadius: '2px' }}
+                        >
+                          {EQUIPMENT_OPTIONS.map(eq => <option key={eq} value={eq}>{eq}</option>)}
+                        </select>
+                        <ChevronDown size={14} strokeWidth={1.5} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1A6] pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => setShowCreateForm(false)}
+                        className="flex-1 h-10 border border-[#2C2C2E] text-[#A1A1A6] font-medium text-[15px]"
+                        style={{ borderRadius: '2px' }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={saveCustomExercise}
+                        className="flex-1 h-10 bg-[#3B82F6] text-white font-medium text-[15px]"
+                        style={{ borderRadius: '2px' }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

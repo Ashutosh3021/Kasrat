@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, X, Trash2, Droplet } from 'lucide-react'
-import { db, type DailyNutrition } from '../db/database'
+import { ArrowLeft, Plus, X, Trash2, Droplet, Check } from 'lucide-react'
+import { db, type DailyNutrition, type SupplementLog } from '../db/database'
 import { useSettingsStore } from '../store/settingsStore'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -234,17 +234,40 @@ export default function NutritionPage() {
   const [entries, setEntries] = useState<DailyNutrition[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editTarget, setEditTarget] = useState<DailyNutrition | null>(null)
+  const [supplements, setSupplements] = useState<SupplementLog[]>([])
 
-  const calGoal  = settings.nutritionCaloriesGoal ?? 0
-  const protGoal = settings.nutritionProteinGoal  ?? 0
-  const waterGoal = settings.nutritionWaterGoal   ?? 0
+  const calGoal   = settings.nutritionCaloriesGoal ?? 2000
+  const protGoal  = settings.nutritionProteinGoal  ?? 150
+  const carbGoal  = settings.nutritionCarbsGoal    ?? 250
+  const fatGoal   = settings.nutritionFatsGoal     ?? 70
+  const waterGoal = settings.nutritionWaterGoal    ?? 3
+  const suppList: string[] = JSON.parse(settings.supplementsList ?? '[]')
 
   async function load() {
     const all = await db.daily_nutrition.orderBy('date').reverse().toArray()
     setEntries(all)
   }
 
+  async function loadSupplements() {
+    const today = todayStr()
+    let logs = await db.supplement_logs.where('date').equals(today).toArray()
+    // Seed missing entries from settings list
+    const existing = new Set(logs.map(l => l.name))
+    const toAdd = suppList.filter(n => !existing.has(n))
+    if (toAdd.length > 0) {
+      const ids = await db.supplement_logs.bulkAdd(
+        toAdd.map(name => ({ date: today, name, taken: false })),
+        { allKeys: true }
+      ) as number[]
+      const newLogs = toAdd.map((name, i) => ({ id: ids[i], date: today, name, taken: false }))
+      logs = [...logs, ...newLogs]
+    }
+    // Only show supplements that are in the current settings list
+    setSupplements(logs.filter(l => suppList.includes(l.name)))
+  }
+
   useEffect(() => { load() }, [])
+  useEffect(() => { loadSupplements() }, [settings.supplementsList])
 
   async function handleSave(form: FormState) {
     const entry = formToEntry(form)
@@ -259,6 +282,11 @@ export default function NutritionPage() {
     setShowForm(false)
     setEditTarget(null)
     load()
+  }
+
+  async function toggleSupplement(log: SupplementLog) {
+    await db.supplement_logs.update(log.id!, { taken: !log.taken })
+    setSupplements(prev => prev.map(s => s.id === log.id ? { ...s, taken: !s.taken } : s))
   }
 
   const today = todayStr()
@@ -324,8 +352,8 @@ export default function NutritionPage() {
               {/* Macro arcs */}
               <div className="flex justify-around">
                 <MacroArc label="Protein" value={todayEntry.protein ?? 0} goal={protGoal} color="#3B82F6" />
-                <MacroArc label="Carbs"   value={todayEntry.carbs   ?? 0} goal={0}        color="#60A5FA" />
-                <MacroArc label="Fats"    value={todayEntry.fats    ?? 0} goal={0}        color="#93C5FD" />
+                <MacroArc label="Carbs"   value={todayEntry.carbs   ?? 0} goal={carbGoal} color="#60A5FA" />
+                <MacroArc label="Fats"    value={todayEntry.fats    ?? 0} goal={fatGoal}  color="#93C5FD" />
               </div>
 
               {/* Water bar */}
@@ -363,6 +391,30 @@ export default function NutritionPage() {
             </div>
           )}
         </section>
+
+        {/* Supplements */}
+        {suppList.length > 0 && (
+          <section className="bg-[#1C1C1E] rounded-[4px] border border-[#2C2C2E]">
+            <div className="px-3 pt-3 pb-2 flex items-center justify-between">
+              <p className="text-[17px] font-semibold text-white">Supplements</p>
+              <span className="text-[13px] font-medium text-[#A1A1A6]">
+                {supplements.filter(s => s.taken).length}/{supplements.length} done
+              </span>
+            </div>
+            {supplements.map((log, i) => (
+              <button
+                key={log.id}
+                onClick={() => toggleSupplement(log)}
+                className={`w-full flex items-center justify-between px-3 py-3 text-left transition-colors hover:bg-[#2a2a2c] ${i < supplements.length - 1 ? 'border-b border-[#2C2C2E]' : ''}`}
+              >
+                <span className={`text-[17px] ${log.taken ? 'text-[#A1A1A6] line-through' : 'text-white'}`}>{log.name}</span>
+                <div className={`w-6 h-6 flex items-center justify-center border ${log.taken ? 'bg-[#3B82F6] border-[#3B82F6]' : 'border-[#2C2C2E]'}`} style={{ borderRadius: '2px' }}>
+                  {log.taken && <Check size={14} strokeWidth={2} className="text-white" />}
+                </div>
+              </button>
+            ))}
+          </section>
+        )}
 
         {/* History grouped by week */}
         {entries.length > 0 && (

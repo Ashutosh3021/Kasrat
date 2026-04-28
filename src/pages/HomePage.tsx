@@ -134,7 +134,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { activePlanId, activePlanTitle } = useWorkoutStore()
   const [todayPlan, setTodayPlan] = useState<Plan | null>(null)
-  const [planExercises, setPlanExercises] = useState<string[]>([])
+  const [planExerciseCount, setPlanExerciseCount] = useState(0)
   const [weekSets, setWeekSets] = useState(0)
   const [weekExercises, setWeekExercises] = useState(0)
   const [mostUsed, setMostUsed] = useState('')
@@ -154,36 +154,34 @@ export default function HomePage() {
       })
       setTodayPlan(todaysPlan ?? null)
       if (todaysPlan) {
-        setPlanExercises(todaysPlan.exercises.split(',').filter(Boolean))
+        setPlanExerciseCount(todaysPlan.exercises.split(',').filter(Boolean).length)
       }
 
-      // ── Weekly stats ──────────────────────────────────────────────────────
+      // ── Weekly stats — exclude hidden/template sets ────────────────────────
       const weekStart = new Date()
       weekStart.setDate(weekStart.getDate() - weekStart.getDay())
       weekStart.setHours(0, 0, 0, 0)
       const allSets = await db.gym_sets.toArray()
-      const weekSetsList = allSets.filter(s => new Date(s.created) >= weekStart)
+
+      // Real sets: not hidden, and have actual data
+      const realSets = allSets.filter(
+        s => !s.hidden && !(s.weight === 0 && s.reps === 0 && s.distance === 0)
+      )
+      const weekSetsList = realSets.filter(s => new Date(s.created) >= weekStart)
       setWeekSets(weekSetsList.length)
       setWeekExercises(new Set(weekSetsList.map(s => s.name)).size)
 
-      // ── Most used ─────────────────────────────────────────────────────────
+      // ── Most used (real sets only) ─────────────────────────────────────────
       const counts: Record<string, number> = {}
-      allSets.forEach(s => { counts[s.name] = (counts[s.name] ?? 0) + 1 })
+      realSets.forEach(s => { counts[s.name] = (counts[s.name] ?? 0) + 1 })
       const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
       setMostUsed(top ? top[0] : 'None yet')
 
-      // ── Recent sessions (last 7 days) ─────────────────────────────────────
+      // ── Recent sessions (last 7 days, real sets only) ─────────────────────
       const sevenDaysAgo = new Date()
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-      const recentSets = allSets.filter(
-        s => new Date(s.created) >= sevenDaysAgo,
-      )
-
-      // Build plan-title lookup in one pass
-      const planTitles = new Map<number, string>(
-        plans.map(p => [p.id!, p.title]),
-      )
-
+      const recentSets = realSets.filter(s => new Date(s.created) >= sevenDaysAgo)
+      const planTitles = new Map<number, string>(plans.map(p => [p.id!, p.title]))
       setSessions(buildSessions(recentSets, planTitles).slice(0, 5))
     }
     load()
@@ -231,32 +229,24 @@ export default function HomePage() {
 
         {/* Today's plan card */}
         {todayPlan ? (
-          <section className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-4 relative overflow-hidden" style={{ borderRadius: '4px' }}>
-            <div className="flex justify-between items-center z-10">
-              <h2 className="text-[22px] font-medium leading-7 text-white">{todayPlan.title}</h2>
-              <div className="bg-[#2C2C2E] px-3 py-1" style={{ borderRadius: '2px' }}>
-                <span className="text-[13px] font-medium text-white">Strength</span>
+          <section className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-3" style={{ borderRadius: '4px' }}>
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-0.5">
+                <h2 className="text-[22px] font-semibold text-white leading-tight">{todayPlan.title}</h2>
+                <span className="text-[13px] font-medium text-[#A1A1A6]">
+                  {planExerciseCount} exercise{planExerciseCount !== 1 ? 's' : ''} scheduled
+                </span>
               </div>
-            </div>
-            <div className="space-y-3 z-10">
-              {planExercises.slice(0, 3).map((ex, i) => (
-                <div key={i}>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[15px] text-white">{ex}</span>
-                    <span className="text-[13px] font-medium text-[#A1A1A6]">0/3 sets</span>
-                  </div>
-                  <div className="h-1.5 bg-[#2C2C2E] w-full overflow-hidden" style={{ borderRadius: '2px' }}>
-                    <div className="h-full bg-[#3B82F6] w-0" style={{ borderRadius: '2px' }} />
-                  </div>
-                </div>
-              ))}
+              <div className="bg-[#2C2C2E] px-2 py-1 shrink-0" style={{ borderRadius: '2px' }}>
+                <span className="text-[11px] font-medium text-[#A1A1A6]">TODAY</span>
+              </div>
             </div>
             <button
               onClick={handleStartPlan}
-              className="w-full bg-[#3B82F6] text-white font-medium h-12 mt-2 flex items-center justify-center gap-2 z-10"
+              className="w-full bg-[#3B82F6] text-white font-medium h-11 flex items-center justify-center gap-2"
               style={{ borderRadius: '2px' }}
             >
-              <Play size={18} strokeWidth={1.5} fill="white" />
+              <Play size={16} strokeWidth={1.5} fill="white" />
               Start Workout
             </button>
           </section>

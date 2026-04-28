@@ -1,11 +1,26 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Minus, Plus } from 'lucide-react'
+import { ArrowLeft, Minus, Plus, X } from 'lucide-react'
 import Toggle from '../../components/Toggle'
 import { useSettingsStore } from '../../store/settingsStore'
 
 export default function DataSettingsPage() {
   const navigate = useNavigate()
   const { settings, updateSetting } = useSettingsStore()
+  const [newSupp, setNewSupp] = useState('')
+
+  const supplements: string[] = JSON.parse(settings.supplementsList ?? '[]')
+
+  function addSupplement() {
+    const trimmed = newSupp.trim()
+    if (!trimmed || supplements.includes(trimmed)) return
+    updateSetting('supplementsList', JSON.stringify([...supplements, trimmed]))
+    setNewSupp('')
+  }
+
+  function removeSupplement(name: string) {
+    updateSetting('supplementsList', JSON.stringify(supplements.filter(s => s !== name)))
+  }
 
   return (
     <div className="min-h-screen bg-black pb-8">
@@ -98,42 +113,61 @@ export default function DataSettingsPage() {
           <div className="px-3 pt-3 pb-2">
             <h2 className="font-semibold text-[15px] text-[#3B82F6]">Nutrition Goals</h2>
           </div>
-          <div className="flex flex-col justify-center px-3 py-3 border-b border-[#2C2C2E] min-h-[56px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[17px] text-white">Daily Calories</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={settings.nutritionCaloriesGoal ?? 0}
-                onChange={e => updateSetting('nutritionCaloriesGoal', Number(e.target.value))}
-                className="w-20 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
-              />
+          {([
+            ['Daily Calories', 'nutritionCaloriesGoal', 'numeric', 'kcal'],
+            ['Protein', 'nutritionProteinGoal', 'numeric', 'g'],
+            ['Carbs', 'nutritionCarbsGoal', 'numeric', 'g'],
+            ['Fats', 'nutritionFatsGoal', 'numeric', 'g'],
+            ['Water', 'nutritionWaterGoal', 'decimal', 'L'],
+          ] as const).map(([label, key, mode, unit], i, arr) => (
+            <div key={key} className={`flex items-center justify-between px-3 py-3 ${i < arr.length - 1 ? 'border-b border-[#2C2C2E]' : ''}`}>
+              <span className="text-[17px] text-white">{label}</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  inputMode={mode}
+                  value={settings[key] ?? 0}
+                  onChange={e => updateSetting(key, Number(e.target.value))}
+                  className="w-20 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[2px] px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
+                />
+                <span className="text-[13px] text-[#A1A1A6] w-6">{unit}</span>
+              </div>
             </div>
+          ))}
+        </section>
+
+        <section className="bg-[#1C1C1E] rounded-[4px]">
+          <div className="px-3 pt-3 pb-2">
+            <h2 className="font-semibold text-[15px] text-[#3B82F6]">Supplements</h2>
           </div>
-          <div className="flex flex-col justify-center px-3 py-3 border-b border-[#2C2C2E] min-h-[56px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[17px] text-white">Daily Protein (g)</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={settings.nutritionProteinGoal ?? 0}
-                onChange={e => updateSetting('nutritionProteinGoal', Number(e.target.value))}
-                className="w-20 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
-              />
-            </div>
+          {/* Add new supplement */}
+          <div className="flex items-center gap-2 px-3 pb-3 border-b border-[#2C2C2E]">
+            <input
+              value={newSupp}
+              onChange={e => setNewSupp(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addSupplement()}
+              placeholder="e.g. Creatine"
+              className="flex-1 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[2px] px-3 py-2 text-[15px] text-white placeholder-[#A1A1A6] focus:outline-none focus:border-[#3B82F6]"
+            />
+            <button
+              onClick={addSupplement}
+              className="h-9 px-3 bg-[#3B82F6] text-white font-medium text-[13px] rounded-[2px] shrink-0"
+            >
+              Add
+            </button>
           </div>
-          <div className="flex flex-col justify-center px-3 py-3 min-h-[56px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[17px] text-white">Daily Water (L)</span>
-              <input
-                type="number"
-                inputMode="decimal"
-                value={settings.nutritionWaterGoal ?? 0}
-                onChange={e => updateSetting('nutritionWaterGoal', Number(e.target.value))}
-                className="w-20 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
-              />
-            </div>
-          </div>
+          {supplements.length === 0 ? (
+            <p className="px-3 py-3 text-[13px] text-[#A1A1A6]">No supplements added yet.</p>
+          ) : (
+            supplements.map((s, i) => (
+              <div key={s} className={`flex items-center justify-between px-3 min-h-[48px] ${i < supplements.length - 1 ? 'border-b border-[#2C2C2E]' : ''}`}>
+                <span className="text-[17px] text-white">{s}</span>
+                <button onClick={() => removeSupplement(s)} className="p-1 text-[#A1A1A6] hover:text-[#FF453A]">
+                  <X size={16} strokeWidth={1.5} />
+                </button>
+              </div>
+            ))
+          )}
         </section>
       </main>
     </div>

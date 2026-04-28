@@ -82,25 +82,35 @@ export default function AddExercisePage() {
 
   async function save() {
     if (!name.trim()) { setNameError('Exercise name is required'); return }
-    await db.gym_sets.add({
-      name: name.trim(),
-      reps: 0,
-      weight: 0,
-      unit: type === 'cardio' ? 'km' : 'kg',
-      created: new Date().toISOString(),
-      hidden: true,
-      bodyWeight: false,
-      duration: 0,
-      distance: 0,
-      cardio: type === 'cardio',
-      restMs: 0,
-      notes: primaryMuscle,
-      primaryMuscle,
-      secondaryMuscle: secondaryMuscle || undefined,
+    
+    // Save to exercise_meta (this is the primary source for custom exercises)
+    await db.exercise_meta.put({ 
+      name: name.trim(), 
+      cues: cues.trim() || undefined 
     })
-    if (cues.trim()) {
-      await db.exercise_meta.put({ name: name.trim(), cues: cues.trim() })
+    
+    // Also create a template gym_set entry so it appears in exercise lists
+    // Check if exercise already exists in gym_sets
+    const existing = await db.gym_sets.where('name').equals(name.trim()).first()
+    if (!existing) {
+      await db.gym_sets.add({
+        name: name.trim(),
+        reps: 0,
+        weight: 0,
+        unit: type === 'cardio' ? 'km' : 'kg',
+        created: new Date().toISOString(),
+        hidden: true,
+        bodyWeight: false,
+        duration: 0,
+        distance: 0,
+        cardio: type === 'cardio',
+        restMs: 0,
+        notes: primaryMuscle,
+        primaryMuscle,
+        secondaryMuscle: secondaryMuscle || undefined,
+      })
     }
+    
     navigate(-1)
   }
 

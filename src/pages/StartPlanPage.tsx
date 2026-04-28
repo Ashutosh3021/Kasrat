@@ -100,15 +100,19 @@ export default function StartPlanPage() {
 
   const [plan, setPlan] = useState<Plan | null>(null)
   const [exercises, setExercises] = useState<PlanExercise[]>([])
-  const [weight, setWeight] = useState('')
-  const [reps, setReps] = useState('')
-  const [rpe, setRpe] = useState('')
-  const [rir, setRir] = useState('')
-  const [showMore, setShowMore] = useState(false)
   const [confirmDiscard, setConfirmDiscard] = useState(false)
-  const [prevSet, setPrevSet] = useState<PrevSet | null | undefined>(undefined)
-  const [cues, setCues] = useState<string>('')
-  const [expandedExerciseIdx, setExpandedExerciseIdx] = useState<number | null>(null)
+  const [prevSets, setPrevSets] = useState<Record<string, PrevSet | null>>({})
+  const [cuesMap, setCuesMap] = useState<Record<string, string>>({})
+  const [expandedSet, setExpandedSet] = useState<Set<number>>(() => new Set([workout.currentExerciseIdx]))
+
+  // ── Per-exercise inputs (weight, reps, rpe, rir, showMore) ──────────────────
+  interface ExInput { weight: string; reps: string; rpe: string; rir: string; showMore: boolean }
+  const defaultInput = (): ExInput => ({ weight: '', reps: '', rpe: '', rir: '', showMore: false })
+  const [inputMap, setInputMap] = useState<Record<string, ExInput>>({})
+  function getInput(name: string): ExInput { return inputMap[name] ?? defaultInput() }
+  function patchInput(name: string, patch: Partial<ExInput>) {
+    setInputMap(prev => ({ ...prev, [name]: { ...(prev[name] ?? defaultInput()), ...patch } }))
+  }
 
   const planId = Number(id)
 
@@ -131,8 +135,6 @@ export default function StartPlanPage() {
       if (workout.activePlanId !== planId) {
         workout.startSession(planId, p.title)
       }
-      // Set current exercise as expanded by default
-      setExpandedExerciseIdx(workout.currentExerciseIdx)
     }
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,28 +147,23 @@ export default function StartPlanPage() {
   const totalDone = completedSet.size
   const progress = exercises.length > 0 ? totalDone / exercises.length : 0
 
-  // Update expanded exercise when current exercise changes
+  // Load previous sets and cues for all exercises whenever the list changes
   useEffect(() => {
-    setExpandedExerciseIdx(currentIdx)
-  }, [currentIdx])
-
-  // Fetch previous set when active exercise changes
-  useEffect(() => {
-    if (!currentEx) return
-    setPrevSet(undefined)
-    setCues('')
-    db.gym_sets
-      .where('name').equals(currentEx.exercise)
-      .filter(s => !s.hidden && s.reps > 0)
-      .toArray()
-      .then(rows => {
-        const last = rows.sort((a, b) => b.created.localeCompare(a.created))[0]
-        setPrevSet(last ? { weight: last.weight, reps: last.reps } : null)
+    if (exercises.length === 0) return
+    exercises.forEach(ex => {
+      db.gym_sets
+        .where('name').equals(ex.exercise)
+        .filter(s => !s.hidden && s.reps > 0)
+        .toArray()
+        .then(rows => {
+          const last = rows.sort((a, b) => b.created.localeCompare(a.created))[0]
+          setPrevSets(prev => ({ ...prev, [ex.exercise]: last ? { weight: last.weight, reps: last.reps } : null }))
+        })
+      db.exercise_meta.get(ex.exercise).then(meta => {
+        setCuesMap(prev => ({ ...prev, [ex.exercise]: meta?.cues ?? '' }))
       })
-    db.exercise_meta.get(currentEx.exercise).then(meta => {
-      setCues(meta?.cues ?? '')
     })
-  }, [currentIdx, currentEx?.exercise])
+  }, [exercises])
 
   function isInGroup(idx: number): boolean {
     const st = exercises[idx]?.setType ?? 'normal'
@@ -180,12 +177,13 @@ export default function StartPlanPage() {
     return end
   }
 
-  async function logSet() {
-    if (!currentEx || !weight || !reps) return
-    const w = parseFloat(weight)
-    const r = parseInt(reps)
+  async function logSet(ex: PlanExercise, exIdx: number) {
+    const inp = getInput(ex.exercise)
+    if (!inp.weight || !inp.reps) return
+    const w = parseFloat(inp.weight)
+    const r = parseInt(inp.reps)
     const set: Omit<GymSet, 'id'> = {
-      name: currentEx.exercise,
+      name: ex.exercise,
       weight: w,
       reps: r,
       unit: settings.strengthUnit,
@@ -197,34 +195,31 @@ export default function StartPlanPage() {
       cardio: false,
       restMs: settings.timerDuration * 1000,
       planId,
-      rpe: rpe !== '' ? parseFloat(rpe) : undefined,
-      rir: rir !== '' ? parseFloat(rir) : undefined,
+      rpe: inp.rpe !== '' ? parseFloat(inp.rpe) : undefined,
+      rir: inp.rir !== '' ? parseFloat(inp.rir) : undefined,
     }
     await db.gym_sets.add(set)
-    workout.addLoggedSet(currentEx.exercise, { exercise: currentEx.exercise, weight: w, reps: r, rpe: rpe !== '' ? parseFloat(rpe) : undefined, rir: rir !== '' ? parseFloat(rir) : undefined })
-    setReps('')
-    setRpe('')
-    setRir('')
+    workout.addLoggedSet(ex.exercise, { exercise: ex.exercise, weight: w, reps: r, rpe: set.rpe, rir: set.rir })
+    // Clear reps/rpe/rir but keep weight for convenience
+    patchInput(ex.exercise, { reps: '', rpe: '', rir: '' })
 
-    const inGroup = isInGroup(currentIdx)
-    const atGroupEnd = !inGroup || currentIdx === groupEnd(currentIdx)
+    const inGroup = isInGroup(exIdx)
+    const atGroupEnd = !inGroup || exIdx === groupEnd(exIdx)
     if (settings.restTimers && atGroupEnd) startTimer(settings.timerDuration)
 
-    const setsForEx = [...(loggedSets[currentEx.exercise] ?? []), { exercise: currentEx.exercise, weight: w, reps: r }]
-    if (setsForEx.length >= currentEx.maxSets) {
-      workout.markExerciseDone(currentEx.exercise)
+    const setsForEx = [...(loggedSets[ex.exercise] ?? []), { exercise: ex.exercise, weight: w, reps: r }]
+    if (setsForEx.length >= ex.maxSets) {
+      workout.markExerciseDone(ex.exercise)
     }
   }
 
   function advanceExercise() {
+    if (!currentEx) return
     workout.markExerciseDone(currentEx.exercise)
     if (currentIdx < exercises.length - 1) {
-      workout.setCurrentIdx(currentIdx + 1)
-      setWeight('')
-      setReps('')
-      setRpe('')
-      setRir('')
-      setShowMore(false)
+      const nextIdx = currentIdx + 1
+      workout.setCurrentIdx(nextIdx)
+      setExpandedSet(prev => { const n = new Set(prev); n.add(nextIdx); return n })
     } else {
       handleFinish()
     }
@@ -277,20 +272,15 @@ export default function StartPlanPage() {
   }
 
   function toggleExpanded(idx: number) {
-    if (expandedExerciseIdx === idx) {
-      setExpandedExerciseIdx(null)
-    } else {
-      setExpandedExerciseIdx(idx)
-    }
+    setExpandedSet(prev => {
+      const next = new Set(prev)
+      if (next.has(idx)) next.delete(idx)
+      else next.add(idx)
+      return next
+    })
   }
 
   const { getHandleProps, getItemProps } = useDragToReorder(exercises, handleReorder)
-
-  async function handleDeleteConfirm() {
-    handleDiscard()
-  }
-
-  const orm = brzycki(parseFloat(weight), parseInt(reps))
 
   const inGroup = currentEx ? isInGroup(currentIdx) : false
   const atGroupEnd = !inGroup || currentIdx === (currentEx ? groupEnd(currentIdx) : currentIdx)
@@ -305,12 +295,15 @@ export default function StartPlanPage() {
     const isCurrent = i === currentIdx
     const sets = loggedSets[ex.exercise] ?? []
     const st = ex.setType ?? 'normal'
-    const isExpanded = expandedExerciseIdx === i
+    const isExpanded = expandedSet.has(i)
+    const prevSet = prevSets[ex.exercise]
+    const cues = cuesMap[ex.exercise] ?? ''
+    const inp = getInput(ex.exercise)
+    const orm = brzycki(parseFloat(inp.weight), parseInt(inp.reps))
 
     // Current exercise highlight
     const currentBorder = isCurrent ? 'border-[#3B82F6]' : 'border-[#2C2C2E]'
     const warmupBorder = st === 'warmup' ? 'border-l-[3px] border-amber-400' : ''
-
     return (
       <article
         key={ex.id}
@@ -323,9 +316,22 @@ export default function StartPlanPage() {
           <span className="absolute top-3 right-3 text-[11px] font-medium text-amber-400 bg-amber-400/10 px-2 py-0.5" style={{ borderRadius: '2px' }}>Warm-up</span>
         )}
 
-        {/* Header row */}
-        <div className="flex items-center gap-3">
-          <span {...getHandleProps(i)}>
+        {/* Header row - clickable to expand/collapse */}
+        <div 
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={(e) => {
+            // Check if click is on a button or drag handle
+            const target = e.target as HTMLElement
+            const isButton = target.closest('button')
+            const isDragHandle = target.closest('[data-drag-handle]')
+            
+            // Only toggle if not clicking a button or drag handle
+            if (!isButton && !isDragHandle) {
+              toggleExpanded(i)
+            }
+          }}
+        >
+          <span {...getHandleProps(i)} data-drag-handle>
             <GripVertical size={20} strokeWidth={1.5} className="text-[#A1A1A6] shrink-0" />
           </span>
           
@@ -339,21 +345,21 @@ export default function StartPlanPage() {
 
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => navigate(`/swap/${planId}/${encodeURIComponent(ex.exercise)}`)}
+              onClick={(e) => { e.stopPropagation(); navigate(`/swap/${planId}/${encodeURIComponent(ex.exercise)}`) }}
               className="text-[#A1A1A6] hover:text-[#3B82F6] p-1"
               aria-label="Swap exercise"
             >
               <Repeat size={18} strokeWidth={1.5} />
             </button>
             <button
-              onClick={() => deleteExercise(ex, i)}
+              onClick={(e) => { e.stopPropagation(); deleteExercise(ex, i) }}
               className="text-[#A1A1A6] hover:text-[#FF453A] p-1"
               aria-label="Delete exercise"
             >
               <X size={18} strokeWidth={1.5} />
             </button>
             <button
-              onClick={() => toggleExpanded(i)}
+              onClick={(e) => { e.stopPropagation(); toggleExpanded(i) }}
               className="text-[#A1A1A6] hover:text-white p-1"
             >
               <ChevronDown size={18} strokeWidth={1.5} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -402,10 +408,8 @@ export default function StartPlanPage() {
               </div>
             )}
 
-            {/* Input area (only for current exercise) */}
-            {isCurrent && (
-              <>
-                <div className="mt-2 bg-black/50 p-3 border border-[#2C2C2E] flex flex-col gap-3 ml-8" style={{ borderRadius: '4px' }}>
+            {/* Input area — shown for ALL expanded exercises */}
+            <div className="mt-2 bg-black/50 p-3 border border-[#2C2C2E] flex flex-col gap-3 ml-8" style={{ borderRadius: '4px' }}>
                   <div className="flex items-center gap-3">
                     <span className="text-[13px] font-medium text-[#3B82F6] w-10 shrink-0">Set {sets.length + 1}</span>
                     <div className="flex-1 flex gap-3">
@@ -414,8 +418,8 @@ export default function StartPlanPage() {
                           Weight ({settings.strengthUnit})
                         </label>
                         <input
-                          type="number" inputMode="decimal" value={weight}
-                          onChange={e => setWeight(e.target.value)}
+                          type="number" inputMode="decimal" value={inp.weight}
+                          onChange={e => patchInput(ex.exercise, { weight: e.target.value })}
                           className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#3B82F6] focus:outline-none"
                           style={{ borderRadius: '2px' }}
                           placeholder="0"
@@ -424,8 +428,8 @@ export default function StartPlanPage() {
                       <div className="relative flex-1">
                         <label className="absolute -top-2 left-3 bg-black px-1 text-[10px] text-[#A1A1A6]">Reps</label>
                         <input
-                          type="number" inputMode="numeric" value={reps}
-                          onChange={e => setReps(e.target.value)}
+                          type="number" inputMode="numeric" value={inp.reps}
+                          onChange={e => patchInput(ex.exercise, { reps: e.target.value })}
                           className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#3B82F6] focus:outline-none"
                           style={{ borderRadius: '2px' }}
                           placeholder="0"
@@ -445,24 +449,24 @@ export default function StartPlanPage() {
 
                   {/* Previous session diff bar */}
                   {prevSet !== undefined && (
-                    <DiffBar prev={prevSet} curWeight={weight} curReps={reps} unit={settings.strengthUnit} />
+                    <DiffBar prev={prevSet ?? null} curWeight={inp.weight} curReps={inp.reps} unit={settings.strengthUnit} />
                   )}
 
                   {/* RPE / RIR (progressive disclosure) */}
                   <button
-                    onClick={() => setShowMore(o => !o)}
+                    onClick={() => patchInput(ex.exercise, { showMore: !inp.showMore })}
                     className="flex items-center gap-1 text-[11px] font-medium text-[#A1A1A6] hover:text-white transition-colors self-start"
                   >
-                    <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform duration-150 ${showMore ? 'rotate-180' : ''}`} />
-                    {showMore ? 'Less' : 'RPE / RIR'}
+                    <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform duration-150 ${inp.showMore ? 'rotate-180' : ''}`} />
+                    {inp.showMore ? 'Less' : 'RPE / RIR'}
                   </button>
-                  {showMore && (
+                  {inp.showMore && (
                     <div className="flex items-center gap-4 animate-fadeIn">
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-[11px] font-medium text-[#A1A1A6]">RPE</span>
                         <input
-                          type="number" inputMode="numeric" value={rpe}
-                          onChange={e => setRpe(e.target.value)}
+                          type="number" inputMode="numeric" value={inp.rpe}
+                          onChange={e => patchInput(ex.exercise, { rpe: e.target.value })}
                           min={1} max={10} placeholder="1-10"
                           className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
                           style={{ borderRadius: '2px' }}
@@ -471,8 +475,8 @@ export default function StartPlanPage() {
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-[11px] font-medium text-[#A1A1A6]">RIR</span>
                         <input
-                          type="number" inputMode="numeric" value={rir}
-                          onChange={e => setRir(e.target.value)}
+                          type="number" inputMode="numeric" value={inp.rir}
+                          onChange={e => patchInput(ex.exercise, { rir: e.target.value })}
                           min={0} max={5} placeholder="0-5"
                           className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
                           style={{ borderRadius: '2px' }}
@@ -484,7 +488,7 @@ export default function StartPlanPage() {
                   {/* Action buttons */}
                   <div className="flex gap-2">
                     <button
-                      onClick={logSet}
+                      onClick={() => logSet(ex, i)}
                       className="flex-1 bg-[#3B82F6] text-white font-medium text-[15px] py-2.5 flex items-center justify-center gap-2"
                       style={{ borderRadius: '2px' }}
                     >
@@ -500,14 +504,15 @@ export default function StartPlanPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={advanceExercise}
-                  className="w-full mt-2 ml-8 border border-[#2C2C2E] text-white font-medium text-[15px] py-2.5 bg-transparent hover:bg-[#2C2C2E] transition-colors"
-                  style={{ borderRadius: '2px' }}
-                >
-                  {advanceLabel}
-                </button>
-              </>
+            {/* "Next Exercise" only for the current exercise */}
+            {isCurrent && (
+              <button
+                onClick={advanceExercise}
+                className="w-full mt-2 ml-8 border border-[#2C2C2E] text-white font-medium text-[15px] py-2.5 bg-transparent hover:bg-[#2C2C2E] transition-colors"
+                style={{ borderRadius: '2px' }}
+              >
+                {advanceLabel}
+              </button>
             )}
           </>
         )}
@@ -618,7 +623,7 @@ export default function StartPlanPage() {
               <button onClick={() => setConfirmDiscard(false)} className="flex-1 h-11 border border-[#2C2C2E] text-white font-medium text-[15px]" style={{ borderRadius: '2px' }}>
                 Cancel
               </button>
-              <button onClick={handleDeleteConfirm} className="flex-1 h-11 bg-[#FF453A] text-white font-medium text-[15px] flex items-center justify-center gap-2" style={{ borderRadius: '2px' }}>
+              <button onClick={handleDiscard} className="flex-1 h-11 bg-[#FF453A] text-white font-medium text-[15px] flex items-center justify-center gap-2" style={{ borderRadius: '2px' }}>
                 <Trash2 size={16} strokeWidth={1.5} />
                 Discard
               </button>

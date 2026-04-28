@@ -81,6 +81,13 @@ export interface ExercisePreset {
   type: 'strength'
 }
 
+export interface SupplementLog {
+  id?: number
+  date: string   // YYYY-MM-DD
+  name: string
+  taken: boolean
+}
+
 export interface Settings {
   id?: number
   themeMode: string
@@ -110,10 +117,14 @@ export interface Settings {
   use24Hour: boolean
   hideCategories: boolean
   hideGlobalProgress: boolean
-  // F2 – nutrition goals (optional)
+  // Nutrition goals
   nutritionCaloriesGoal?: number
   nutritionProteinGoal?: number
+  nutritionCarbsGoal?: number
+  nutritionFatsGoal?: number
   nutritionWaterGoal?: number
+  // Supplements list (JSON-serialised string[])
+  supplementsList?: string
 }
 
 export class KasratDB extends Dexie {
@@ -125,6 +136,7 @@ export class KasratDB extends Dexie {
   exercise_meta!: Table<ExerciseMeta>
   daily_nutrition!: Table<DailyNutrition>
   exercise_presets!: Table<ExercisePreset>
+  supplement_logs!: Table<SupplementLog>
 
   constructor() {
     super('KasratDB')
@@ -200,6 +212,19 @@ export class KasratDB extends Dexie {
       exercise_meta: '&name',
       daily_nutrition: '&date',
       exercise_presets: '&name',
+    })
+
+    // v8 – adds supplement_logs table + new nutrition goal columns on settings
+    this.version(8).stores({
+      gym_sets: '++id, name, created, cardio, planId',
+      plans: '++id, sequence, title',
+      plan_exercises: '++id, planId, exercise',
+      settings: '++id',
+      body_measurements: '++id, created',
+      exercise_meta: '&name',
+      daily_nutrition: '&date',
+      exercise_presets: '&name',
+      supplement_logs: '++id, [date+name], date',
     })
   }
 }

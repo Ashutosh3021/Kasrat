@@ -30,9 +30,12 @@ export const DEFAULT_SETTINGS = {
   hideCategories: false,
   hideGlobalProgress: false,
   // F2 – nutrition goals (0 = not set)
-  nutritionCaloriesGoal: 0,
-  nutritionProteinGoal: 0,
-  nutritionWaterGoal: 0,
+  nutritionCaloriesGoal: 2000,
+  nutritionProteinGoal: 150,
+  nutritionCarbsGoal: 250,
+  nutritionFatsGoal: 70,
+  nutritionWaterGoal: 3,
+  supplementsList: '[]',
 }
 
 export async function seedDatabase() {

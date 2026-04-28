@@ -97,6 +97,30 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Nutrition */}
+        <section className="flex flex-col gap-2">
+          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Nutrition</h3>
+          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
+            <button onClick={() => navigate('/settings/data')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
+              <span className="text-[17px] font-normal text-white">Macro Targets</span>
+              <div className="flex items-center gap-1 text-[#A1A1A6]">
+                <span className="text-[13px]">{settings.nutritionCaloriesGoal ?? 2000} kcal</span>
+                <ChevronRight size={18} strokeWidth={1.5} />
+              </div>
+            </button>
+            <hr className="border-t border-[#2C2C2E]" />
+            <button onClick={() => navigate('/settings/data')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
+              <span className="text-[17px] font-normal text-white">Supplements</span>
+              <div className="flex items-center gap-1 text-[#A1A1A6]">
+                <span className="text-[13px]">
+                  {JSON.parse(settings.supplementsList ?? '[]').length} added
+                </span>
+                <ChevronRight size={18} strokeWidth={1.5} />
+              </div>
+            </button>
+          </div>
+        </section>
+
         {/* Exercise Library */}
         <section className="flex flex-col gap-2">
           <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Exercise Library</h3>
