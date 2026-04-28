@@ -1,7 +1,7 @@
 {
   "name": "kasrat",
   "private": true,
-  "version": "1.1.16",
+  "version": "1.2.36",
   "homepage": "https://ashutosh3021.github.io/Kasrat",
   "type": "module",
   "scripts": {

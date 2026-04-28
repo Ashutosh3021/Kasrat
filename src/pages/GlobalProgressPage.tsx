@@ -75,7 +75,7 @@ function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
             onClick={() => setMuscle(m)}
             className={`shrink-0 px-3 py-2 rounded-[2px] font-semibold text-[15px] transition-colors ${
               muscle === m
-                ? 'bg-[#3B82F6] text-white'
+                ? 'bg-[#93032E] text-white'
                 : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
             }`}
           >
@@ -100,8 +100,8 @@ function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
                   <BarChart data={ormData} layout="vertical" margin={{ left: 8, right: 32 }}>
                     <defs>
                       <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%"   stopColor="#3B82F6" />
-                        <stop offset="100%" stopColor="#60A5FA" />
+                        <stop offset="0%"   stopColor="#93032E" />
+                        <stop offset="100%" stopColor="#BE1755" />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" horizontal={false} />
@@ -141,9 +141,9 @@ function ByMuscleTab({ allSets }: { allSets: GymSet[] }) {
                     <Line
                       type="monotone"
                       dataKey="volume"
-                      stroke="#3B82F6"
+                      stroke="#93032E"
                       strokeWidth={2}
-                      dot={{ fill: '#000', stroke: '#3B82F6', strokeWidth: 2, r: 4 }}
+                      dot={{ fill: '#000', stroke: '#93032E', strokeWidth: 2, r: 4 }}
                       activeDot={{ r: 6 }}
                     />
                   </LineChart>
@@ -206,12 +206,12 @@ export default function GlobalProgressPage() {
   const tooltipStyle = { background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }
 
   return (
-    <div className="min-h-screen bg-black pb-24 pt-14">
-      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800 flex items-center px-3 h-14">
+    <div className="min-h-screen bg-[#151515] pb-24 pt-14">
+      <header className="fixed top-0 w-full z-50 bg-[#151515]/80 backdrop-blur-md border-b border-zinc-800 flex items-center px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
-        <span className="text-xl font-black tracking-tighter text-[#3B82F6] absolute left-1/2 -translate-x-1/2">KASRAT</span>
+        <span className="text-xl font-black tracking-tighter text-[#93032E] absolute left-1/2 -translate-x-1/2">KASRAT</span>
       </header>
 
       <main className="px-3 py-3">
@@ -223,7 +223,7 @@ export default function GlobalProgressPage() {
                 key={t}
                 onClick={() => setTab(t)}
                 className={`flex-1 pb-2 border-b-2 font-semibold text-[15px] text-center transition-colors capitalize ${
-                  tab === t ? 'border-[#3B82F6] text-[#3B82F6]' : 'border-transparent text-[#A1A1A6]'
+                  tab === t ? 'border-[#93032E] text-[#93032E]' : 'border-transparent text-[#A1A1A6]'
                 }`}
               >
                 {t === 'muscle' ? 'By Muscle' : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -247,15 +247,15 @@ export default function GlobalProgressPage() {
                     <AreaChart data={volumeData}>
                       <defs>
                         <linearGradient id="vGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.3} />
-                          <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
+                          <stop offset="0%" stopColor="#93032E" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="#93032E" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" />
                       <XAxis dataKey="week" tick={{ fill: '#A1A1A6', fontSize: 11 }} tickLine={false} axisLine={false} />
                       <YAxis tick={{ fill: '#A1A1A6', fontSize: 11 }} tickLine={false} axisLine={false} />
                       <Tooltip contentStyle={tooltipStyle} />
-                      <Area type="monotone" dataKey="volume" stroke="#3B82F6" strokeWidth={2} fill="url(#vGrad)" dot={{ fill: '#3B82F6', r: 3 }} />
+                      <Area type="monotone" dataKey="volume" stroke="#93032E" strokeWidth={2} fill="url(#vGrad)" dot={{ fill: '#93032E', r: 3 }} />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
@@ -271,7 +271,7 @@ export default function GlobalProgressPage() {
                   <button
                     key={m.name}
                     onClick={() => navigate(m.cardio ? `/cardio-graph/${encodeURIComponent(m.name)}` : `/graphs/${encodeURIComponent(m.name)}`)}
-                    className="bg-[#1C1C1E] rounded-[4px] p-3 border border-[#2C2C2E] flex items-center justify-between group hover:border-[#3B82F6] transition-colors"
+                    className="bg-[#1C1C1E] rounded-[4px] p-3 border border-[#2C2C2E] flex items-center justify-between group hover:border-[#93032E] transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <div className="text-left">
@@ -279,7 +279,7 @@ export default function GlobalProgressPage() {
                         <p className="text-[13px] font-medium text-[#A1A1A6]">Best: {m.best}</p>
                       </div>
                     </div>
-                    <ChevronRight size={20} strokeWidth={1.5} className="text-[#A1A1A6] group-hover:text-[#3B82F6] transition-colors" />
+                    <ChevronRight size={20} strokeWidth={1.5} className="text-[#A1A1A6] group-hover:text-[#93032E] transition-colors" />
                   </button>
                 ))}
               </div>

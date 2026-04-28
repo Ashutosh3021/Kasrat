@@ -23,19 +23,19 @@ export default function DataSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-8">
-      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-3 h-16 bg-black border-b border-zinc-800">
+    <div className="min-h-screen bg-[#151515] pb-8">
+      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-3 h-16 bg-[#151515] border-b border-zinc-800">
         <button onClick={() => navigate(-1)} className="text-zinc-500 hover:opacity-80 p-2 -ml-2">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
-        <h1 className="font-semibold text-xl text-[#3B82F6] tracking-tighter absolute left-1/2 -translate-x-1/2">Data & Format</h1>
+        <h1 className="font-semibold text-xl text-[#93032E] tracking-tighter absolute left-1/2 -translate-x-1/2">Data & Format</h1>
         <div className="w-6" />
       </header>
 
       <main className="flex-1 mt-16 px-3 py-3 space-y-8">
         <section className="bg-[#1C1C1E] rounded-[4px]">
           <div className="px-3 pt-3 pb-2">
-            <h2 className="font-semibold text-[15px] text-[#3B82F6]">Units</h2>
+            <h2 className="font-semibold text-[15px] text-[#93032E]">Units</h2>
           </div>
           <div className="flex items-center justify-between px-3 min-h-[48px] border-b border-[#2C2C2E]">
             <span className="text-[17px] text-white">Default Strength Unit</span>
@@ -44,7 +44,7 @@ export default function DataSettingsPage() {
                 <button
                   key={u}
                   onClick={() => updateSetting('strengthUnit', u)}
-                  className={`px-3 py-1 rounded-[2px] text-[13px] font-semibold transition-colors ${settings.strengthUnit === u ? 'bg-[#3B82F6] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'}`}
+                  className={`px-3 py-1 rounded-[2px] text-[13px] font-semibold transition-colors ${settings.strengthUnit === u ? 'bg-[#93032E] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'}`}
                 >
                   {u}
                 </button>
@@ -58,7 +58,7 @@ export default function DataSettingsPage() {
                 <button
                   key={u}
                   onClick={() => updateSetting('cardioUnit', u)}
-                  className={`px-3 py-1 rounded-[2px] text-[13px] font-semibold transition-colors ${settings.cardioUnit === u ? 'bg-[#3B82F6] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'}`}
+                  className={`px-3 py-1 rounded-[2px] text-[13px] font-semibold transition-colors ${settings.cardioUnit === u ? 'bg-[#93032E] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'}`}
                 >
                   {u}
                 </button>
@@ -73,7 +73,7 @@ export default function DataSettingsPage() {
 
         <section className="bg-[#1C1C1E] rounded-[4px]">
           <div className="px-3 pt-3 pb-2">
-            <h2 className="font-semibold text-[15px] text-[#3B82F6]">Tracking</h2>
+            <h2 className="font-semibold text-[15px] text-[#93032E]">Tracking</h2>
           </div>
           <div className="flex items-center justify-between px-3 min-h-[48px] border-b border-[#2C2C2E]">
             <span className="text-[17px] text-white">Group History by Day</span>
@@ -111,7 +111,7 @@ export default function DataSettingsPage() {
 
         <section className="bg-[#1C1C1E] rounded-[4px]">
           <div className="px-3 pt-3 pb-2">
-            <h2 className="font-semibold text-[15px] text-[#3B82F6]">Nutrition Goals</h2>
+            <h2 className="font-semibold text-[15px] text-[#93032E]">Nutrition Goals</h2>
           </div>
           {([
             ['Daily Calories', 'nutritionCaloriesGoal', 'numeric', 'kcal'],
@@ -128,7 +128,7 @@ export default function DataSettingsPage() {
                   inputMode={mode}
                   value={settings[key] ?? 0}
                   onChange={e => updateSetting(key, Number(e.target.value))}
-                  className="w-20 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[2px] px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
+                  className="w-20 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[2px] px-2 py-1.5 text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
                 />
                 <span className="text-[13px] text-[#A1A1A6] w-6">{unit}</span>
               </div>
@@ -138,7 +138,7 @@ export default function DataSettingsPage() {
 
         <section className="bg-[#1C1C1E] rounded-[4px]">
           <div className="px-3 pt-3 pb-2">
-            <h2 className="font-semibold text-[15px] text-[#3B82F6]">Supplements</h2>
+            <h2 className="font-semibold text-[15px] text-[#93032E]">Supplements</h2>
           </div>
           {/* Add new supplement */}
           <div className="flex items-center gap-2 px-3 pb-3 border-b border-[#2C2C2E]">
@@ -147,11 +147,11 @@ export default function DataSettingsPage() {
               onChange={e => setNewSupp(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addSupplement()}
               placeholder="e.g. Creatine"
-              className="flex-1 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[2px] px-3 py-2 text-[15px] text-white placeholder-[#A1A1A6] focus:outline-none focus:border-[#3B82F6]"
+              className="flex-1 bg-[#2C2C2E] border border-[#2C2C2E] rounded-[2px] px-3 py-2 text-[15px] text-white placeholder-[#A1A1A6] focus:outline-none focus:border-[#93032E]"
             />
             <button
               onClick={addSupplement}
-              className="h-9 px-3 bg-[#3B82F6] text-white font-medium text-[13px] rounded-[2px] shrink-0"
+              className="h-9 px-3 bg-[#93032E] text-white font-medium text-[13px] rounded-[2px] shrink-0"
             >
               Add
             </button>

@@ -82,7 +82,7 @@ export default function TemplatePicker({ onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-[70] flex flex-col justify-end animate-fadeIn">
+    <div className="fixed inset-0 bg-[#151515]/80 z-[70] flex flex-col justify-end animate-fadeIn">
       <div className="bg-[#1C1C1E] w-full max-h-[90dvh] rounded-t-[4px] border-t border-[#2C2C2E] flex flex-col overflow-hidden animate-slideUp">
         {/* Handle */}
         <div className="w-12 h-1 bg-[#353437] rounded-full mx-auto mt-3 shrink-0" />
@@ -116,7 +116,7 @@ export default function TemplatePicker({ onClose }: Props) {
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="text-[12px] font-semibold bg-[#3B82F6]/15 text-[#3B82F6] px-2 py-0.5 rounded-[2px]">
+                    <span className="text-[12px] font-semibold bg-[#93032E]/15 text-[#93032E] px-2 py-0.5 rounded-[2px]">
                       {t.days.length} days
                     </span>
                     <span className="text-[12px] text-[#A1A1A6]">{totalExercises(t)} exercises</span>
@@ -142,7 +142,7 @@ export default function TemplatePicker({ onClose }: Props) {
                 <button
                   onClick={() => useTemplate(t)}
                   disabled={creating}
-                  className="w-full h-11 bg-[#3B82F6] text-white rounded-[2px] font-semibold text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
+                  className="w-full h-11 bg-[#93032E] text-white rounded-[2px] font-semibold text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
                 >
                   Use this template
                 </button>
@@ -154,8 +154,8 @@ export default function TemplatePicker({ onClose }: Props) {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] bg-[#1C1C1E] border border-[#3B82F6]/40 text-white text-[15px] font-medium px-3 py-2 rounded-[4px] flex items-center gap-2 animate-fadeIn">
-          <CheckCircle size={18} strokeWidth={1.5} className="text-[#3B82F6]" />
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] bg-[#1C1C1E] border border-[#93032E]/40 text-white text-[15px] font-medium px-3 py-2 rounded-[4px] flex items-center gap-2 animate-fadeIn">
+          <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E]" />
           {toast}
         </div>
       )}

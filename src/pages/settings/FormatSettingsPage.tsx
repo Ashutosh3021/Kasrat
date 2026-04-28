@@ -12,9 +12,9 @@ export default function FormatSettingsPage() {
   const shortPreview = today.toLocaleDateString('en-US')
 
   return (
-    <div className="min-h-screen bg-black pb-8">
-      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-3 h-16 bg-black border-b border-zinc-800">
-        <button onClick={() => navigate(-1)} className="text-[#3B82F6] hover:opacity-80 p-2 -ml-2 rounded-[2px]">
+    <div className="min-h-screen bg-[#151515] pb-8">
+      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-3 h-16 bg-[#151515] border-b border-zinc-800">
+        <button onClick={() => navigate(-1)} className="text-[#93032E] hover:opacity-80 p-2 -ml-2 rounded-[2px]">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
         <h1 className="font-semibold text-xl text-white absolute left-1/2 -translate-x-1/2">Format</h1>

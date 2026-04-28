@@ -6,7 +6,7 @@ interface Props {
 
 export default function DeleteConfirmation({ target, onConfirm, onCancel }: Props) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-[#151515]/80 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] overflow-hidden" style={{ borderRadius: '4px' }}>
         <div className="p-3 flex flex-col gap-4">
           <div className="flex flex-col gap-2">

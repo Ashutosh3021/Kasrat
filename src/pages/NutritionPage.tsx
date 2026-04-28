@@ -152,7 +152,7 @@ function NutritionForm({ initial, onSave, onClose, onDelete }: NutritionFormProp
           value={form[key] as string}
           onChange={set(key)}
           placeholder="—"
-          className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#3B82F6] focus:outline-none pr-10"
+          className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#93032E] focus:outline-none pr-10"
         />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[#A1A1A6]">{unit}</span>
       </div>
@@ -161,7 +161,7 @@ function NutritionForm({ initial, onSave, onClose, onDelete }: NutritionFormProp
   )
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-[60] flex flex-col justify-end animate-fadeIn">
+    <div className="fixed inset-0 bg-[#151515]/80 z-[60] flex flex-col justify-end animate-fadeIn">
       <div className="bg-[#1C1C1E] w-full max-h-[92dvh] rounded-t-[4px] border-t border-[#2C2C2E] flex flex-col overflow-hidden animate-slideUp">
         <div className="w-12 h-1 bg-[#353437] rounded-full mx-auto mt-3 shrink-0" />
         <div className="px-3 flex items-center justify-between py-3 shrink-0">
@@ -181,7 +181,7 @@ function NutritionForm({ initial, onSave, onClose, onDelete }: NutritionFormProp
               type="date"
               value={form.date}
               onChange={set('date')}
-              className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#3B82F6] focus:outline-none"
+              className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#93032E] focus:outline-none"
             />
           </div>
 
@@ -200,13 +200,13 @@ function NutritionForm({ initial, onSave, onClose, onDelete }: NutritionFormProp
               onChange={set('notes')}
               rows={2}
               placeholder="Optional notes…"
-              className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[15px] text-white focus:border-[#3B82F6] focus:outline-none resize-none"
+              className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[15px] text-white focus:border-[#93032E] focus:outline-none resize-none"
             />
           </div>
 
           <button
             onClick={handleSave}
-            className="w-full h-12 bg-[#3B82F6] text-white rounded-[2px] font-semibold text-[15px]"
+            className="w-full h-12 bg-[#93032E] text-white rounded-[2px] font-semibold text-[15px]"
           >
             Save
           </button>
@@ -295,15 +295,15 @@ export default function NutritionPage() {
   const grouped = groupByWeek(entries)
 
   return (
-    <div className="min-h-screen bg-black pb-24">
-      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
+    <div className="min-h-screen bg-[#151515] pb-24">
+      <header className="sticky top-0 z-50 bg-[#151515]/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
         <h1 className="text-[22px] font-semibold text-white absolute left-1/2 -translate-x-1/2">Nutrition</h1>
         <button
           onClick={() => { setEditTarget(null); setShowForm(true) }}
-          className="p-2 -mr-2 text-[#3B82F6]"
+          className="p-2 -mr-2 text-[#93032E]"
         >
           <Plus size={22} strokeWidth={1.5} />
         </button>
@@ -320,7 +320,7 @@ export default function NutritionPage() {
                 setEditTarget(todayEntry ?? null)
                 setShowForm(true)
               }}
-              className="text-[13px] font-medium text-[#3B82F6]"
+              className="text-[13px] font-medium text-[#93032E]"
             >
               {todayEntry ? 'Edit' : 'Log'}
             </button>
@@ -343,7 +343,7 @@ export default function NutritionPage() {
               {calGoal > 0 && (
                 <div className="h-2 bg-[#2C2C2E] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#3B82F6] rounded-full transition-all"
+                    className="h-full bg-[#93032E] rounded-full transition-all"
                     style={{ width: `${Math.min(((todayEntry.calories ?? 0) / calGoal) * 100, 100)}%` }}
                   />
                 </div>
@@ -351,9 +351,9 @@ export default function NutritionPage() {
 
               {/* Macro arcs */}
               <div className="flex justify-around">
-                <MacroArc label="Protein" value={todayEntry.protein ?? 0} goal={protGoal} color="#3B82F6" />
-                <MacroArc label="Carbs"   value={todayEntry.carbs   ?? 0} goal={carbGoal} color="#60A5FA" />
-                <MacroArc label="Fats"    value={todayEntry.fats    ?? 0} goal={fatGoal}  color="#93C5FD" />
+                <MacroArc label="Protein" value={todayEntry.protein ?? 0} goal={protGoal} color="#93032E" />
+                <MacroArc label="Carbs"   value={todayEntry.carbs   ?? 0} goal={carbGoal} color="#BE1755" />
+                <MacroArc label="Fats"    value={todayEntry.fats    ?? 0} goal={fatGoal}  color="#E05C85" />
               </div>
 
               {/* Water bar */}
@@ -369,7 +369,7 @@ export default function NutritionPage() {
                 </div>
                 <div className="h-2 bg-[#2C2C2E] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#60A5FA] rounded-full transition-all"
+                    className="h-full bg-[#BE1755] rounded-full transition-all"
                     style={{
                       width: waterGoal > 0
                         ? `${Math.min(((todayEntry.water ?? 0) / waterGoal) * 100, 100)}%`
@@ -384,7 +384,7 @@ export default function NutritionPage() {
               <p className="text-[#A1A1A6] text-[15px] mb-3">No entry for today</p>
               <button
                 onClick={() => { setEditTarget(null); setShowForm(true) }}
-                className="bg-[#3B82F6] text-white font-semibold text-[15px] px-6 h-10 rounded-[2px]"
+                className="bg-[#93032E] text-white font-semibold text-[15px] px-6 h-10 rounded-[2px]"
               >
                 Log today's nutrition
               </button>
@@ -408,7 +408,7 @@ export default function NutritionPage() {
                 className={`w-full flex items-center justify-between px-3 py-3 text-left transition-colors hover:bg-[#2a2a2c] ${i < supplements.length - 1 ? 'border-b border-[#2C2C2E]' : ''}`}
               >
                 <span className={`text-[17px] ${log.taken ? 'text-[#A1A1A6] line-through' : 'text-white'}`}>{log.name}</span>
-                <div className={`w-6 h-6 flex items-center justify-center border ${log.taken ? 'bg-[#3B82F6] border-[#3B82F6]' : 'border-[#2C2C2E]'}`} style={{ borderRadius: '2px' }}>
+                <div className={`w-6 h-6 flex items-center justify-center border ${log.taken ? 'bg-[#93032E] border-[#93032E]' : 'border-[#2C2C2E]'}`} style={{ borderRadius: '2px' }}>
                   {log.taken && <Check size={14} strokeWidth={2} className="text-white" />}
                 </div>
               </button>

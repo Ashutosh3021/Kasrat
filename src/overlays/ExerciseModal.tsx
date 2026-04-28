@@ -139,8 +139,8 @@ export default function ExerciseModal({ planId, onClose }: Props) {
   })
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-[60] flex flex-col justify-end animate-fadeIn">
-      <div className="bg-black w-full h-[90%] border-t border-[#2C2C2E] flex flex-col overflow-hidden animate-slideUp" style={{ borderRadius: '4px 4px 0 0' }}>
+    <div className="fixed inset-0 bg-[#151515]/80 z-[60] flex flex-col justify-end animate-fadeIn">
+      <div className="bg-[#151515] w-full h-[90%] border-t border-[#2C2C2E] flex flex-col overflow-hidden animate-slideUp" style={{ borderRadius: '4px 4px 0 0' }}>
 
         {/* Handle */}
         <div className="w-full flex justify-center py-3 shrink-0">
@@ -162,7 +162,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] py-2 pl-10 pr-3 text-[17px] text-white focus:border-[#3B82F6] placeholder:text-[#A1A1A6] outline-none"
+              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] py-2 pl-10 pr-3 text-[17px] text-white focus:border-[#93032E] placeholder:text-[#A1A1A6] outline-none"
               style={{ borderRadius: '2px' }}
               placeholder="Search exercises..."
             />
@@ -217,7 +217,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                               <div className="flex items-center gap-1 bg-[#2C2C2E] border border-[#2C2C2E] px-1 py-0.5" style={{ borderRadius: '2px' }}>
                                 <button
                                   onClick={e => { e.stopPropagation(); updateModalSets(ex.name, -1) }}
-                                  className="w-5 h-5 flex items-center justify-center text-[#3B82F6]"
+                                  className="w-5 h-5 flex items-center justify-center text-[#93032E]"
                                 >
                                   <Minus size={12} strokeWidth={1.5} />
                                 </button>
@@ -226,7 +226,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                                 </span>
                                 <button
                                   onClick={e => { e.stopPropagation(); updateModalSets(ex.name, 1) }}
-                                  className="w-5 h-5 flex items-center justify-center text-[#3B82F6]"
+                                  className="w-5 h-5 flex items-center justify-center text-[#93032E]"
                                 >
                                   <Plus size={12} strokeWidth={1.5} />
                                 </button>
@@ -235,11 +235,11 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                                 onClick={() => addExercise(ex.name, ex.primaryMuscle)}
                                 disabled={isAdded}
                                 className={`w-7 h-7 flex items-center justify-center transition-colors border ${
-                                  isAdded ? 'bg-[#3B82F6]/20 border-[#3B82F6]' : 'border-[#3B82F6] hover:bg-[#3B82F6] hover:text-white'
+                                  isAdded ? 'bg-[#93032E]/20 border-[#93032E]' : 'border-[#93032E] hover:bg-[#93032E] hover:text-white'
                                 }`}
                                 style={{ borderRadius: '2px' }}
                               >
-                                {isAdded ? <Check size={14} strokeWidth={1.5} className="text-[#3B82F6]" /> : <Plus size={14} strokeWidth={1.5} className="text-[#3B82F6]" />}
+                                {isAdded ? <Check size={14} strokeWidth={1.5} className="text-[#93032E]" /> : <Plus size={14} strokeWidth={1.5} className="text-[#93032E]" />}
                               </button>
                             </div>
                           </div>
@@ -288,7 +288,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                             <div className="flex items-center gap-1 bg-[#2C2C2E] border border-[#2C2C2E] px-1 py-0.5" style={{ borderRadius: '2px' }}>
                               <button
                                 onClick={e => { e.stopPropagation(); updateModalSets(ex.name, -1) }}
-                                className="w-5 h-5 flex items-center justify-center text-[#3B82F6]"
+                                className="w-5 h-5 flex items-center justify-center text-[#93032E]"
                               >
                                 <Minus size={12} strokeWidth={1.5} />
                               </button>
@@ -297,7 +297,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                               </span>
                               <button
                                 onClick={e => { e.stopPropagation(); updateModalSets(ex.name, 1) }}
-                                className="w-5 h-5 flex items-center justify-center text-[#3B82F6]"
+                                className="w-5 h-5 flex items-center justify-center text-[#93032E]"
                               >
                                 <Plus size={12} strokeWidth={1.5} />
                               </button>
@@ -306,11 +306,11 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                               onClick={() => addExercise(ex.name, ex.muscle)}
                               disabled={isAdded}
                               className={`w-7 h-7 flex items-center justify-center transition-colors border ${
-                                isAdded ? 'bg-[#3B82F6]/20 border-[#3B82F6]' : 'border-[#3B82F6] hover:bg-[#3B82F6] hover:text-white'
+                                isAdded ? 'bg-[#93032E]/20 border-[#93032E]' : 'border-[#93032E] hover:bg-[#93032E] hover:text-white'
                               }`}
                               style={{ borderRadius: '2px' }}
                             >
-                              {isAdded ? <Check size={14} strokeWidth={1.5} className="text-[#3B82F6]" /> : <Plus size={14} strokeWidth={1.5} className="text-[#3B82F6]" />}
+                              {isAdded ? <Check size={14} strokeWidth={1.5} className="text-[#93032E]" /> : <Plus size={14} strokeWidth={1.5} className="text-[#93032E]" />}
                             </button>
                           </div>
                         </div>
@@ -330,7 +330,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                 {!showCreateForm ? (
                   <button
                     onClick={openCreateForm}
-                    className="w-full flex items-center justify-center gap-2 border border-dashed border-[#3B82F6] text-[#3B82F6] font-medium text-[15px] py-3"
+                    className="w-full flex items-center justify-center gap-2 border border-dashed border-[#93032E] text-[#93032E] font-medium text-[15px] py-3"
                     style={{ borderRadius: '4px' }}
                   >
                     <Plus size={18} strokeWidth={1.5} />
@@ -348,7 +348,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                       <input
                         value={createName}
                         onChange={e => { setCreateName(e.target.value); setCreateNameError('') }}
-                        className="w-full bg-black border border-[#2C2C2E] p-2.5 text-[15px] text-white placeholder-[#A1A1A6] focus:border-[#3B82F6] focus:outline-none"
+                        className="w-full bg-[#151515] border border-[#2C2C2E] p-2.5 text-[15px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none"
                         style={{ borderRadius: '2px' }}
                         placeholder="Exercise name"
                       />
@@ -364,7 +364,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                         <select
                           value={createMuscle}
                           onChange={e => setCreateMuscle(e.target.value)}
-                          className="w-full bg-black border border-[#2C2C2E] p-2.5 text-[15px] text-white appearance-none focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full bg-[#151515] border border-[#2C2C2E] p-2.5 text-[15px] text-white appearance-none focus:border-[#93032E] focus:outline-none"
                           style={{ borderRadius: '2px' }}
                         >
                           {MUSCLE_GROUPS.map(m => <option key={m} value={m}>{m}</option>)}
@@ -380,7 +380,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                         <select
                           value={createEquipment}
                           onChange={e => setCreateEquipment(e.target.value)}
-                          className="w-full bg-black border border-[#2C2C2E] p-2.5 text-[15px] text-white appearance-none focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full bg-[#151515] border border-[#2C2C2E] p-2.5 text-[15px] text-white appearance-none focus:border-[#93032E] focus:outline-none"
                           style={{ borderRadius: '2px' }}
                         >
                           {EQUIPMENT_OPTIONS.map(eq => <option key={eq} value={eq}>{eq}</option>)}
@@ -400,7 +400,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                       </button>
                       <button
                         onClick={saveCustomExercise}
-                        className="flex-1 h-10 bg-[#3B82F6] text-white font-medium text-[15px]"
+                        className="flex-1 h-10 bg-[#93032E] text-white font-medium text-[15px]"
                         style={{ borderRadius: '2px' }}
                       >
                         Save
@@ -414,8 +414,8 @@ export default function ExerciseModal({ planId, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="p-3 bg-black border-t border-[#2C2C2E] shrink-0">
-          <button onClick={onClose} className="w-full bg-[#3B82F6] text-white h-12 font-medium text-[15px]" style={{ borderRadius: '2px' }}>
+        <div className="p-3 bg-[#151515] border-t border-[#2C2C2E] shrink-0">
+          <button onClick={onClose} className="w-full bg-[#93032E] text-white h-12 font-medium text-[15px]" style={{ borderRadius: '2px' }}>
             Done
           </button>
         </div>

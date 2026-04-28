@@ -75,7 +75,7 @@ function CuesPopover({ cues }: { cues: string }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
-        className={`p-1 transition-colors ${open ? 'text-[#3B82F6]' : 'text-[#A1A1A6] hover:text-[#3B82F6]'}`}
+        className={`p-1 transition-colors ${open ? 'text-[#93032E]' : 'text-[#A1A1A6] hover:text-[#93032E]'}`}
         style={{ borderRadius: '2px' }}
         aria-label="Coach's cues"
       >
@@ -241,7 +241,7 @@ export default function StartPlanPage() {
   }
 
   function groupBorderClass(st: string) {
-    if (st === 'superset') return 'border-l-[3px] border-[#60A5FA]'
+    if (st === 'superset') return 'border-l-[3px] border-[#BE1755]'
     if (st === 'giant')    return 'border-l-[3px] border-purple-400'
     if (st === 'circuit')  return 'border-l-[3px] border-emerald-400'
     return ''
@@ -302,7 +302,7 @@ export default function StartPlanPage() {
     const orm = brzycki(parseFloat(inp.weight), parseInt(inp.reps))
 
     // Current exercise highlight
-    const currentBorder = isCurrent ? 'border-[#3B82F6]' : 'border-[#2C2C2E]'
+    const currentBorder = isCurrent ? 'border-[#93032E]' : 'border-[#2C2C2E]'
     const warmupBorder = st === 'warmup' ? 'border-l-[3px] border-amber-400' : ''
     return (
       <article
@@ -336,7 +336,7 @@ export default function StartPlanPage() {
           </span>
           
           <div className="flex-1 min-w-0 flex items-center gap-2">
-            {done && <CheckCircle size={18} strokeWidth={1.5} className="text-[#3B82F6] shrink-0" fill="#3B82F6" />}
+            {done && <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E] shrink-0" fill="#93032E" />}
             <h2 className={`text-[17px] font-medium text-white truncate ${done ? 'line-through' : ''}`}>
               {ex.exercise}
             </h2>
@@ -346,7 +346,7 @@ export default function StartPlanPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/swap/${planId}/${encodeURIComponent(ex.exercise)}`) }}
-              className="text-[#A1A1A6] hover:text-[#3B82F6] p-1"
+              className="text-[#A1A1A6] hover:text-[#93032E] p-1"
               aria-label="Swap exercise"
             >
               <Repeat size={18} strokeWidth={1.5} />
@@ -373,7 +373,7 @@ export default function StartPlanPage() {
             {sets.length}/{ex.maxSets} sets
           </span>
           {isCurrent && (
-            <span className="bg-[#3B82F6]/20 text-[#3B82F6] px-2 py-1 text-[11px] font-medium" style={{ borderRadius: '2px' }}>
+            <span className="bg-[#93032E]/20 text-[#93032E] px-2 py-1 text-[11px] font-medium" style={{ borderRadius: '2px' }}>
               CURRENT
             </span>
           )}
@@ -402,35 +402,35 @@ export default function StartPlanPage() {
                         </span>
                       )}
                     </div>
-                    <CheckCircle size={18} strokeWidth={1.5} className="text-[#3B82F6]" fill="#3B82F6" />
+                    <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E]" fill="#93032E" />
                   </div>
                 ))}
               </div>
             )}
 
             {/* Input area — shown for ALL expanded exercises */}
-            <div className="mt-2 bg-black/50 p-3 border border-[#2C2C2E] flex flex-col gap-3 ml-8" style={{ borderRadius: '4px' }}>
+            <div className="mt-2 bg-[#151515]/50 p-3 border border-[#2C2C2E] flex flex-col gap-3 ml-8" style={{ borderRadius: '4px' }}>
                   <div className="flex items-center gap-3">
-                    <span className="text-[13px] font-medium text-[#3B82F6] w-10 shrink-0">Set {sets.length + 1}</span>
+                    <span className="text-[13px] font-medium text-[#93032E] w-10 shrink-0">Set {sets.length + 1}</span>
                     <div className="flex-1 flex gap-3">
                       <div className="relative flex-1">
-                        <label className="absolute -top-2 left-3 bg-black px-1 text-[10px] text-[#A1A1A6]">
+                        <label className="absolute -top-2 left-3 bg-[#151515] px-1 text-[10px] text-[#A1A1A6]">
                           Weight ({settings.strengthUnit})
                         </label>
                         <input
                           type="number" inputMode="decimal" value={inp.weight}
                           onChange={e => patchInput(ex.exercise, { weight: e.target.value })}
-                          className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#93032E] focus:outline-none"
                           style={{ borderRadius: '2px' }}
                           placeholder="0"
                         />
                       </div>
                       <div className="relative flex-1">
-                        <label className="absolute -top-2 left-3 bg-black px-1 text-[10px] text-[#A1A1A6]">Reps</label>
+                        <label className="absolute -top-2 left-3 bg-[#151515] px-1 text-[10px] text-[#A1A1A6]">Reps</label>
                         <input
                           type="number" inputMode="numeric" value={inp.reps}
                           onChange={e => patchInput(ex.exercise, { reps: e.target.value })}
-                          className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#93032E] focus:outline-none"
                           style={{ borderRadius: '2px' }}
                           placeholder="0"
                         />
@@ -441,7 +441,7 @@ export default function StartPlanPage() {
                   {/* Live 1RM chip */}
                   {orm != null && (
                     <div className="flex justify-end">
-                      <span className="text-[11px] font-medium bg-[#1C1C1E]/80 text-[#3B82F6] border border-[#3B82F6]/30 px-2 py-0.5" style={{ borderRadius: '2px' }}>
+                      <span className="text-[11px] font-medium bg-[#1C1C1E]/80 text-[#93032E] border border-[#93032E]/30 px-2 py-0.5" style={{ borderRadius: '2px' }}>
                         ≈ 1RM: {orm} {settings.strengthUnit}
                       </span>
                     </div>
@@ -468,7 +468,7 @@ export default function StartPlanPage() {
                           type="number" inputMode="numeric" value={inp.rpe}
                           onChange={e => patchInput(ex.exercise, { rpe: e.target.value })}
                           min={1} max={10} placeholder="1-10"
-                          className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
+                          className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
                           style={{ borderRadius: '2px' }}
                         />
                       </div>
@@ -478,7 +478,7 @@ export default function StartPlanPage() {
                           type="number" inputMode="numeric" value={inp.rir}
                           onChange={e => patchInput(ex.exercise, { rir: e.target.value })}
                           min={0} max={5} placeholder="0-5"
-                          className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6]"
+                          className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
                           style={{ borderRadius: '2px' }}
                         />
                       </div>
@@ -489,7 +489,7 @@ export default function StartPlanPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => logSet(ex, i)}
-                      className="flex-1 bg-[#3B82F6] text-white font-medium text-[15px] py-2.5 flex items-center justify-center gap-2"
+                      className="flex-1 bg-[#93032E] text-white font-medium text-[15px] py-2.5 flex items-center justify-center gap-2"
                       style={{ borderRadius: '2px' }}
                     >
                       <Plus size={18} strokeWidth={1.5} />
@@ -521,22 +521,22 @@ export default function StartPlanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-8">
-      <header className="fixed top-0 w-full z-40 bg-black/90 backdrop-blur-md flex flex-col">
+    <div className="min-h-screen bg-[#151515] pb-8">
+      <header className="fixed top-0 w-full z-40 bg-[#151515]/90 backdrop-blur-md flex flex-col">
         <div className="flex items-center justify-between px-3 h-14 border-b border-[#2C2C2E]">
           <button onClick={() => navigate(-1)} className="text-white p-2 -ml-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
             <ArrowLeft size={20} strokeWidth={1.5} />
           </button>
           <h1 className="text-[22px] font-medium text-white">{plan?.title}</h1>
-          <button onClick={handleFinish} className="flex items-center gap-1 text-[#3B82F6] font-medium text-[15px] p-2 -mr-1">
+          <button onClick={handleFinish} className="flex items-center gap-1 text-[#93032E] font-medium text-[15px] p-2 -mr-1">
             <Flag size={18} strokeWidth={1.5} />
             <span className="hidden sm:inline">Finish</span>
           </button>
         </div>
         <div className="w-full bg-[#2C2C2E] h-1.5">
-          <div className="bg-[#3B82F6] h-full transition-all" style={{ width: `${progress * 100}%` }} />
+          <div className="bg-[#93032E] h-full transition-all" style={{ width: `${progress * 100}%` }} />
         </div>
-        <div className="px-3 py-2 text-center bg-black">
+        <div className="px-3 py-2 text-center bg-[#151515]">
           <span className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest">
             {totalDone}/{exercises.length} exercises done
           </span>
@@ -598,7 +598,7 @@ export default function StartPlanPage() {
         {/* Finish */}
         <button
           onClick={handleFinish}
-          className="w-full mt-4 bg-[#1C1C1E] border border-[#3B82F6] text-[#3B82F6] font-medium text-[15px] h-12 flex items-center justify-center gap-2"
+          className="w-full mt-4 bg-[#1C1C1E] border border-[#93032E] text-[#93032E] font-medium text-[15px] h-12 flex items-center justify-center gap-2"
           style={{ borderRadius: '2px' }}
         >
           <Flag size={18} strokeWidth={1.5} />

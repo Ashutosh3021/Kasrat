@@ -19,7 +19,7 @@ export default function WorkoutBubble() {
   return (
     <button
       onClick={() => navigate(`/start-plan/${activePlanId}`)}
-      className="fixed bottom-20 right-4 z-[200] flex items-center gap-2 bg-[#3B82F6] text-white px-3 py-2 border border-[#3B82F6] active:opacity-80 transition-opacity"
+      className="fixed bottom-20 right-4 z-[200] flex items-center gap-2 bg-[#93032E] text-white px-3 py-2 border border-[#93032E] active:opacity-80 transition-opacity"
       style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)', borderRadius: '2px' }}
     >
       {/* Pulsing dot */}

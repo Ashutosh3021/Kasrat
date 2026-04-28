@@ -20,7 +20,7 @@ export default function TimerPage() {
   const dashOffset = CIRCUMFERENCE * (1 - progress)
 
   return (
-    <div className="min-h-screen bg-black pb-24 pt-14 flex flex-col">
+    <div className="min-h-screen bg-[#151515] pb-24 pt-14 flex flex-col">
       <TopBar />
       <main className="flex-grow flex flex-col items-center justify-center px-4 relative">
         <h2 className="text-[22px] font-semibold text-white absolute top-6"></h2>
@@ -31,12 +31,12 @@ export default function TimerPage() {
             <circle
               cx="140" cy="140" r={RADIUS}
               fill="none"
-              stroke="#3B82F6"
+              stroke="#93032E"
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={dashOffset}
-              style={{ filter: 'drop-shadow(0 0 12px rgba(59,130,246,0.4))', transition: 'stroke-dashoffset 1s linear' }}
+              style={{ transition: 'stroke-dashoffset 1s linear' }}
             />
           </svg>
           <div className="z-10 flex flex-col items-center">
@@ -61,7 +61,7 @@ export default function TimerPage() {
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={() => running ? pause() : start()}
-              className="w-20 h-20 rounded-full bg-[#3B82F6] flex items-center justify-center active:scale-90 transition-transform shadow-[0_0_24px_rgba(59,130,246,0.3)]"
+              className="w-20 h-20 rounded-full bg-[#93032E] flex items-center justify-center active:scale-90 transition-transform"
             >
               {running
                 ? <Pause size={36} strokeWidth={1.5} fill="white" className="text-white" />
@@ -74,9 +74,9 @@ export default function TimerPage() {
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={addMinute}
-              className="w-16 h-16 rounded-full border-2 border-[#3B82F6] flex items-center justify-center active:scale-90 transition-transform bg-transparent"
+              className="w-16 h-16 rounded-full border-2 border-[#93032E] flex items-center justify-center active:scale-90 transition-transform bg-transparent"
             >
-              <span className="text-[15px] font-medium text-[#3B82F6]">+1</span>
+              <span className="text-[15px] font-medium text-[#93032E]">+1</span>
             </button>
             <span className="text-[13px] font-medium text-[#A1A1A6]">+1 min</span>
           </div>

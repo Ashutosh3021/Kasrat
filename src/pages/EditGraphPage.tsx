@@ -8,8 +8,8 @@ export default function EditGraphPage() {
   const [displayName, setDisplayName] = useState(decodeURIComponent(name ?? ''))
 
   return (
-    <div className="min-h-screen bg-black pb-8">
-      <header className="sticky top-0 w-full z-50 bg-black/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-[#2C2C2E]">
+    <div className="min-h-screen bg-[#151515] pb-8">
+      <header className="sticky top-0 w-full z-50 bg-[#151515]/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-[#2C2C2E]">
         <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 flex items-center justify-center text-white hover:bg-[#1C1C1E] rounded-[2px]">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
@@ -22,12 +22,12 @@ export default function EditGraphPage() {
           <input
             value={displayName}
             onChange={e => setDisplayName(e.target.value)}
-            className="bg-[#1C1C1E] text-white text-[17px] rounded-[4px] p-3 w-full border border-[#2C2C2E] focus:border-[#3B82F6] focus:outline-none"
+            className="bg-[#1C1C1E] text-white text-[17px] rounded-[4px] p-3 w-full border border-[#2C2C2E] focus:border-[#93032E] focus:outline-none"
           />
         </div>
         <button
           onClick={() => navigate(-1)}
-          className="bg-[#3B82F6] text-white rounded-[2px] min-h-[48px] flex justify-center items-center font-semibold text-[15px] w-full"
+          className="bg-[#93032E] text-white rounded-[2px] min-h-[48px] flex justify-center items-center font-semibold text-[15px] w-full"
         >
           Save
         </button>

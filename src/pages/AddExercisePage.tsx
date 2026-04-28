@@ -26,7 +26,7 @@ export function MuscleSelect({ label, value, onChange, required, error, includeN
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[17px] text-white appearance-none focus:border-[#3B82F6] focus:outline-none"
+          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[17px] text-white appearance-none focus:border-[#93032E] focus:outline-none"
           style={{ borderRadius: '2px' }}
         >
           {includeNone && <option value="">— None —</option>}
@@ -124,8 +124,8 @@ export default function AddExercisePage() {
   })
 
   return (
-    <div className="h-screen bg-black flex flex-col overflow-hidden">
-      <header className="flex items-center justify-between px-3 h-14 shrink-0 bg-black/80 backdrop-blur-md z-20 border-b border-[#2C2C2E]">
+    <div className="h-screen bg-[#151515] flex flex-col overflow-hidden">
+      <header className="flex items-center justify-between px-3 h-14 shrink-0 bg-[#151515]/80 backdrop-blur-md z-20 border-b border-[#2C2C2E]">
         <button onClick={() => navigate(-1)} className="text-white p-2 -ml-2 hover:opacity-80">
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
@@ -139,7 +139,7 @@ export default function AddExercisePage() {
           onClick={() => setMode('presets')}
           className={`flex-1 h-10 font-medium text-[15px] transition-colors ${
             mode === 'presets'
-              ? 'bg-[#3B82F6] text-white'
+              ? 'bg-[#93032E] text-white'
               : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
           }`}
           style={{ borderRadius: '2px' }}
@@ -150,7 +150,7 @@ export default function AddExercisePage() {
           onClick={() => setMode('custom')}
           className={`flex-1 h-10 font-medium text-[15px] transition-colors ${
             mode === 'custom'
-              ? 'bg-[#3B82F6] text-white'
+              ? 'bg-[#93032E] text-white'
               : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
           }`}
           style={{ borderRadius: '2px' }}
@@ -191,7 +191,7 @@ export default function AddExercisePage() {
                         <button
                           key={ex.name}
                           onClick={() => selectPreset(ex)}
-                          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-2 flex items-center justify-between hover:border-[#3B82F6] transition-colors text-left"
+                          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-2 flex items-center justify-between hover:border-[#93032E] transition-colors text-left"
                           style={{ borderRadius: '4px' }}
                         >
                           <span className="text-[15px] font-normal text-white">{ex.name}</span>
@@ -214,7 +214,7 @@ export default function AddExercisePage() {
               <input
                 value={name}
                 onChange={e => { setName(e.target.value); setNameError('') }}
-                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[17px] text-white placeholder-[#A1A1A6] focus:border-[#3B82F6] focus:outline-none"
+                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[17px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none"
                 style={{ borderRadius: '2px' }}
                 placeholder="e.g., Barbell Bench Press"
               />
@@ -231,7 +231,7 @@ export default function AddExercisePage() {
                     onClick={() => setType(t.toLowerCase() as 'strength' | 'cardio')}
                     className={`flex-1 h-10 font-medium text-[15px] transition-all ${
                       type === t.toLowerCase()
-                        ? 'bg-[#3B82F6] text-white'
+                        ? 'bg-[#93032E] text-white'
                         : 'border border-[#2C2C2E] text-white'
                     }`}
                     style={{ borderRadius: '2px' }}
@@ -272,7 +272,7 @@ export default function AddExercisePage() {
                     onChange={e => setCues(e.target.value)}
                     rows={3}
                     placeholder="e.g., Keep elbows tucked, drive through heels…"
-                    className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[15px] text-white placeholder-[#A1A1A6] focus:border-[#3B82F6] focus:outline-none resize-none"
+                    className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[15px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none resize-none"
                     style={{ borderRadius: '2px' }}
                   />
                 </div>
@@ -284,8 +284,8 @@ export default function AddExercisePage() {
 
       {mode === 'custom' && (
         <div className="fixed bottom-0 w-full flex flex-col z-50">
-          <div className="bg-black/95 backdrop-blur-md px-3 py-3 border-t border-[#2C2C2E]">
-            <button onClick={save} className="w-full h-12 bg-[#3B82F6] text-white font-medium text-[15px]" style={{ borderRadius: '2px' }}>
+          <div className="bg-[#151515]/95 backdrop-blur-md px-3 py-3 border-t border-[#2C2C2E]">
+            <button onClick={save} className="w-full h-12 bg-[#93032E] text-white font-medium text-[15px]" style={{ borderRadius: '2px' }}>
               Save
             </button>
           </div>

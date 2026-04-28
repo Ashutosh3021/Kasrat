@@ -33,7 +33,7 @@ export default function App() {
   const hideNav = NO_NAV_PATHS.some(p => location.pathname.startsWith(p))
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#151515] text-white">
       <Outlet />
       {!hideNav && <BottomNav />}
       {/* Floating workout bubble — visible on all pages except the session itself */}

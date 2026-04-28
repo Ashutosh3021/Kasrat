@@ -10,7 +10,7 @@ export default function GraphsFilter({ onClose }: Props) {
   const [includeCardio, setIncludeCardio] = useState(true)
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] animate-fadeIn" onClick={onClose}>
+    <div className="fixed inset-0 bg-[#151515]/80 backdrop-blur-sm z-[60] animate-fadeIn" onClick={onClose}>
       <div
         className="fixed bottom-0 left-0 w-full h-[45%] bg-[#1C1C1E] z-[70] rounded-t-xl border-t border-[#2C2C2E] flex flex-col animate-slideUp"
         onClick={e => e.stopPropagation()}
@@ -27,7 +27,7 @@ export default function GraphsFilter({ onClose }: Props) {
                   key={c}
                   onClick={() => setSelected(c)}
                   className={`shrink-0 px-3 py-2 rounded-[2px] font-semibold text-[15px] transition-colors ${
-                    selected === c ? 'bg-[#3B82F6] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'
+                    selected === c ? 'bg-[#93032E] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'
                   }`}
                 >
                   {c}
@@ -43,7 +43,7 @@ export default function GraphsFilter({ onClose }: Props) {
         <div className="p-3 bg-[#1C1C1E] border-t border-[#2C2C2E]">
           <button
             onClick={onClose}
-            className="w-full h-12 bg-[#3B82F6] text-white font-semibold text-[15px] rounded-[2px] active:scale-[0.98] transition-transform"
+            className="w-full h-12 bg-[#93032E] text-white font-semibold text-[15px] rounded-[2px] active:scale-[0.98] transition-transform"
           >
             Apply
           </button>

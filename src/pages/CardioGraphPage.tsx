@@ -31,8 +31,8 @@ export default function CardioGraphPage() {
   })).reverse()
 
   return (
-    <div className="min-h-screen bg-black pb-24">
-      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800 flex items-center px-3 h-14">
+    <div className="min-h-screen bg-[#151515] pb-24">
+      <header className="fixed top-0 w-full z-50 bg-[#151515]/80 backdrop-blur-md border-b border-zinc-800 flex items-center px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
@@ -51,7 +51,7 @@ export default function CardioGraphPage() {
               key={m}
               onClick={() => setMetric(m)}
               className={`px-3 py-2 rounded-[2px] text-[15px] font-semibold whitespace-nowrap transition-all ${
-                metric === m ? 'bg-[#3B82F6] text-white' : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
+                metric === m ? 'bg-[#93032E] text-white' : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
               }`}
             >
               {m.charAt(0).toUpperCase() + m.slice(1)}
@@ -69,7 +69,7 @@ export default function CardioGraphPage() {
                 <Tooltip
                   contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
                 />
-                <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="#93032E" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (

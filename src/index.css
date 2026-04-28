@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #000000;
+  --color-background: #151515;
   --color-surface: #1C1C1E;
   --color-surface-container: #1f1f21;
   --color-surface-container-low: #1b1b1d;
@@ -14,10 +14,10 @@
   --color-on-background: #e4e2e4;
   --color-on-surface: #e4e2e4;
   --color-on-surface-variant: #c2c6d6;
-  --color-primary: #3B82F6;
-  --color-primary-container: #3B82F6;
-  --color-primary-fixed: #3B82F6;
-  --color-primary-fixed-dim: #3B82F6;
+  --color-primary: #93032E;
+  --color-primary-container: #93032E;
+  --color-primary-fixed: #93032E;
+  --color-primary-fixed-dim: #93032E;
   --color-on-primary: #ffffff;
   --color-on-primary-container: #ffffff;
   --color-on-primary-fixed: #ffffff;
@@ -47,8 +47,8 @@
   --color-inverse-surface: #e4e2e4;
   --color-inverse-on-surface: #303032;
   --color-inverse-primary: #005ac2;
-  --color-surface-tint: #3B82F6;
-  --color-brand-blue: #3B82F6;
+  --color-surface-tint: #93032E;
+  --color-brand-blue: #93032E;
   --color-divider-gray: #2C2C2E;
 
   --font-family-sans: 'Inter', sans-serif;
@@ -74,7 +74,7 @@
 }
 
 html, body {
-  background-color: #000000;
+  background-color: #151515;
   color: #e4e2e4;
   font-family: 'Inter', sans-serif;
   font-weight: 400;

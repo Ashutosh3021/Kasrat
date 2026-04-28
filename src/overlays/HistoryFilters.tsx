@@ -7,7 +7,7 @@ export default function HistoryFilters({ onClose }: Props) {
   const [to, setTo] = useState('')
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] animate-fadeIn" onClick={onClose}>
+    <div className="fixed inset-0 bg-[#151515]/80 backdrop-blur-sm z-[60] animate-fadeIn" onClick={onClose}>
       <div
         className="fixed bottom-0 left-0 w-full bg-[#1C1C1E] z-[70] rounded-t-xl border-t border-[#2C2C2E] flex flex-col animate-slideUp"
         onClick={e => e.stopPropagation()}
@@ -41,7 +41,7 @@ export default function HistoryFilters({ onClose }: Props) {
           </div>
         </div>
         <div className="p-3 border-t border-[#2C2C2E]">
-          <button onClick={onClose} className="w-full h-12 bg-[#3B82F6] text-white font-semibold text-[15px] rounded-[2px]">
+          <button onClick={onClose} className="w-full h-12 bg-[#93032E] text-white font-semibold text-[15px] rounded-[2px]">
             Apply
           </button>
         </div>

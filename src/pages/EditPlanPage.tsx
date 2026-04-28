@@ -14,7 +14,7 @@ const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 const SET_TYPE_OPTIONS: { value: SetType; label: string; color: string }[] = [
   { value: 'normal',    label: 'Normal',    color: 'text-[#A1A1A6]' },
   { value: 'warmup',    label: 'Warm-up',   color: 'text-amber-400' },
-  { value: 'superset',  label: 'Superset',  color: 'text-[#60A5FA]' },
+  { value: 'superset',  label: 'Superset',  color: 'text-[#BE1755]' },
   { value: 'giant',     label: 'Giant Set', color: 'text-purple-400' },
   { value: 'circuit',   label: 'Circuit',   color: 'text-emerald-400' },
 ]
@@ -322,11 +322,11 @@ export default function EditPlanPage() {
         <div className="flex items-center justify-between pl-8">
           <span className="text-[13px] font-medium text-[#A1A1A6]">Sets</span>
           <div className="flex items-center gap-1.5 bg-[#2C2C2E] px-2 py-1" style={{ borderRadius: '2px' }}>
-            <button onClick={() => updateSets(ex, -1)} className="w-6 h-6 flex items-center justify-center text-[#3B82F6] active:opacity-60">
+            <button onClick={() => updateSets(ex, -1)} className="w-6 h-6 flex items-center justify-center text-[#93032E] active:opacity-60">
               <Minus size={14} strokeWidth={1.5} />
             </button>
             <span className="text-[15px] font-medium text-white w-4 text-center tabular-nums">{ex.maxSets}</span>
-            <button onClick={() => updateSets(ex, 1)} className="w-6 h-6 flex items-center justify-center text-[#3B82F6] active:opacity-60">
+            <button onClick={() => updateSets(ex, 1)} className="w-6 h-6 flex items-center justify-center text-[#93032E] active:opacity-60">
               <Plus size={14} strokeWidth={1.5} />
             </button>
           </div>
@@ -345,8 +345,8 @@ export default function EditPlanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-8">
-      <header className="sticky top-0 w-full z-50 bg-black/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-[#2C2C2E]">
+    <div className="min-h-screen bg-[#151515] pb-8">
+      <header className="sticky top-0 w-full z-50 bg-[#151515]/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-[#2C2C2E]">
         <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 flex items-center justify-center text-white hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
@@ -360,7 +360,7 @@ export default function EditPlanPage() {
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className="bg-[#1C1C1E] text-white text-[17px] p-3 w-full border border-transparent focus:border-[#3B82F6] focus:outline-none placeholder-[#A1A1A6]"
+            className="bg-[#1C1C1E] text-white text-[17px] p-3 w-full border border-transparent focus:border-[#93032E] focus:outline-none placeholder-[#A1A1A6]"
             style={{ borderRadius: '2px' }}
           />
         </section>
@@ -373,7 +373,7 @@ export default function EditPlanPage() {
                 key={d}
                 onClick={() => toggleDay(d)}
                 className={`w-9 h-9 flex items-center justify-center font-medium text-[15px] transition-all ${
-                  activeDays.includes(d) ? 'bg-[#3B82F6] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'
+                  activeDays.includes(d) ? 'bg-[#93032E] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'
                 }`}
                 style={{ borderRadius: '2px' }}
               >
@@ -402,7 +402,7 @@ export default function EditPlanPage() {
           </div>
           <button
             onClick={() => plan?.id && openExerciseModal(plan.id)}
-            className="border border-[#2C2C2E] text-[#3B82F6] min-h-[48px] py-3 flex items-center justify-center gap-2 font-medium text-[15px] w-full"
+            className="border border-[#2C2C2E] text-[#93032E] min-h-[48px] py-3 flex items-center justify-center gap-2 font-medium text-[15px] w-full"
             style={{ borderRadius: '2px' }}
           >
             <Plus size={20} strokeWidth={1.5} />
@@ -411,7 +411,7 @@ export default function EditPlanPage() {
           {exercises.length === 0 && (
             <button
               onClick={() => setShowTemplatePicker(true)}
-              className="border border-[#3B82F6]/40 text-[#3B82F6] min-h-[48px] py-3 flex items-center justify-center gap-2 font-medium text-[15px] w-full"
+              className="border border-[#93032E]/40 text-[#93032E] min-h-[48px] py-3 flex items-center justify-center gap-2 font-medium text-[15px] w-full"
               style={{ borderRadius: '2px' }}
             >
               <LayoutTemplate size={20} strokeWidth={1.5} />
@@ -423,7 +423,7 @@ export default function EditPlanPage() {
         <div className="flex-1" />
 
         <section className="mt-8 flex flex-col gap-4 pb-8">
-          <button onClick={save} className="bg-[#3B82F6] text-white min-h-[48px] flex justify-center items-center font-medium text-[15px] w-full" style={{ borderRadius: '2px' }}>
+          <button onClick={save} className="bg-[#93032E] text-white min-h-[48px] flex justify-center items-center font-medium text-[15px] w-full" style={{ borderRadius: '2px' }}>
             Save
           </button>
           <button

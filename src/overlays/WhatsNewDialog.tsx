@@ -4,8 +4,8 @@ interface Props { onClose: () => void }
 
 const RELEASES = [
   {
-    version: '1.1.16',
-    date: 'Apr 2025',
+    version: '1.2.36',
+    date: 'Apr 2026',
     isNew: true,
     changes: [
       'Initial release of KASRAT fitness tracker',
@@ -18,26 +18,26 @@ const RELEASES = [
 
 export default function WhatsNewDialog({ onClose }: Props) {
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex justify-center animate-fadeIn">
-      <div className="w-full max-w-[390px] min-h-screen relative pb-8 flex flex-col bg-black">
-        <header className="flex items-center justify-between h-14 px-3 w-full bg-black border-b border-[#2C2C2E] sticky top-0 z-50">
-          <button onClick={onClose} className="flex items-center justify-center w-10 h-10 hover:text-[#3B82F6] transition-colors text-[#3B82F6]">
+    <div className="fixed inset-0 z-[100] bg-[#151515]/80 backdrop-blur-sm flex justify-center animate-fadeIn">
+      <div className="w-full max-w-[390px] min-h-screen relative pb-8 flex flex-col bg-[#151515]">
+        <header className="flex items-center justify-between h-14 px-3 w-full bg-[#151515] border-b border-[#2C2C2E] sticky top-0 z-50">
+          <button onClick={onClose} className="flex items-center justify-center w-10 h-10 hover:text-[#93032E] transition-colors text-[#93032E]">
             <X size={22} strokeWidth={1.5} />
           </button>
-          <div className="text-xl font-black italic tracking-tighter text-[#3B82F6]">KASRAT</div>
+          <div className="text-xl font-black italic tracking-tighter text-[#93032E]">KASRAT</div>
           <div className="w-10" />
         </header>
 
         <main className="flex-1 px-3 pt-8 flex flex-col gap-4">
           <div className="flex flex-col gap-2 mb-4">
             <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white">What's New</h1>
-            <p className="text-[13px] font-medium text-[#A1A1A6]">Version 1.1.16</p>
+            <p className="text-[13px] font-medium text-[#A1A1A6]">Version 1.2.36</p>
           </div>
 
           {RELEASES.map(r => (
             <article
               key={r.version}
-              className={`bg-[#1C1C1E] rounded-[4px] p-3 relative overflow-hidden ${r.isNew ? 'border-l-4 border-[#3B82F6]' : 'border border-[#2C2C2E]'}`}
+              className={`bg-[#1C1C1E] rounded-[4px] p-3 relative overflow-hidden ${r.isNew ? 'border-l-4 border-[#93032E]' : 'border border-[#2C2C2E]'}`}
             >
               {r.isNew && (
                 <div className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-[rgba(59,130,246,0.1)] to-transparent pointer-events-none" />
@@ -53,7 +53,7 @@ export default function WhatsNewDialog({ onClose }: Props) {
               <ul className="flex flex-col gap-3 relative z-10">
                 {r.changes.map((c, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <span className="text-[#3B82F6] mt-0.5 text-lg">✓</span>
+                    <span className="text-[#93032E] mt-0.5 text-lg">✓</span>
                     <p className="text-[17px] text-[#A1A1A6]">{c}</p>
                   </li>
                 ))}

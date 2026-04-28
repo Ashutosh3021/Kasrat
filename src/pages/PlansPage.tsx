@@ -20,7 +20,7 @@ export default function PlansPage() {
   useEffect(() => { loadPlans() }, [])
 
   return (
-    <div className="min-h-screen bg-black pb-24 pt-14">
+    <div className="min-h-screen bg-[#151515] pb-24 pt-14">
       <TopBar />
       <main className="px-4 pt-6 max-w-md mx-auto flex flex-col gap-4">
         <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white">Plans</h1>
@@ -61,7 +61,7 @@ export default function PlansPage() {
 
       <button
         onClick={openNewPlan}
-        className="fixed bottom-20 right-4 w-14 h-14 bg-[#3B82F6] text-white flex items-center justify-center active:scale-95 transition-all z-40"
+        className="fixed bottom-20 right-4 w-14 h-14 bg-[#93032E] text-white flex items-center justify-center active:scale-95 transition-all z-40"
         style={{ borderRadius: '2px' }}
       >
         <Plus size={28} strokeWidth={1.5} />

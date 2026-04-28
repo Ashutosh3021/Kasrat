@@ -55,8 +55,8 @@ export default function StrengthGraphPage() {
     : `${settings.strengthUnit} 1RM`
 
   return (
-    <div className="min-h-screen bg-black pb-24">
-      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-[#2C2C2E] flex items-center px-3 h-14">
+    <div className="min-h-screen bg-[#151515] pb-24">
+      <header className="fixed top-0 w-full z-50 bg-[#151515]/80 backdrop-blur-md border-b border-[#2C2C2E] flex items-center px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
@@ -76,8 +76,8 @@ export default function StrengthGraphPage() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#93032E" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#93032E" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" />
@@ -85,15 +85,15 @@ export default function StrengthGraphPage() {
                   <YAxis tick={{ fill: '#8c909f', fontSize: 11 }} tickLine={false} axisLine={false} />
                   <Tooltip
                     contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
-                    labelStyle={{ color: '#3B82F6' }}
+                    labelStyle={{ color: '#93032E' }}
                   />
                   <Area
                     type={settings.curveLines ? 'monotone' : 'linear'}
                     dataKey="value"
-                    stroke="#3B82F6"
+                    stroke="#93032E"
                     strokeWidth={2}
                     fill="url(#grad)"
-                    dot={{ fill: '#000', stroke: '#3B82F6', strokeWidth: 2, r: 4 }}
+                    dot={{ fill: '#000', stroke: '#93032E', strokeWidth: 2, r: 4 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -110,7 +110,7 @@ export default function StrengthGraphPage() {
                 key={m}
                 onClick={() => setMetric(m)}
                 className={`px-4 py-1.5 text-[13px] font-medium whitespace-nowrap transition-colors ${
-                  metric === m ? 'bg-[#3B82F6]/20 border border-[#3B82F6] text-[#3B82F6]' : 'bg-[#2C2C2E] text-white'
+                  metric === m ? 'bg-[#93032E]/20 border border-[#93032E] text-[#93032E]' : 'bg-[#2C2C2E] text-white'
                 }`}
                 style={{ borderRadius: '2px' }}
               >
@@ -146,7 +146,7 @@ export default function StrengthGraphPage() {
               .map(([, s], i, arr) => (
               <div key={s.id} className={`py-3 flex justify-between items-center ${i < arr.length - 1 ? 'border-b border-[#2C2C2E]' : ''}`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[#3B82F6]" />
+                  <div className="w-2 h-2 rounded-full bg-[#93032E]" />
                   <span className="text-[17px] text-white">{formatDate(s.created)}</span>
                 </div>
                 <span className="text-[15px] font-medium text-white">
@@ -164,7 +164,7 @@ export default function StrengthGraphPage() {
             <input
               type="range" min={5} max={100} value={limit}
               onChange={e => setLimit(Number(e.target.value))}
-              className="w-full accent-[#3B82F6]"
+              className="w-full accent-[#93032E]"
             />
           </div>
         </div>

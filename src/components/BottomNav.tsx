@@ -18,7 +18,7 @@ export default function BottomNav() {
   const tabs = ALL_TABS.filter(t => !hidden.includes(t.key))
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe bg-black border-t border-[#2C2C2E] h-16">
+    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe bg-[#151515] border-t border-[#2C2C2E] h-16">
       {tabs.map(tab => {
         const isActive = location.pathname === tab.path || (tab.path !== '/' && location.pathname.startsWith(tab.path))
         const Icon = tab.icon
@@ -26,7 +26,7 @@ export default function BottomNav() {
           <button
             key={tab.key}
             onClick={() => navigate(tab.path)}
-            className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${isActive ? 'text-[#3B82F6]' : 'text-[#A1A1A6]'}`}
+            className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${isActive ? 'text-[#93032E]' : 'text-[#A1A1A6]'}`}
           >
             <Icon size={20} strokeWidth={1.5} />
             <span className="text-[10px] font-medium mt-1">{tab.label}</span>

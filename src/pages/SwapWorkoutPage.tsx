@@ -61,8 +61,8 @@ export default function SwapWorkoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-8">
-      <header className="sticky top-0 w-full z-50 bg-black/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-[#2C2C2E]">
+    <div className="min-h-screen bg-[#151515] pb-8">
+      <header className="sticky top-0 w-full z-50 bg-[#151515]/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-[#2C2C2E]">
         <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 flex items-center justify-center text-white hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
@@ -83,7 +83,7 @@ export default function SwapWorkoutPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search exercises..."
-            className="w-full bg-[#1C1C1E] text-white text-[17px] pl-10 pr-3 py-3 border border-[#2C2C2E] focus:border-[#3B82F6] focus:outline-none placeholder-[#A1A1A6]"
+            className="w-full bg-[#1C1C1E] text-white text-[17px] pl-10 pr-3 py-3 border border-[#2C2C2E] focus:border-[#93032E] focus:outline-none placeholder-[#A1A1A6]"
             style={{ borderRadius: '2px' }}
           />
         </div>
@@ -96,7 +96,7 @@ export default function SwapWorkoutPage() {
             <button
               key={name}
               onClick={() => handleSwap(name)}
-              className="bg-[#1C1C1E] p-3 text-left text-white text-[17px] border border-[#2C2C2E] hover:border-[#3B82F6] transition-colors"
+              className="bg-[#1C1C1E] p-3 text-left text-white text-[17px] border border-[#2C2C2E] hover:border-[#93032E] transition-colors"
               style={{ borderRadius: '4px' }}
             >
               {name}

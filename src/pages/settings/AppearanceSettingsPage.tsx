@@ -8,9 +8,9 @@ export default function AppearanceSettingsPage() {
   const { settings, updateSetting } = useSettingsStore()
 
   return (
-    <div className="min-h-screen bg-black pb-8">
-      <header className="flex items-center px-3 py-3 h-16 sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-[#2C2C2E]">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white hover:text-[#3B82F6]">
+    <div className="min-h-screen bg-[#151515] pb-8">
+      <header className="flex items-center px-3 py-3 h-16 sticky top-0 z-50 bg-[#151515]/80 backdrop-blur-md border-b border-[#2C2C2E]">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white hover:text-[#93032E]">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
         <h1 className="ml-2 text-[22px] font-semibold text-white">Appearance</h1>
@@ -30,7 +30,7 @@ export default function AppearanceSettingsPage() {
                   onClick={() => updateSetting('themeMode', t.toLowerCase().replace(' ', '_'))}
                   className={`flex-1 py-2 text-center font-semibold text-[15px] rounded-[2px] transition-colors ${
                     settings.themeMode === t.toLowerCase().replace(' ', '_')
-                      ? 'bg-[#3B82F6] text-white'
+                      ? 'bg-[#93032E] text-white'
                       : 'text-[#A1A1A6] hover:text-white'
                   }`}
                 >

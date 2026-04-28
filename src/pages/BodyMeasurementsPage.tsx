@@ -116,7 +116,7 @@ function MeasurementForm({ initial, onSave, onClose, onDelete }: MeasurementForm
           value={form[key] as string}
           onChange={set(key)}
           placeholder="—"
-          className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#3B82F6] focus:outline-none pr-12"
+          className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#93032E] focus:outline-none pr-12"
         />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[#A1A1A6]">{unit}</span>
       </div>
@@ -124,7 +124,7 @@ function MeasurementForm({ initial, onSave, onClose, onDelete }: MeasurementForm
   )
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-[60] flex flex-col justify-end animate-fadeIn">
+    <div className="fixed inset-0 bg-[#151515]/80 z-[60] flex flex-col justify-end animate-fadeIn">
       <div className="bg-[#1C1C1E] w-full max-h-[92dvh] rounded-t-[4px] border-t border-[#2C2C2E] flex flex-col overflow-hidden animate-slideUp">
         {/* Handle */}
         <div className="w-full flex justify-center py-3 shrink-0">
@@ -148,7 +148,7 @@ function MeasurementForm({ initial, onSave, onClose, onDelete }: MeasurementForm
               type="date"
               value={form.date}
               onChange={set('date')}
-              className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#3B82F6] focus:outline-none"
+              className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#93032E] focus:outline-none"
             />
           </div>
 
@@ -170,13 +170,13 @@ function MeasurementForm({ initial, onSave, onClose, onDelete }: MeasurementForm
               onChange={set('notes')}
               rows={2}
               placeholder="Optional notes…"
-              className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#3B82F6] focus:outline-none resize-none"
+              className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#93032E] focus:outline-none resize-none"
             />
           </div>
 
           <button
             onClick={() => onSave(form)}
-            className="w-full h-12 bg-[#3B82F6] text-white rounded-[2px] font-semibold text-[15px]"
+            className="w-full h-12 bg-[#93032E] text-white rounded-[2px] font-semibold text-[15px]"
           >
             Save
           </button>
@@ -257,9 +257,9 @@ export default function BodyMeasurementsPage() {
     .map(m => ({ date: formatDate(m.created), value: m[chartMetric] as number }))
 
   return (
-    <div className="min-h-screen bg-black pb-24">
+    <div className="min-h-screen bg-[#151515] pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
+      <header className="sticky top-0 z-50 bg-[#151515]/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
@@ -268,7 +268,7 @@ export default function BodyMeasurementsPage() {
         </h1>
         <button
           onClick={() => { setEditTarget(null); setShowForm(true) }}
-          className="p-2 -mr-2 text-[#3B82F6]"
+          className="p-2 -mr-2 text-[#93032E]"
         >
           <Plus size={22} strokeWidth={1.5} />
         </button>
@@ -289,7 +289,7 @@ export default function BodyMeasurementsPage() {
               )}
               {latest.fatPercentage != null && (
                 <div className="mb-1">
-                  <span className="text-[22px] font-semibold text-[#3B82F6]">{latest.fatPercentage}</span>
+                  <span className="text-[22px] font-semibold text-[#93032E]">{latest.fatPercentage}</span>
                   <span className="text-[13px] text-[#A1A1A6] ml-0.5">% fat</span>
                 </div>
               )}
@@ -313,7 +313,7 @@ export default function BodyMeasurementsPage() {
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 py-2 rounded-[2px] text-[15px] font-semibold transition-colors capitalize ${
-                tab === t ? 'bg-[#3B82F6] text-white' : 'text-[#A1A1A6]'
+                tab === t ? 'bg-[#93032E] text-white' : 'text-[#A1A1A6]'
               }`}
             >
               {t}
@@ -363,7 +363,7 @@ export default function BodyMeasurementsPage() {
                   onClick={() => setChartMetric(m)}
                   className={`whitespace-nowrap px-3 py-1.5 rounded-[2px] text-[13px] font-semibold transition-colors ${
                     chartMetric === m
-                      ? 'bg-[#3B82F6]/20 border border-[#3B82F6] text-[#3B82F6]'
+                      ? 'bg-[#93032E]/20 border border-[#93032E] text-[#93032E]'
                       : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
                   }`}
                 >
@@ -387,14 +387,14 @@ export default function BodyMeasurementsPage() {
                       <YAxis tick={{ fill: '#A1A1A6', fontSize: 10 }} tickLine={false} axisLine={false} />
                       <Tooltip
                         contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
-                        labelStyle={{ color: '#3B82F6' }}
+                        labelStyle={{ color: '#93032E' }}
                       />
                       <Line
                         type="monotone"
                         dataKey="value"
-                        stroke="#3B82F6"
+                        stroke="#93032E"
                         strokeWidth={2}
-                        dot={{ fill: '#000', stroke: '#3B82F6', strokeWidth: 2, r: 3 }}
+                        dot={{ fill: '#000', stroke: '#93032E', strokeWidth: 2, r: 3 }}
                         activeDot={{ r: 5 }}
                       />
                     </LineChart>
@@ -409,7 +409,7 @@ export default function BodyMeasurementsPage() {
       {/* FAB */}
       <button
         onClick={() => { setEditTarget(null); setShowForm(true) }}
-        className="fixed bottom-6 right-4 w-14 h-14 bg-[#3B82F6] rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95 transition-transform z-40"
+        className="fixed bottom-6 right-4 w-14 h-14 bg-[#93032E] rounded-full flex items-center justify-center active:scale-95 transition-transform z-40"
       >
         <Plus size={24} strokeWidth={1.5} className="text-white" />
       </button>

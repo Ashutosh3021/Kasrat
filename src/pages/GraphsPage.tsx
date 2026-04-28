@@ -70,7 +70,7 @@ function planSessionPoints(sets: GymSet[]): SessionPoint[] {
 // ─── Sparkline ────────────────────────────────────────────────────────────────
 // Matches the demo: path-based, always renders even with 1 point (flat line)
 
-function Sparkline({ values, color = '#3B82F6' }: { values?: number[]; color?: string }) {
+function Sparkline({ values, color = '#93032E' }: { values?: number[]; color?: string }) {
   if (!values || values.length === 0) return null
 
   const W = 60, H = 30
@@ -224,7 +224,7 @@ export default function GraphsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-24 pt-14">
+    <div className="min-h-screen bg-[#151515] pb-24 pt-14">
       <TopBar />
       <main className="px-4 pt-6 max-w-3xl mx-auto flex flex-col gap-6">
 
@@ -234,7 +234,7 @@ export default function GraphsPage() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full h-12 bg-[#1C1C1E] border border-white/20 pl-12 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-[#3B82F6] text-[17px]"
+            className="w-full h-12 bg-[#1C1C1E] border border-white/20 pl-12 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-[#93032E] text-[17px]"
             style={{ borderRadius: '2px' }}
             placeholder="Search exercises..."
           />
@@ -248,7 +248,7 @@ export default function GraphsPage() {
               onClick={() => setSort(s)}
               className={`whitespace-nowrap px-4 py-2 font-medium text-[15px] transition-colors ${
                 sort === s
-                  ? 'bg-[#3B82F6]/10 border border-[#3B82F6] text-[#3B82F6]'
+                  ? 'bg-[#93032E]/10 border border-[#93032E] text-[#93032E]'
                   : 'bg-[#1C1C1E] border border-[#2C2C2E] text-zinc-400'
               }`}
               style={{ borderRadius: '2px' }}
@@ -284,7 +284,7 @@ export default function GraphsPage() {
                   >
                     {/* Left: name + muscle chip */}
                     <div className="flex flex-col gap-1 text-left">
-                      <span className="text-[17px] text-white font-normal group-hover:text-[#3B82F6] transition-colors">
+                      <span className="text-[17px] text-white font-normal group-hover:text-[#93032E] transition-colors">
                         {ex.name}
                       </span>
                       <span className="inline-block px-2 py-0.5 bg-[#2C2C2E] text-white text-[11px] w-fit" style={{ borderRadius: '2px' }}>
@@ -294,7 +294,7 @@ export default function GraphsPage() {
 
                     {/* Right: sparkline + trailing label */}
                     <div className="flex items-center gap-4">
-                      <Sparkline values={ex.bestPerDay} color="#3B82F6" />
+                      <Sparkline values={ex.bestPerDay} color="#93032E" />
                       <span className="text-[13px] font-medium text-zinc-500 w-20 text-right">
                         {timeAgo(ex.lastUsed)}
                       </span>
@@ -308,7 +308,7 @@ export default function GraphsPage() {
 
       <button
         onClick={() => navigate('/add-exercise')}
-        className="fixed bottom-20 right-6 w-14 h-14 bg-[#3B82F6] flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95 transition-transform z-40"
+        className="fixed bottom-20 right-6 w-14 h-14 bg-[#93032E] flex items-center justify-center active:scale-95 transition-transform z-40"
         style={{ borderRadius: '2px' }}
       >
         <Plus size={24} strokeWidth={1.5} className="text-white" />

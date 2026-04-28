@@ -48,13 +48,13 @@ export default function TabSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex justify-center">
-      <div className="w-full max-w-[390px] min-h-screen bg-black relative flex flex-col">
-        <nav className="fixed top-0 left-0 w-full z-50 border-b border-neutral-900 bg-black flex items-center justify-between h-14 px-3 sm:max-w-[390px] sm:left-1/2 sm:-translate-x-1/2">
-          <button onClick={() => navigate(-1)} className="text-[#3B82F6] hover:text-blue-400 p-2 -ml-2 rounded-[2px]">
+    <div className="min-h-screen bg-[#151515] flex justify-center">
+      <div className="w-full max-w-[390px] min-h-screen bg-[#151515] relative flex flex-col">
+        <nav className="fixed top-0 left-0 w-full z-50 border-b border-neutral-900 bg-[#151515] flex items-center justify-between h-14 px-3 sm:max-w-[390px] sm:left-1/2 sm:-translate-x-1/2">
+          <button onClick={() => navigate(-1)} className="text-[#93032E] hover:text-blue-400 p-2 -ml-2 rounded-[2px]">
             <ArrowLeft size={22} strokeWidth={1.5} />
           </button>
-          <div className="text-xl font-black italic tracking-tighter text-[#3B82F6] uppercase">KASRAT</div>
+          <div className="text-xl font-black italic tracking-tighter text-[#93032E] uppercase">KASRAT</div>
           <div className="w-10" />
         </nav>
 
@@ -81,7 +81,7 @@ export default function TabSettingsPage() {
                   </div>
                   <button
                     onClick={() => toggleTab(tab.key)}
-                    className="w-10 h-10 rounded-[2px] flex items-center justify-center hover:bg-[#2C2C2E] transition-colors text-[#3B82F6]"
+                    className="w-10 h-10 rounded-[2px] flex items-center justify-center hover:bg-[#2C2C2E] transition-colors text-[#93032E]"
                   >
                     {isHidden ? <EyeOff size={20} strokeWidth={1.5} className="text-[#A1A1A6]" /> : <Eye size={20} strokeWidth={1.5} />}
                   </button>
@@ -93,7 +93,7 @@ export default function TabSettingsPage() {
           <div className="px-3 pb-8 pt-8 mt-auto">
             <button
               onClick={reset}
-              className="w-full h-12 rounded-[2px] border border-[#3B82F6] text-[#3B82F6] font-semibold text-[15px] flex items-center justify-center gap-2 hover:bg-[#2C2C2E] transition-colors"
+              className="w-full h-12 rounded-[2px] border border-[#93032E] text-[#93032E] font-semibold text-[15px] flex items-center justify-center gap-2 hover:bg-[#2C2C2E] transition-colors"
             >
               <RotateCcw size={18} strokeWidth={1.5} />
               Reset to default

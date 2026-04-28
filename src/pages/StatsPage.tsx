@@ -78,9 +78,9 @@ export default function StatsPage() {
   const dateRange = `${fmtDate(start)} – ${fmtDate(end)}`
 
   return (
-    <div className="min-h-screen bg-black pb-24">
+    <div className="min-h-screen bg-[#151515] pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
+      <header className="sticky top-0 z-50 bg-[#151515]/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
@@ -96,7 +96,7 @@ export default function StatsPage() {
         <div className="flex items-center justify-between bg-[#1C1C1E] rounded-[4px] border border-[#2C2C2E] px-3 py-2">
           <button
             onClick={() => setWeekOffset(o => o - 1)}
-            className="p-2 text-[#3B82F6] hover:opacity-80"
+            className="p-2 text-[#93032E] hover:opacity-80"
           >
             <ChevronLeft size={20} strokeWidth={1.5} />
           </button>
@@ -104,7 +104,7 @@ export default function StatsPage() {
           <button
             onClick={() => setWeekOffset(o => Math.min(0, o + 1))}
             disabled={weekOffset === 0}
-            className="p-2 text-[#3B82F6] disabled:opacity-30"
+            className="p-2 text-[#93032E] disabled:opacity-30"
           >
             <ChevronRight size={20} strokeWidth={1.5} />
           </button>
@@ -136,8 +136,8 @@ export default function StatsPage() {
                     <Radar
                       name="Sets"
                       dataKey="sets"
-                      stroke="#3B82F6"
-                      fill="#3B82F6"
+                      stroke="#93032E"
+                      fill="#93032E"
                       fillOpacity={0.25}
                       strokeWidth={2}
                     />
@@ -165,8 +165,8 @@ export default function StatsPage() {
                     <Radar
                       name="Volume"
                       dataKey="volume"
-                      stroke="#3B82F6"
-                      fill="#3B82F6"
+                      stroke="#93032E"
+                      fill="#93032E"
                       fillOpacity={0.2}
                       strokeWidth={2}
                     />
@@ -188,7 +188,7 @@ export default function StatsPage() {
                   <span className="text-[15px] text-white">{d.muscle}</span>
                   <div className="flex items-center gap-4">
                     <span className="text-[13px] text-[#A1A1A6]">{d.sets} sets</span>
-                    <span className="text-[13px] font-semibold text-[#3B82F6]">{d.volume.toLocaleString()} kg</span>
+                    <span className="text-[13px] font-semibold text-[#93032E]">{d.volume.toLocaleString()} kg</span>
                   </div>
                 </div>
               ))}

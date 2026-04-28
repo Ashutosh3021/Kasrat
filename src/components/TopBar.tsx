@@ -11,7 +11,7 @@ interface TopBarProps {
 export default function TopBar({ showBack, title, showSettings = true, onSettingsClick }: TopBarProps) {
   const navigate = useNavigate()
   return (
-    <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md flex justify-between items-center px-4 h-14 border-b border-[#2C2C2E]">
+    <header className="fixed top-0 w-full z-50 bg-[#151515]/80 backdrop-blur-md flex justify-between items-center px-4 h-14 border-b border-[#2C2C2E]">
       <div className="flex items-center gap-3">
         {showBack ? (
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white hover:opacity-80">
@@ -19,11 +19,11 @@ export default function TopBar({ showBack, title, showSettings = true, onSetting
           </button>
         ) : (
           <div className="w-8 h-8 bg-[#353437] flex items-center justify-center overflow-hidden" style={{ borderRadius: '2px' }}>
-            <span className="text-xs font-medium text-[#3B82F6]">K</span>
+            <span className="text-xs font-medium text-[#93032E]">K</span>
           </div>
         )}
         {!showBack && (
-          <span className="text-xl font-semibold tracking-tight text-[#3B82F6]">KASRAT</span>
+          <span className="text-xl font-semibold tracking-tight text-[#93032E]">KASRAT</span>
         )}
         {showBack && title && (
           <span className="font-medium text-[22px] leading-7 text-white absolute left-1/2 -translate-x-1/2">{title}</span>

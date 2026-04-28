@@ -17,7 +17,7 @@ function firstDayOfMonth(year: number, month: number): number {
   return new Date(year, month, 1).getDay() // 0=Sun
 }
 
-/** Interpolate between #1C1C1E (no volume) and #3B82F6 (max volume) */
+/** Interpolate between #1C1C1E (no volume) and #93032E (max volume) */
 function heatColor(volume: number, max: number): string {
   if (max === 0 || volume === 0) return '#1C1C1E'
   const t = Math.min(volume / max, 1)
@@ -55,7 +55,7 @@ function DaySheet({ date, sets, onClose, onViewAll }: DaySheetProps) {
   const totalVol = sets.reduce((acc, s) => acc + s.weight * s.reps, 0)
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-[80] flex flex-col justify-end animate-fadeIn" onClick={onClose}>
+    <div className="fixed inset-0 bg-[#151515]/70 z-[80] flex flex-col justify-end animate-fadeIn" onClick={onClose}>
       <div
         className="bg-[#1C1C1E] rounded-t-[4px] border-t border-[#2C2C2E] p-3 flex flex-col gap-3 animate-slideUp max-h-[70dvh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
@@ -87,7 +87,7 @@ function DaySheet({ date, sets, onClose, onViewAll }: DaySheetProps) {
         {exercises.length > 0 && (
           <button
             onClick={onViewAll}
-            className="w-full h-11 bg-[#3B82F6] text-white rounded-[2px] font-semibold text-[15px]"
+            className="w-full h-11 bg-[#93032E] text-white rounded-[2px] font-semibold text-[15px]"
           >
             View in History
           </button>
@@ -162,9 +162,9 @@ export default function CalendarPage() {
     : []
 
   return (
-    <div className="min-h-screen bg-black pb-24">
+    <div className="min-h-screen bg-[#151515] pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
+      <header className="sticky top-0 z-50 bg-[#151515]/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
@@ -178,7 +178,7 @@ export default function CalendarPage() {
 
         {/* Month navigator */}
         <div className="flex items-center justify-between">
-          <button onClick={prevMonth} className="p-2 text-[#3B82F6] hover:opacity-80">
+          <button onClick={prevMonth} className="p-2 text-[#93032E] hover:opacity-80">
             <ChevronLeft size={22} strokeWidth={1.5} />
           </button>
           <div className="flex items-center gap-3">
@@ -190,7 +190,7 @@ export default function CalendarPage() {
               <span className="text-[11px] text-[#A1A1A6]">Low</span>
               <div
                 className="w-16 h-2 rounded-full"
-                style={{ background: 'linear-gradient(to right, #1C1C1E, #3B82F6)' }}
+                style={{ background: 'linear-gradient(to right, #1C1C1E, #93032E)' }}
               />
               <span className="text-[11px] text-[#A1A1A6]">High</span>
             </div>
@@ -198,7 +198,7 @@ export default function CalendarPage() {
           <button
             onClick={nextMonth}
             disabled={year === today.getFullYear() && month === today.getMonth()}
-            className="p-2 text-[#3B82F6] disabled:opacity-30"
+            className="p-2 text-[#93032E] disabled:opacity-30"
           >
             <ChevronRight size={22} strokeWidth={1.5} />
           </button>
@@ -230,7 +230,7 @@ export default function CalendarPage() {
                 className={`
                   aspect-square rounded-[4px] flex items-center justify-center text-[13px] font-semibold
                   transition-all active:scale-90 min-h-[44px]
-                  ${isToday ? 'ring-2 ring-[#3B82F6] ring-offset-1 ring-offset-black' : ''}
+                  ${isToday ? 'ring-2 ring-[#93032E] ring-offset-1 ring-offset-black' : ''}
                   ${isSelected ? 'ring-2 ring-white ring-offset-1 ring-offset-black' : ''}
                   ${hasData ? 'text-white' : 'text-[#424754]'}
                 `}
@@ -259,7 +259,7 @@ export default function CalendarPage() {
                       setMonth(date.getMonth())
                       setSelectedDate(d)
                     }}
-                    className="shrink-0 bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 flex flex-col items-center gap-0.5 hover:border-[#3B82F6]/50 transition-colors"
+                    className="shrink-0 bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 flex flex-col items-center gap-0.5 hover:border-[#93032E]/50 transition-colors"
                   >
                     <span className="text-[13px] font-semibold text-white">{label}</span>
                     <span className="text-[11px] text-[#A1A1A6]">{exCount} ex</span>

@@ -21,7 +21,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-8 pt-14">
+    <div className="min-h-screen bg-[#151515] pb-8 pt-14">
       <TopBar showSettings={false} />
       <main className="pt-10 pb-8 px-4 max-w-2xl mx-auto flex flex-col gap-8">
         <div className="px-2">
@@ -85,11 +85,11 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between h-12 px-3">
               <span className="text-[17px] font-normal text-white">Max Sets Default</span>
               <div className="flex items-center gap-3 bg-[#2C2C2E] border border-[#2C2C2E] px-2 py-1" style={{ borderRadius: '2px' }}>
-                <button onClick={() => updateSetting('maxSets', Math.max(1, settings.maxSets - 1))} className="text-[#3B82F6]">
+                <button onClick={() => updateSetting('maxSets', Math.max(1, settings.maxSets - 1))} className="text-[#93032E]">
                   <Minus size={16} strokeWidth={1.5} />
                 </button>
                 <span className="text-[15px] font-medium text-white w-4 text-center">{settings.maxSets}</span>
-                <button onClick={() => updateSetting('maxSets', settings.maxSets + 1)} className="text-[#3B82F6]">
+                <button onClick={() => updateSetting('maxSets', settings.maxSets + 1)} className="text-[#93032E]">
                   <Plus size={16} strokeWidth={1.5} />
                 </button>
               </div>
@@ -131,7 +131,7 @@ export default function SettingsPage() {
             </button>
           </div>
           {restoreMessage && (
-            <p className="text-[13px] text-[#3B82F6] px-2">{restoreMessage}</p>
+            <p className="text-[13px] text-[#93032E] px-2">{restoreMessage}</p>
           )}
         </section>
 
@@ -199,7 +199,7 @@ export default function SettingsPage() {
             <hr className="border-t border-[#2C2C2E]" />
             <button onClick={() => navigate('/about')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
               <span className="text-[17px] font-normal text-white">About KASRAT</span>
-              <span className="text-[15px] text-[#A1A1A6]">1.1.16</span>
+              <span className="text-[15px] text-[#A1A1A6]">1.2.36</span>
             </button>
           </div>
         </section>

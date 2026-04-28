@@ -19,7 +19,7 @@ export default function NewPlanDialog({ onCreated }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-[#151515]/80 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-md bg-[#1C1C1E] p-3 border border-[#2C2C2E]" style={{ borderRadius: '4px' }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[22px] font-medium text-white">New Plan</h2>
@@ -35,7 +35,7 @@ export default function NewPlanDialog({ onCreated }: Props) {
               value={title}
               onChange={e => { setTitle(e.target.value); setError('') }}
               onKeyDown={e => e.key === 'Enter' && create()}
-              className="w-full bg-[#1C1C1E] border border-white px-3 py-3 text-white focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent outline-none transition-all placeholder:text-[#A1A1A6] text-[17px]"
+              className="w-full bg-[#1C1C1E] border border-white px-3 py-3 text-white focus:ring-2 focus:ring-[#93032E] focus:border-transparent outline-none transition-all placeholder:text-[#A1A1A6] text-[17px]"
               style={{ borderRadius: '2px' }}
               placeholder="e.g., Push Day"
             />
@@ -51,7 +51,7 @@ export default function NewPlanDialog({ onCreated }: Props) {
             </button>
             <button
               onClick={create}
-              className="flex-1 h-12 bg-[#3B82F6] text-white font-medium text-[15px] hover:opacity-90 active:scale-95 transition-all"
+              className="flex-1 h-12 bg-[#93032E] text-white font-medium text-[15px] hover:opacity-90 active:scale-95 transition-all"
               style={{ borderRadius: '2px' }}
             >
               Create

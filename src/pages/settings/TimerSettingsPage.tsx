@@ -15,12 +15,12 @@ export default function TimerSettingsPage() {
   const dashOffset = CIRCUMFERENCE * (1 - progress)
 
   return (
-    <div className="min-h-screen bg-black pb-8">
-      <header className="fixed top-0 left-0 w-full z-50 bg-black border-b border-neutral-900 flex items-center justify-between h-14 px-3">
-        <button onClick={() => navigate(-1)} className="text-zinc-500 hover:text-[#3B82F6] p-2 -ml-2">
+    <div className="min-h-screen bg-[#151515] pb-8">
+      <header className="fixed top-0 left-0 w-full z-50 bg-[#151515] border-b border-neutral-900 flex items-center justify-between h-14 px-3">
+        <button onClick={() => navigate(-1)} className="text-zinc-500 hover:text-[#93032E] p-2 -ml-2">
           <ArrowLeft size={24} strokeWidth={1.5} />
         </button>
-        <span className="text-xl font-black italic tracking-tighter text-[#3B82F6] absolute left-1/2 -translate-x-1/2">KASRAT</span>
+        <span className="text-xl font-black italic tracking-tighter text-[#93032E] absolute left-1/2 -translate-x-1/2">KASRAT</span>
         <div className="w-8" />
       </header>
 
@@ -45,7 +45,7 @@ export default function TimerSettingsPage() {
                 <circle className="stroke-[#2C2C2E]" cx="50" cy="50" fill="none" r={RADIUS} strokeWidth="4" />
                 <circle
                   cx="50" cy="50" fill="none" r={RADIUS}
-                  stroke="#3B82F6"
+                  stroke="#93032E"
                   strokeWidth="4"
                   strokeDasharray={CIRCUMFERENCE}
                   strokeDashoffset={dashOffset}
@@ -56,7 +56,7 @@ export default function TimerSettingsPage() {
                 <span className="text-[48px] tracking-tighter font-semibold text-white leading-none">
                   {formatSeconds(settings.timerDuration)}
                 </span>
-                <span className="text-[13px] font-medium text-[#3B82F6] uppercase tracking-widest mt-2">Resting</span>
+                <span className="text-[13px] font-medium text-[#93032E] uppercase tracking-widest mt-2">Resting</span>
               </div>
             </div>
             <div className="w-full flex flex-col gap-2">
@@ -67,7 +67,7 @@ export default function TimerSettingsPage() {
                 step={15}
                 value={settings.timerDuration}
                 onChange={e => updateSetting('timerDuration', Number(e.target.value))}
-                className="w-full accent-[#3B82F6]"
+                className="w-full accent-[#93032E]"
               />
               <div className="flex justify-between w-full text-[13px] font-medium text-[#A1A1A6]">
                 <span>0:30</span>
@@ -85,7 +85,7 @@ export default function TimerSettingsPage() {
                 <span className="text-[17px] text-white">Alarm Sound</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[17px] text-[#3B82F6]">{settings.alarmSound}</span>
+                <span className="text-[17px] text-[#93032E]">{settings.alarmSound}</span>
               </div>
             </div>
             <div className="p-3 flex flex-col gap-4 border-b border-[#2C2C2E]">

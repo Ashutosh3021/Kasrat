@@ -19,7 +19,7 @@ export default function DayPills({ activeDays, onToggle, readonly }: DayPillsPro
             disabled={readonly}
             className={`w-7 h-7 flex items-center justify-center text-[11px] font-medium transition-colors border ${
               active
-                ? 'bg-[#3B82F6] text-white border-[#3B82F6]'
+                ? 'bg-[#93032E] text-white border-[#93032E]'
                 : 'border-[#424754] text-[#424754]'
             }`}
             style={{ borderRadius: '2px' }}

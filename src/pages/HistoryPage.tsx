@@ -34,7 +34,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-24 pt-14">
+    <div className="min-h-screen bg-[#151515] pb-24 pt-14">
       <TopBar />
       <main className="px-4 pt-6 max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-4">
@@ -47,7 +47,7 @@ export default function HistoryPage() {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-white pl-10 pr-3 py-3 text-[17px] focus:border-[#3B82F6] focus:outline-none placeholder:text-zinc-500"
+              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-white pl-10 pr-3 py-3 text-[17px] focus:border-[#93032E] focus:outline-none placeholder:text-zinc-500"
               style={{ borderRadius: '2px' }}
               placeholder="Search workouts..."
             />

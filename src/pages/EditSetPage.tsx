@@ -38,7 +38,7 @@ function TinyInput({ label, value, onChange, min, max, placeholder }: TinyInputP
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onChange={e => onChange(e.target.value)}
-        className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#3B82F6] tabular-nums"
+        className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E] tabular-nums"
         style={{ borderRadius: '2px' }}
       />
     </div>
@@ -95,8 +95,8 @@ export default function EditSetPage() {
   const orm = !set?.cardio ? brzycki(w, r) : null
 
   return (
-    <div className="min-h-screen bg-black pb-safe">
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-3 h-14 bg-black border-b border-[#2C2C2E]">
+    <div className="min-h-screen bg-[#151515] pb-safe">
+      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-3 h-14 bg-[#151515] border-b border-[#2C2C2E]">
         <button onClick={() => navigate(-1)} className="text-white flex items-center justify-center p-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
@@ -125,7 +125,7 @@ export default function EditSetPage() {
                 inputMode="decimal"
                 value={weight}
                 onChange={e => setWeight(e.target.value)}
-                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#3B82F6]"
+                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E]"
                 style={{ borderRadius: '2px' }}
               />
             </div>
@@ -136,7 +136,7 @@ export default function EditSetPage() {
                 inputMode="numeric"
                 value={reps}
                 onChange={e => setReps(e.target.value)}
-                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#3B82F6]"
+                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E]"
                 style={{ borderRadius: '2px' }}
               />
             </div>
@@ -152,7 +152,7 @@ export default function EditSetPage() {
                 <span
                   className={`text-[12px] font-medium px-2 py-0.5 transition-opacity duration-200 ${
                     orm != null
-                      ? 'bg-[#1C1C1E] text-[#3B82F6] border border-[#3B82F6]/30 opacity-100'
+                      ? 'bg-[#1C1C1E] text-[#93032E] border border-[#93032E]/30 opacity-100'
                       : 'opacity-0'
                   }`}
                   style={{ borderRadius: '2px' }}
@@ -182,7 +182,7 @@ export default function EditSetPage() {
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#3B82F6] resize-none"
+              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E] resize-none"
               style={{ borderRadius: '2px' }}
               rows={3}
               placeholder="Add notes..."
@@ -191,8 +191,8 @@ export default function EditSetPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 w-full p-3 bg-black/90 backdrop-blur-md border-t border-[#2C2C2E] z-40 pb-safe">
-        <button onClick={save} className="w-full bg-[#3B82F6] text-white font-medium text-[15px] h-12 flex items-center justify-center" style={{ borderRadius: '2px' }}>
+      <div className="fixed bottom-0 left-0 w-full p-3 bg-[#151515]/90 backdrop-blur-md border-t border-[#2C2C2E] z-40 pb-safe">
+        <button onClick={save} className="w-full bg-[#93032E] text-white font-medium text-[15px] h-12 flex items-center justify-center" style={{ borderRadius: '2px' }}>
           Save Changes
         </button>
       </div>
