@@ -34,4 +34,4 @@ npm run dev
 
 ## or directly use it(theres some lazy deployment)
 
-<a href="https://ashutosh3021.github.io/Kasrat/#/edit-plan/1">LINK</a>
+<a href="https://ashutosh3021.github.io/Kasrat/">LINK</a>
