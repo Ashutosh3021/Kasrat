@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronRight, ChevronLeft, Check } from 'lucide-react'
 import { supabase } from '../supabase/client'
 import { useSettingsStore } from '../store/settingsStore'
-import { pullRemoteData } from '../hooks/useSync'
 import { addBodyMeasurement } from '../supabase/writeSync'
 
 const TOTAL_STEPS = 3
@@ -109,11 +108,6 @@ export default function OnboardingPage() {
           supplements: [],
         })
         if (profileErr) throw profileErr
-
-        // 4. Pull remote data (likely empty for new user, but ensures consistency)
-        if (navigator.onLine) {
-          await pullRemoteData(user.id)
-        }
       }
 
       navigate('/', { replace: true })

@@ -26,18 +26,19 @@ async function push(
   operation: 'upsert' | 'delete',
   payload: Record<string, unknown>,
   userId: string,
+  includeUserId = true,   // set false for tables without a user_id column (e.g. plan_exercises)
 ) {
   if (!navigator.onLine) {
     await enqueue(tableName, operation, payload)
     return
   }
-  const record = { ...payload, user_id: userId }
+  // Only attach user_id when the table actually has that column
+  const record = includeUserId ? { ...payload, user_id: userId } : { ...payload }
   const { error } = operation === 'upsert'
     ? await supabase.from(tableName).upsert(record)
     : await supabase.from(tableName).delete().eq('id', payload.id as number).eq('user_id', userId)
 
   if (error) {
-    // If push fails, enqueue for retry
     console.warn(`[writeSync] ${tableName} ${operation} failed, queuing:`, error.message)
     await enqueue(tableName, operation, payload)
   }
@@ -102,7 +103,7 @@ export async function addPlanExercise(ex: Omit<PlanExercise, 'id'>): Promise<num
       set_type: ex.setType ?? 'normal',
       superset_group: ex.supersetGroup ?? null,
       superset_color: ex.supersetColor ?? null,
-    }, userId)
+    }, userId, false)   // plan_exercises has no user_id column
   }
   return id
 }
@@ -123,16 +124,18 @@ export async function updatePlanExercise(id: number, changes: Partial<PlanExerci
         set_type: ex.setType ?? 'normal',
         superset_group: ex.supersetGroup ?? null,
         superset_color: ex.supersetColor ?? null,
-      }, userId)
+      }, userId, false)   // plan_exercises has no user_id column
     }
   }
 }
 
 export async function deletePlanExercise(id: number): Promise<void> {
   await db.plan_exercises.delete(id)
-  const userId = await getUserId()
-  if (userId) {
-    await push('plan_exercises', 'delete', { id }, userId)
+  // plan_exercises has no user_id column — RLS derives ownership via plan_id
+  if (navigator.onLine) {
+    await supabase.from('plan_exercises').delete().eq('id', id)
+  } else {
+    await enqueue('plan_exercises', 'delete', { id })
   }
 }
 
@@ -263,29 +266,47 @@ export async function deleteBodyMeasurement(id: number): Promise<void> {
 export async function putDailyNutrition(entry: DailyNutrition): Promise<void> {
   await db.daily_nutrition.put(entry)
   const userId = await getUserId()
-  if (userId) {
-    await push('daily_nutrition', 'upsert', {
-      date: entry.date,
-      calories: entry.calories ?? null,
-      protein: entry.protein ?? null,
-      carbs: entry.carbs ?? null,
-      fats: entry.fats ?? null,
-      water: entry.water ?? null,
-      notes: entry.notes ?? null,
-    }, userId)
+  if (!userId) return
+
+  const record = {
+    user_id: userId,
+    date: entry.date,
+    calories: entry.calories ?? null,
+    protein: entry.protein ?? null,
+    carbs: entry.carbs ?? null,
+    fats: entry.fats ?? null,
+    water: entry.water ?? null,
+    notes: entry.notes ?? null,
+  }
+
+  if (!navigator.onLine) {
+    await enqueue('daily_nutrition', 'upsert', record as Record<string, unknown>)
+    return
+  }
+
+  const { error } = await supabase
+    .from('daily_nutrition')
+    .upsert(record, { onConflict: 'user_id,date' })
+
+  if (error) {
+    console.warn('[writeSync] daily_nutrition upsert failed, queuing:', error.message)
+    await enqueue('daily_nutrition', 'upsert', record as Record<string, unknown>)
   }
 }
 
 export async function deleteDailyNutrition(date: string): Promise<void> {
   await db.daily_nutrition.delete(date)
   const userId = await getUserId()
-  if (userId) {
-    // For nutrition, use date as the identifier
-    if (navigator.onLine) {
-      await supabase.from('daily_nutrition').delete().eq('date', date).eq('user_id', userId)
-    } else {
-      await enqueue('daily_nutrition', 'delete', { date } as Record<string, unknown>)
-    }
+  if (!userId) return
+
+  if (navigator.onLine) {
+    await supabase
+      .from('daily_nutrition')
+      .delete()
+      .eq('date', date)
+      .eq('user_id', userId)
+  } else {
+    await enqueue('daily_nutrition', 'delete', { date, user_id: userId })
   }
 }
 
