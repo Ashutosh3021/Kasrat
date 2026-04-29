@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
 import WorkoutBubble from './components/WorkoutBubble'
@@ -6,12 +6,12 @@ import { useSettingsStore } from './store/settingsStore'
 import { useAuthStore } from './store/authStore'
 import { seedDatabase } from './db/defaults'
 import { supabase } from './supabase/client'
-import { pullRemoteData, processSyncQueue, setupOnlineListener } from './hooks/useSync'
+import { syncToSupabase } from './supabase/sync'
 
 const NO_NAV_PATHS = [
   '/edit-plan/', '/start-plan/', '/add-exercise', '/edit-set/',
   '/settings/appearance', '/settings/timer', '/settings/tabs',
-  '/settings/data', '/settings/format', '/settings/security', '/about', '/edit-graph/',
+  '/settings/data', '/settings/format', '/about', '/edit-graph/',
   '/body-measurements', '/stats', '/login', '/onboarding', '/quick-workout',
 ]
 
@@ -27,39 +27,18 @@ console.log('[Kasrat:App] VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL
 
 async function checkOnboarding(userId: string): Promise<boolean> {
   try {
-    const { data } = await supabase
-      .from('profiles').select('id').eq('id', userId).maybeSingle()
+    const { data } = await supabase.from('profiles').select('id').eq('id', userId).maybeSingle()
     return !!data
   } catch {
     return false
   }
 }
 
-// ─── Sync loader overlay ──────────────────────────────────────────────────────
-function SyncLoader({ label }: { label: string }) {
-  return (
-    <div className="fixed inset-0 z-[200] bg-[#151515] flex flex-col items-center justify-center gap-6">
-      <div className="w-12 h-12 bg-[#93032E] flex items-center justify-center" style={{ borderRadius: '4px' }}>
-        <span className="text-[28px] font-black text-white italic leading-none">K</span>
-      </div>
-      <div className="flex flex-col items-center gap-3 w-48">
-        <div className="w-full h-1 bg-[#2C2C2E] overflow-hidden" style={{ borderRadius: '2px' }}>
-          <div className="h-full bg-[#BE1755] animate-pulse" style={{ width: '60%', borderRadius: '2px' }} />
-        </div>
-        <p className="text-[13px] font-medium text-[#A1A1A6]">{label}</p>
-      </div>
-    </div>
-  )
-}
-
-// ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const location = useLocation()
   const navigate = useNavigate()
   const { loadSettings } = useSettingsStore()
   const { setSession, setLoading, loading } = useAuthStore()
-  const [syncing, setSyncing] = useState(false)
-  const [syncLabel, setSyncLabel] = useState('Syncing your data…')
 
   const pathnameRef = useRef(location.pathname)
   useEffect(() => {
@@ -73,87 +52,76 @@ export default function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[Kasrat:auth] event:', event,
-          '| user:', session?.user?.email ?? 'none',
-          '| path:', pathnameRef.current)
+        console.log('[Kasrat:auth] event:', event, '| user:', session?.user?.email ?? 'none', '| path:', pathnameRef.current)
         setSession(session)
 
-        // ── INITIAL_SESSION ───────────────────────────────────────────────
         if (event === 'INITIAL_SESSION') {
           setLoading(false)
           if (!session) {
+            console.log('[Kasrat:auth] INITIAL_SESSION — no session, hasSupabase:', hasSupabase)
             if (hasSupabase) {
               const isPublic = PUBLIC_PATHS.some(p => pathnameRef.current.startsWith(p))
+              console.log('[Kasrat:auth] isPublic path:', isPublic)
               if (!isPublic) {
                 console.log('[Kasrat:auth] → redirecting to /login')
                 navigate('/login', { replace: true })
               }
             }
           } else {
-            // Already logged in — pull fresh data in background (no blocking loader)
-            if (navigator.onLine) {
-              processSyncQueue(session.user.id).catch(console.warn)
-            }
+            console.log('[Kasrat:auth] INITIAL_SESSION — session found, staying on current route')
           }
           return
         }
 
-        // ── SIGNED_IN ─────────────────────────────────────────────────────
         if (event === 'SIGNED_IN' && session?.user) {
           const currentPath = pathnameRef.current
-          const onAuthPage = PUBLIC_PATHS.some(p => currentPath.startsWith(p))
 
-          if (onAuthPage) {
-            // Check if profile exists → determines onboarding vs home
+          // Skip only if user is already deep in the app (e.g. a deep link).
+          // OAuth callback lands on '/' → alreadyInApp = false → check runs.
+          // Email login comes from '/login' → alreadyInApp = false → check runs.
+          // User navigating '/graphs' etc → alreadyInApp = true → skip.
+          const alreadyInApp =
+            !PUBLIC_PATHS.some(p => currentPath.startsWith(p)) &&
+            currentPath !== '/' &&
+            currentPath !== ''
+
+          console.log('[Kasrat:auth] SIGNED_IN — alreadyInApp:', alreadyInApp, '| currentPath:', currentPath)
+
+          if (!alreadyInApp) {
             const done = await checkOnboarding(session.user.id)
-            console.log('[Kasrat:auth] onboarding done:', done)
-
-            if (done) {
-              // Profile exists — pull remote data with visible loader
-              if (navigator.onLine) {
-                setSyncLabel('Syncing your data…')
-                setSyncing(true)
-                try {
-                  await processSyncQueue(session.user.id)
-                  await pullRemoteData(session.user.id)
-                } catch (err) {
-                  console.warn('[Kasrat:auth] sync on login failed:', err)
-                } finally {
-                  setSyncing(false)
-                }
-              }
-              navigate('/', { replace: true })
-            } else {
-              // New user — go to onboarding (no pull needed)
-              navigate('/onboarding', { replace: true })
-            }
+            console.log('[Kasrat:auth] onboarding done:', done, '→ navigating to', done ? '/' : '/onboarding')
+            navigate(done ? '/' : '/onboarding', { replace: true })
           }
 
-          // Set up online listener for this session
-          const cleanup = setupOnlineListener(session.user.id)
-          // Store cleanup on window so it can be called on logout
-          ;(window as Window & { _syncCleanup?: () => void })._syncCleanup = cleanup
+          if (navigator.onLine) {
+            syncToSupabase(session.user.id).catch(console.warn)
+          }
           return
         }
 
-        // ── SIGNED_OUT ────────────────────────────────────────────────────
         if (event === 'SIGNED_OUT') {
-          console.log('[Kasrat:auth] SIGNED_OUT')
-          // Remove online listener
-          const w = window as Window & { _syncCleanup?: () => void }
-          if (w._syncCleanup) { w._syncCleanup(); delete w._syncCleanup }
+          console.log('[Kasrat:auth] SIGNED_OUT — hasSupabase:', hasSupabase)
           if (hasSupabase) navigate('/login', { replace: true })
         }
       }
     )
 
-    return () => { subscription.unsubscribe() }
+    function handleOnline() {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) syncToSupabase(session.user.id).catch(console.warn)
+      })
+    }
+    window.addEventListener('online', handleOnline)
+
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener('online', handleOnline)
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const hideNav = NO_NAV_PATHS.some(p => location.pathname.startsWith(p))
 
-  // Auth loading spinner (checking session on startup)
   if (loading) {
     return (
       <div className="min-h-screen bg-[#151515] flex items-center justify-center">
@@ -169,7 +137,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#151515] text-white">
-      {syncing && <SyncLoader label={syncLabel} />}
       <Outlet />
       {!hideNav && <BottomNav />}
       <WorkoutBubble />
