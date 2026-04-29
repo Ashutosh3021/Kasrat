@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Search } from 'lucide-react'
 import { db, type PlanExercise } from '../db/database'
 import { useWorkoutStore } from '../store/workoutStore'
+import { updatePlanExercise, updatePlan } from '../supabase/writeSync'
 
 export default function SwapWorkoutPage() {
   const { planId, exerciseName } = useParams<{ planId: string; exerciseName: string }>()
@@ -42,17 +43,16 @@ export default function SwapWorkoutPage() {
 
     if (planExercises.length > 0) {
       const ex = planExercises[0]
-      await db.plan_exercises.update(ex.id!, { exercise: newExerciseName })
+      await updatePlanExercise(ex.id!, { exercise: newExerciseName })
     }
 
-    // Update the plan's exercises list
     const plan = await db.plans.get(Number(planId))
     if (plan) {
       const exercises = plan.exercises.split(',')
       const idx = exercises.indexOf(decodeURIComponent(exerciseName))
       if (idx !== -1) {
         exercises[idx] = newExerciseName
-        await db.plans.update(Number(planId), { exercises: exercises.join(',') })
+        await updatePlan(Number(planId), { exercises: exercises.join(',') })
       }
     }
 

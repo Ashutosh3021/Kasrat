@@ -8,6 +8,7 @@ import ExerciseModal from '../overlays/ExerciseModal'
 import DeleteConfirmation from '../overlays/DeleteConfirmation'
 import TemplatePicker from '../overlays/TemplatePicker'
 import { useDragToReorder } from '../hooks/useDragToReorder'
+import { updatePlan, deletePlan as deletePlanSync, updatePlanExercise, deletePlanExercise } from '../supabase/writeSync'
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
@@ -139,18 +140,18 @@ export default function EditPlanPage() {
 
   async function save() {
     if (!plan?.id) return
-    await db.plans.update(plan.id, {
+    const changes = {
       title,
       days: activeDays.join(','),
       exercises: exercises.filter(e => e.enabled).map(e => e.exercise).join(','),
-    })
+    }
+    await updatePlan(plan.id, changes)
     navigate(-1)
   }
 
   async function deletePlan() {
     if (!plan?.id) return
-    await db.plans.delete(plan.id)
-    await db.plan_exercises.where('planId').equals(plan.id).delete()
+    await deletePlanSync(plan.id)
     navigate('/plans')
   }
 
@@ -159,16 +160,15 @@ export default function EditPlanPage() {
   }
 
   async function toggleExercise(ex: PlanExercise) {
-    await db.plan_exercises.update(ex.id!, { enabled: !ex.enabled })
+    await updatePlanExercise(ex.id!, { enabled: !ex.enabled })
     load()
   }
 
   async function deleteExercisePermanently(ex: PlanExercise) {
-    await db.plan_exercises.delete(ex.id!)
-    // Update plan's exercises string
+    await deletePlanExercise(ex.id!)
     if (plan?.id) {
       const remaining = exercises.filter(e => e.id !== ex.id && e.enabled).map(e => e.exercise)
-      await db.plans.update(plan.id, { exercises: remaining.join(',') })
+      await updatePlan(plan.id, { exercises: remaining.join(',') })
     }
     setDeleteExConfirm(null)
     load()
@@ -181,34 +181,30 @@ export default function EditPlanPage() {
 
   async function handleReorder(newItems: PlanExercise[]) {
     setExercises(newItems)
-    await Promise.all(newItems.map((ex, i) => db.plan_exercises.update(ex.id!, { sortOrder: i })))
+    await Promise.all(newItems.map((ex, i) => updatePlanExercise(ex.id!, { sortOrder: i })))
   }
 
   async function updateSets(ex: PlanExercise, delta: number) {
     const next = Math.max(1, ex.maxSets + delta)
-    await db.plan_exercises.update(ex.id!, { maxSets: next })
+    await updatePlanExercise(ex.id!, { maxSets: next })
     setExercises(prev => prev.map(e => e.id === ex.id ? { ...e, maxSets: next } : e))
   }
 
   async function updateSetType(ex: PlanExercise, setType: SetType) {
-    // If changing away from superset, clear group
     if (setType !== 'superset' && ex.supersetGroup) {
       await clearSupersetGroup(ex)
     }
-    await db.plan_exercises.update(ex.id!, { setType })
+    await updatePlanExercise(ex.id!, { setType })
     setExercises(prev => prev.map(e => e.id === ex.id ? { ...e, setType } : e))
   }
 
   async function clearSupersetGroup(ex: PlanExercise) {
     if (!ex.supersetGroup) return
     const groupId = ex.supersetGroup
-    // Clear this exercise
-    await db.plan_exercises.update(ex.id!, { supersetGroup: undefined, supersetColor: undefined })
-    // Check if any other exercises remain in the group
+    await updatePlanExercise(ex.id!, { supersetGroup: undefined, supersetColor: undefined })
     const remaining = exercises.filter(e => e.id !== ex.id && e.supersetGroup === groupId)
-    // If only one remains, clear it too (no solo supersets)
     if (remaining.length === 1) {
-      await db.plan_exercises.update(remaining[0].id!, { supersetGroup: undefined, supersetColor: undefined })
+      await updatePlanExercise(remaining[0].id!, { supersetGroup: undefined, supersetColor: undefined })
     }
     load()
   }
@@ -235,19 +231,14 @@ export default function EditPlanPage() {
     let color: string
 
     if (partner.supersetGroup && partner.supersetColor) {
-      // Partner already in a group, join it
       groupId = partner.supersetGroup
       color = partner.supersetColor
     } else {
-      // Create new group
       groupId = `ss-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       color = getUnusedColor()
-      // Update partner
-      await db.plan_exercises.update(partner.id!, { supersetGroup: groupId, supersetColor: color })
+      await updatePlanExercise(partner.id!, { supersetGroup: groupId, supersetColor: color })
     }
-
-    // Update current exercise
-    await db.plan_exercises.update(currentEx.id!, { supersetGroup: groupId, supersetColor: color })
+    await updatePlanExercise(currentEx.id!, { supersetGroup: groupId, supersetColor: color })
 
     // Reorder so they're consecutive
     await reorderSupersetGroup(groupId)
@@ -257,22 +248,14 @@ export default function EditPlanPage() {
   async function reorderSupersetGroup(groupId: string) {
     const groupMembers = exercises.filter(e => e.supersetGroup === groupId)
     if (groupMembers.length < 2) return
-
-    // Find the first member's position
     const firstIdx = exercises.findIndex(e => e.id === groupMembers[0].id)
-    
-    // Remove all group members from their current positions
     const withoutGroup = exercises.filter(e => e.supersetGroup !== groupId)
-    
-    // Insert all group members at the first position
     const reordered = [
       ...withoutGroup.slice(0, firstIdx),
       ...groupMembers,
       ...withoutGroup.slice(firstIdx)
     ]
-
-    // Update sort orders
-    await Promise.all(reordered.map((ex, i) => db.plan_exercises.update(ex.id!, { sortOrder: i })))
+    await Promise.all(reordered.map((ex, i) => updatePlanExercise(ex.id!, { sortOrder: i })))
   }
 
   const { getHandleProps, getItemProps } = useDragToReorder(exercises, handleReorder)

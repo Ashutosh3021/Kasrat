@@ -4,6 +4,7 @@ import { ArrowLeft, Trash2 } from 'lucide-react'
 import { db, type GymSet } from '../db/database'
 import Toggle from '../components/Toggle'
 import { useSettingsStore } from '../store/settingsStore'
+import { deleteGymSet, updateGymSet } from '../supabase/writeSync'
 
 // ─── Brzycki 1RM formula ──────────────────────────────────────────────────────
 function brzycki(weight: number, reps: number): number | null {
@@ -73,7 +74,7 @@ export default function EditSetPage() {
 
   async function save() {
     if (!set?.id) return
-    await db.gym_sets.update(set.id, {
+    await updateGymSet(set.id, {
       weight: parseFloat(weight),
       reps: parseInt(reps),
       rpe: rpe !== '' ? parseFloat(rpe) : undefined,
@@ -86,7 +87,7 @@ export default function EditSetPage() {
 
   async function deleteSet() {
     if (!set?.id) return
-    await db.gym_sets.delete(set.id)
+    await deleteGymSet(set.id)
     navigate(-1)
   }
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { X, ChevronRight, CheckCircle } from 'lucide-react'
 import { db } from '../db/database'
 import { PROGRAM_TEMPLATES, type ProgramTemplate } from '../data/templates'
+import { addPlan, addPlanExercise } from '../supabase/writeSync'
 
 interface Props {
   onClose: () => void
@@ -30,42 +31,31 @@ export default function TemplatePicker({ onClose }: Props) {
       const days = TEMPLATE_DAYS[template.id] ?? [1, 3, 5]
       const allExerciseNames = template.days.flatMap(d => d.exercises.map(e => e.name))
 
-      // Create the plan
       const count = await db.plans.count()
-      const planId = await db.plans.add({
+      const planId = await addPlan({
         sequence: count,
         title: template.name,
         exercises: allExerciseNames.join(','),
         days: days.join(','),
       })
 
-      // Create plan_exercises for each day's exercises
       let sortOrder = 0
       for (const day of template.days) {
         for (const ex of day.exercises) {
-          await db.plan_exercises.add({
+          await addPlanExercise({
             planId: planId as number,
             exercise: ex.name,
             enabled: true,
             maxSets: ex.sets,
             sortOrder: sortOrder++,
           })
-          // Ensure exercise exists in gym_sets as a template row
           const existing = await db.gym_sets.where('name').equals(ex.name).first()
           if (!existing) {
             await db.gym_sets.add({
-              name: ex.name,
-              reps: 0,
-              weight: 0,
-              unit: 'kg',
-              created: new Date().toISOString(),
-              hidden: true,
-              bodyWeight: false,
-              duration: 0,
-              distance: 0,
-              cardio: false,
-              restMs: 0,
-              primaryMuscle: 'Other',
+              name: ex.name, reps: 0, weight: 0, unit: 'kg',
+              created: new Date().toISOString(), hidden: true,
+              bodyWeight: false, duration: 0, distance: 0, cardio: false,
+              restMs: 0, primaryMuscle: 'Other',
             })
           }
         }

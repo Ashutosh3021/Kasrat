@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { db } from '../db/database'
 import { useUIStore } from '../store/uiStore'
+import { addPlan } from '../supabase/writeSync'
 
 interface Props { onCreated: () => void }
 
@@ -13,7 +14,7 @@ export default function NewPlanDialog({ onCreated }: Props) {
   async function create() {
     if (!title.trim()) { setError('Plan name is required'); return }
     const count = await db.plans.count()
-    await db.plans.add({ sequence: count, title: title.trim(), exercises: '', days: '' })
+    await addPlan({ sequence: count, title: title.trim(), exercises: '', days: '' })
     closeNewPlan()
     onCreated()
   }

@@ -7,6 +7,7 @@ import { groupByDate, formatTime } from '../utils/dateUtils'
 import { useUIStore } from '../store/uiStore'
 import DeleteConfirmation from '../overlays/DeleteConfirmation'
 import HistoryFilters from '../overlays/HistoryFilters'
+import { deleteGymSet } from '../supabase/writeSync'
 
 export default function HistoryPage() {
   const navigate = useNavigate()
@@ -27,7 +28,7 @@ export default function HistoryPage() {
 
   async function handleDelete() {
     if (deleteConfirmTarget) {
-      await db.gym_sets.delete(deleteConfirmTarget.id)
+      await deleteGymSet(deleteConfirmTarget.id)
       closeDeleteConfirm()
       loadSets()
     }

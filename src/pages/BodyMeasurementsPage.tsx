@@ -7,6 +7,7 @@ import {
 } from 'recharts'
 import { db, type BodyMeasurement } from '../db/database'
 import { formatDate } from '../utils/dateUtils'
+import { addBodyMeasurement, updateBodyMeasurement, deleteBodyMeasurement } from '../supabase/writeSync'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -216,9 +217,9 @@ export default function BodyMeasurementsPage() {
   async function handleSave(form: FormState) {
     const data = formToMeasurement(form)
     if (editTarget?.id) {
-      await db.body_measurements.update(editTarget.id, data)
+      await updateBodyMeasurement(editTarget.id, data)
     } else {
-      await db.body_measurements.add(data)
+      await addBodyMeasurement(data)
     }
     setShowForm(false)
     setEditTarget(null)
@@ -227,7 +228,7 @@ export default function BodyMeasurementsPage() {
 
   async function handleDelete() {
     if (editTarget?.id) {
-      await db.body_measurements.delete(editTarget.id)
+      await deleteBodyMeasurement(editTarget.id)
     }
     setShowForm(false)
     setEditTarget(null)

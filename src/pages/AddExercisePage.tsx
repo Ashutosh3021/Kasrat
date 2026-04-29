@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react'
 import { db, type ExercisePreset } from '../db/database'
 import { MUSCLE_GROUPS, type MuscleGroup } from '../data/exercisePresets'
+import { supabase } from '../supabase/client'
 
 const EXERCISE_TYPES = ['Strength', 'Cardio'] as const
 
@@ -82,15 +83,14 @@ export default function AddExercisePage() {
 
   async function save() {
     if (!name.trim()) { setNameError('Exercise name is required'); return }
-    
-    // Save to exercise_meta (this is the primary source for custom exercises)
-    await db.exercise_meta.put({ 
-      name: name.trim(), 
-      cues: cues.trim() || undefined 
+
+    // Save to exercise_meta locally
+    await db.exercise_meta.put({
+      name: name.trim(),
+      cues: cues.trim() || undefined
     })
-    
-    // Also create a template gym_set entry so it appears in exercise lists
-    // Check if exercise already exists in gym_sets
+
+    // Create hidden gym_set template locally
     const existing = await db.gym_sets.where('name').equals(name.trim()).first()
     if (!existing) {
       await db.gym_sets.add({
@@ -110,7 +110,20 @@ export default function AddExercisePage() {
         secondaryMuscle: secondaryMuscle || undefined,
       })
     }
-    
+
+    // Push custom exercise to Supabase custom_exercises table
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user && navigator.onLine) {
+      await supabase.from('custom_exercises').upsert({
+        user_id: user.id,
+        name: name.trim(),
+        primary_muscle: primaryMuscle,
+        secondary_muscle: secondaryMuscle || null,
+        equipment: null,
+        cues: cues.trim() || null,
+      })
+    }
+
     navigate(-1)
   }
 

@@ -6,6 +6,7 @@ import DayPills from '../components/DayPills'
 import { db, type Plan } from '../db/database'
 import { useUIStore } from '../store/uiStore'
 import NewPlanDialog from '../overlays/NewPlanDialog'
+import { deletePlan as deletePlanSync } from '../supabase/writeSync'
 
 interface ConfirmState {
   type: 'plan'
@@ -26,8 +27,7 @@ export default function PlansPage() {
   useEffect(() => { loadPlans() }, [])
 
   async function deletePlan(plan: Plan) {
-    await db.plan_exercises.where('planId').equals(plan.id!).delete()
-    await db.plans.delete(plan.id!)
+    await deletePlanSync(plan.id!)
     setConfirm(null)
     loadPlans()
   }

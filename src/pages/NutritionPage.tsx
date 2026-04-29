@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, X, Trash2, Droplet, Check } from 'lucide-react'
 import { db, type DailyNutrition, type SupplementLog } from '../db/database'
 import { useSettingsStore } from '../store/settingsStore'
+import { putDailyNutrition, deleteDailyNutrition, addSupplementLog, updateSupplementLog } from '../supabase/writeSync'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -251,18 +252,16 @@ export default function NutritionPage() {
   async function loadSupplements() {
     const today = todayStr()
     let logs = await db.supplement_logs.where('date').equals(today).toArray()
-    // Seed missing entries from settings list
     const existing = new Set(logs.map(l => l.name))
     const toAdd = suppList.filter(n => !existing.has(n))
     if (toAdd.length > 0) {
-      const ids = await db.supplement_logs.bulkAdd(
-        toAdd.map(name => ({ date: today, name, taken: false })),
-        { allKeys: true }
-      ) as number[]
-      const newLogs = toAdd.map((name, i) => ({ id: ids[i], date: today, name, taken: false }))
+      const newLogs: SupplementLog[] = []
+      for (const name of toAdd) {
+        const id = await addSupplementLog({ date: today, name, taken: false })
+        newLogs.push({ id, date: today, name, taken: false })
+      }
       logs = [...logs, ...newLogs]
     }
-    // Only show supplements that are in the current settings list
     setSupplements(logs.filter(l => suppList.includes(l.name)))
   }
 
@@ -271,21 +270,21 @@ export default function NutritionPage() {
 
   async function handleSave(form: FormState) {
     const entry = formToEntry(form)
-    await db.daily_nutrition.put(entry)
+    await putDailyNutrition(entry)
     setShowForm(false)
     setEditTarget(null)
     load()
   }
 
   async function handleDelete() {
-    if (editTarget) await db.daily_nutrition.delete(editTarget.date)
+    if (editTarget) await deleteDailyNutrition(editTarget.date)
     setShowForm(false)
     setEditTarget(null)
     load()
   }
 
   async function toggleSupplement(log: SupplementLog) {
-    await db.supplement_logs.update(log.id!, { taken: !log.taken })
+    await updateSupplementLog(log.id!, !log.taken)
     setSupplements(prev => prev.map(s => s.id === log.id ? { ...s, taken: !s.taken } : s))
   }
 

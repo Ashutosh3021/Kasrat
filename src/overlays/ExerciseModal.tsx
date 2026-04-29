@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { X, Search, Plus, Check, ChevronDown, ChevronRight, Minus } from 'lucide-react'
 import { db, type ExercisePreset } from '../db/database'
 import { MUSCLE_GROUPS, type MuscleGroup } from '../data/exercisePresets'
+import { addPlanExercise, updatePlanExercise } from '../supabase/writeSync'
+import { supabase } from '../supabase/client'
 
 const EQUIPMENT_OPTIONS = ['Gym', 'Barbell only', 'Dumbbell only', 'Bodyweight', 'Cables', 'Machine', 'Kettlebell', 'Other'] as const
 
@@ -47,14 +49,11 @@ export default function ExerciseModal({ planId, onClose }: Props) {
   async function addExercise(name: string, muscle: string) {
     if (added.has(name)) return
     const sets = setCounts[name] ?? 3
-    await db.plan_exercises.add({ planId, exercise: name, enabled: true, maxSets: sets })
-    
-    // Ensure exercise exists in exercise_meta
+    await addPlanExercise({ planId, exercise: name, enabled: true, maxSets: sets })
     const existing = await db.exercise_meta.get(name)
     if (!existing) {
       await db.exercise_meta.put({ name })
     }
-    
     setAdded(prev => new Set([...prev, name]))
   }
 
@@ -70,28 +69,27 @@ export default function ExerciseModal({ planId, onClose }: Props) {
     const trimmed = createName.trim()
     if (!trimmed) { setCreateNameError('Name is required'); return }
 
-    // Persist to exercise_meta
     await db.exercise_meta.put({ name: trimmed })
 
-    // Create hidden gym_set template so it appears in exercise lists
     const existing = await db.gym_sets.where('name').equals(trimmed).first()
     if (!existing) {
       await db.gym_sets.add({
-        name: trimmed,
-        reps: 0, weight: 0,
-        unit: 'kg',
-        created: new Date().toISOString(),
-        hidden: true,
-        bodyWeight: false,
-        duration: 0, distance: 0,
-        cardio: false,
-        restMs: 0,
-        primaryMuscle: createMuscle,
-        notes: createEquipment,
+        name: trimmed, reps: 0, weight: 0, unit: 'kg',
+        created: new Date().toISOString(), hidden: true,
+        bodyWeight: false, duration: 0, distance: 0, cardio: false, restMs: 0,
+        primaryMuscle: createMuscle, notes: createEquipment,
       })
     }
 
-    // Reload list and add to plan
+    // Push to Supabase custom_exercises
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user && navigator.onLine) {
+      await supabase.from('custom_exercises').upsert({
+        user_id: user.id, name: trimmed,
+        primary_muscle: createMuscle, equipment: createEquipment,
+      })
+    }
+
     await load()
     await addExercise(trimmed, createMuscle)
     setShowCreateForm(false)
@@ -104,7 +102,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
     setSetCounts(prev => ({ ...prev, [name]: next }))
     if (added.has(name)) {
       const existing = await db.plan_exercises.where('planId').equals(planId).filter(e => e.exercise === name).first()
-      if (existing?.id) await db.plan_exercises.update(existing.id, { maxSets: next })
+      if (existing?.id) await updatePlanExercise(existing.id, { maxSets: next })
     }
   }
 

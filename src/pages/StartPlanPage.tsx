@@ -9,6 +9,7 @@ import { useTimerStore } from '../store/timerStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { useWorkoutStore } from '../store/workoutStore'
 import { useDragToReorder } from '../hooks/useDragToReorder'
+import { addGymSet, deleteGymSet, updatePlanExercise } from '../supabase/writeSync'
 
 // ─── Brzycki 1RM ─────────────────────────────────────────────────────────────
 function brzycki(w: number, r: number): number | null {
@@ -198,7 +199,7 @@ export default function StartPlanPage() {
       rpe: inp.rpe !== '' ? parseFloat(inp.rpe) : undefined,
       rir: inp.rir !== '' ? parseFloat(inp.rir) : undefined,
     }
-    await db.gym_sets.add(set)
+    const id = await addGymSet(set)
     workout.addLoggedSet(ex.exercise, { exercise: ex.exercise, weight: w, reps: r, rpe: set.rpe, rir: set.rir })
     // Clear reps/rpe/rir but keep weight for convenience
     patchInput(ex.exercise, { reps: '', rpe: '', rir: '' })
@@ -234,7 +235,8 @@ export default function StartPlanPage() {
     if (workout.startedAt && workout.activePlanId) {
       const since = workout.startedAt
       const pid = workout.activePlanId
-      await db.gym_sets.where('planId').equals(pid).filter(s => s.created >= since).delete()
+      const toDelete = await db.gym_sets.where('planId').equals(pid).filter(s => s.created >= since).toArray()
+      await Promise.all(toDelete.map(s => deleteGymSet(s.id!)))
     }
     workout.finishSession()
     navigate('/', { replace: true })
@@ -249,12 +251,11 @@ export default function StartPlanPage() {
 
   async function handleReorder(newItems: PlanExercise[]) {
     setExercises(newItems)
-    await Promise.all(newItems.map((ex, i) => db.plan_exercises.update(ex.id!, { sortOrder: i })))
+    await Promise.all(newItems.map((ex, i) => updatePlanExercise(ex.id!, { sortOrder: i })))
   }
 
   async function deleteExercise(ex: PlanExercise, idx: number) {
-    // Remove from database
-    await db.plan_exercises.update(ex.id!, { enabled: false })
+    await updatePlanExercise(ex.id!, { enabled: false })
     
     // If this was the current exercise, adjust current index
     if (idx === currentIdx) {

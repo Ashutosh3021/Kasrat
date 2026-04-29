@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, ChevronLeft, Check } from 'lucide-react'
 import { supabase } from '../supabase/client'
-import { db } from '../db/database'
 import { useSettingsStore } from '../store/settingsStore'
 import { pullRemoteData } from '../hooks/useSync'
+import { addBodyMeasurement } from '../supabase/writeSync'
 
 const TOTAL_STEPS = 3
 
@@ -86,8 +86,8 @@ export default function OnboardingPage() {
       await updateSetting('nutritionFatsGoal', Number(fats) || 70)
       await updateSetting('nutritionWaterGoal', Number(water) || 3)
 
-      // 2. Log initial body weight measurement locally
-      await db.body_measurements.add({
+      // 2. Log initial body weight measurement locally + sync
+      await addBodyMeasurement({
         created: new Date().toISOString(),
         bodyWeight: parseFloat(bodyWeight),
       })

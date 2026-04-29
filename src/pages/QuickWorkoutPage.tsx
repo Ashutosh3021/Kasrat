@@ -12,6 +12,7 @@ import { useWorkoutStore } from '../store/workoutStore'
 import { useUIStore } from '../store/uiStore'
 import ExerciseModal from '../overlays/ExerciseModal'
 import { useDragToReorder } from '../hooks/useDragToReorder'
+import { addGymSet, addPlan, addPlanExercise, deletePlanExercise, updatePlanExercise } from '../supabase/writeSync'
 
 // ─── Brzycki 1RM ──────────────────────────────────────────────────────────────
 function brzycki(w: number, r: number): number | null {
@@ -175,7 +176,7 @@ export default function QuickWorkoutPage() {
       rpe: inp.rpe !== '' ? parseFloat(inp.rpe) : undefined,
       rir: inp.rir !== '' ? parseFloat(inp.rir) : undefined,
     }
-    await db.gym_sets.add(set)
+    await addGymSet(set)
     workout.addLoggedSet(ex.exercise, { exercise: ex.exercise, weight: w, reps: r, rpe: set.rpe, rir: set.rir })
     patchInput(ex.exercise, { reps: '', rpe: '', rir: '' })
     if (settings.restTimers) startTimer(settings.timerDuration)
@@ -191,10 +192,10 @@ export default function QuickWorkoutPage() {
   async function finishAndSave(planTitle: string) {
     // Create a real plan with the exercises
     const count = await db.plans.count()
-    const planId = await db.plans.add({ sequence: count, title: planTitle, exercises: exercises.map(e => e.exercise).join(','), days: '' })
+    const planId = await addPlan({ sequence: count, title: planTitle, exercises: exercises.map(e => e.exercise).join(','), days: '' })
     // Move the temp plan_exercises to the real plan
     await Promise.all(exercises.map((ex, i) =>
-      db.plan_exercises.add({ planId: planId as number, exercise: ex.exercise, enabled: true, maxSets: ex.maxSets, sortOrder: i })
+      addPlanExercise({ planId: planId as number, exercise: ex.exercise, enabled: true, maxSets: ex.maxSets, sortOrder: i })
     ))
     await cleanupTempExercises()
     workout.finishSession()
@@ -224,14 +225,14 @@ export default function QuickWorkoutPage() {
 
   // ── Delete exercise from session ──────────────────────────────────────────
   async function deleteExercise(ex: PlanExercise) {
-    await db.plan_exercises.delete(ex.id!)
+    await deletePlanExercise(ex.id!)
     setExercises(prev => prev.filter(e => e.id !== ex.id))
   }
 
   // ── Drag to reorder ───────────────────────────────────────────────────────
   async function handleReorder(newItems: PlanExercise[]) {
     setExercises(newItems)
-    await Promise.all(newItems.map((ex, i) => db.plan_exercises.update(ex.id!, { sortOrder: i })))
+    await Promise.all(newItems.map((ex, i) => updatePlanExercise(ex.id!, { sortOrder: i })))
   }
 
   function toggleExpanded(idx: number) {
