@@ -9,22 +9,10 @@ import { supabase } from './supabase/client'
 import { syncToSupabase } from './supabase/sync'
 
 const NO_NAV_PATHS = [
-  '/edit-plan/',
-  '/start-plan/',
-  '/add-exercise',
-  '/edit-set/',
-  '/settings/appearance',
-  '/settings/timer',
-  '/settings/tabs',
-  '/settings/data',
-  '/settings/format',
-  '/about',
-  '/edit-graph/',
-  '/body-measurements',
-  '/stats',
-  '/login',
-  '/onboarding',
-  '/quick-workout',
+  '/edit-plan/', '/start-plan/', '/add-exercise', '/edit-set/',
+  '/settings/appearance', '/settings/timer', '/settings/tabs',
+  '/settings/data', '/settings/format', '/about', '/edit-graph/',
+  '/body-measurements', '/stats', '/login', '/onboarding', '/quick-workout',
 ]
 
 const PUBLIC_PATHS = ['/login', '/onboarding']
@@ -34,13 +22,12 @@ const hasSupabase =
   import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co' &&
   import.meta.env.VITE_SUPABASE_URL !== 'undefined'
 
+console.log('[Kasrat:App] hasSupabase:', hasSupabase)
+console.log('[Kasrat:App] VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ?? '(not set)')
+
 async function checkOnboarding(userId: string): Promise<boolean> {
   try {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle()
+    const { data } = await supabase.from('profiles').select('id').eq('id', userId).maybeSingle()
     return !!data
   } catch {
     return false
@@ -54,7 +41,10 @@ export default function App() {
   const { setSession, setLoading, loading } = useAuthStore()
 
   const pathnameRef = useRef(location.pathname)
-  useEffect(() => { pathnameRef.current = location.pathname }, [location.pathname])
+  useEffect(() => {
+    pathnameRef.current = location.pathname
+    console.log('[Kasrat:App] route changed →', location.pathname)
+  }, [location.pathname])
 
   useEffect(() => {
     seedDatabase()
@@ -62,41 +52,45 @@ export default function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('[Kasrat:auth] event:', event, '| user:', session?.user?.email ?? 'none', '| path:', pathnameRef.current)
         setSession(session)
 
         if (event === 'INITIAL_SESSION') {
           setLoading(false)
-          if (!session && hasSupabase) {
-            const isPublic = PUBLIC_PATHS.some(p => pathnameRef.current.startsWith(p))
-            if (!isPublic) {
-              navigate('/login', { replace: true })
+          if (!session) {
+            console.log('[Kasrat:auth] INITIAL_SESSION — no session, hasSupabase:', hasSupabase)
+            if (hasSupabase) {
+              const isPublic = PUBLIC_PATHS.some(p => pathnameRef.current.startsWith(p))
+              console.log('[Kasrat:auth] isPublic path:', isPublic)
+              if (!isPublic) {
+                console.log('[Kasrat:auth] → redirecting to /login')
+                navigate('/login', { replace: true })
+              }
             }
+          } else {
+            console.log('[Kasrat:auth] INITIAL_SESSION — session found, staying on current route')
           }
           return
         }
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // Navigate away from any auth-related page on sign-in.
-          // This covers:
-          //   - Coming back from Google OAuth (lands on / or catches as *)
-          //   - Email/password login from /login
-          // We always redirect — if they're already on a real page (e.g. deep
-          // link), the route stays unchanged because currentPath won't match.
           const currentPath = pathnameRef.current
           const onAuthPage = PUBLIC_PATHS.some(p => currentPath.startsWith(p))
+          console.log('[Kasrat:auth] SIGNED_IN — onAuthPage:', onAuthPage, '| currentPath:', currentPath)
           if (onAuthPage) {
             const done = await checkOnboarding(session.user.id)
+            console.log('[Kasrat:auth] onboarding done:', done, '→ navigating to', done ? '/' : '/onboarding')
             navigate(done ? '/' : '/onboarding', { replace: true })
           }
-
           if (navigator.onLine) {
             syncToSupabase(session.user.id).catch(console.warn)
           }
           return
         }
 
-        if (event === 'SIGNED_OUT' && hasSupabase) {
-          navigate('/login', { replace: true })
+        if (event === 'SIGNED_OUT') {
+          console.log('[Kasrat:auth] SIGNED_OUT — hasSupabase:', hasSupabase)
+          if (hasSupabase) navigate('/login', { replace: true })
         }
       }
     )

@@ -9,34 +9,48 @@ import { supabase } from './supabase/client'
 registerSW({ onNeedRefresh() {}, onOfflineReady() {} })
 
 async function init() {
-  // Read the raw hash BEFORE React or the router touch anything.
-  // With HashRouter + implicit flow, the OAuth callback URL looks like:
-  //   https://site.com/#access_token=TOKEN&refresh_token=TOKEN&type=bearer
-  // The hash (minus the leading #) is a URLSearchParams string.
-  const rawHash = window.location.hash.slice(1) // strip leading #
+  const rawHash = window.location.hash.slice(1)
   const params = new URLSearchParams(rawHash)
   const accessToken = params.get('access_token')
   const refreshToken = params.get('refresh_token')
+  const errorCode = params.get('error')
+  const errorDesc = params.get('error_description')
 
-  if (accessToken && refreshToken) {
-    // We are on an OAuth callback. Explicitly hand the tokens to Supabase.
-    // This is 100% reliable — no timing, no detectSessionInUrl race.
-    // Supabase stores the session in localStorage immediately.
+  console.log('[Kasrat:init] URL hash:', window.location.hash || '(empty)')
+  console.log('[Kasrat:init] Has access_token:', !!accessToken)
+  console.log('[Kasrat:init] Has refresh_token:', !!refreshToken)
+
+  // OAuth returned an error (e.g. user denied Google permission)
+  if (errorCode) {
+    console.error('[Kasrat:init] OAuth error from provider:', errorCode, errorDesc)
+    window.history.replaceState(null, '', window.location.pathname + '#/login')
+  } else if (accessToken && refreshToken) {
+    console.log('[Kasrat:init] OAuth callback detected — calling setSession()')
     try {
-      await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      const { data, error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      })
+      if (error) {
+        console.error('[Kasrat:init] setSession() failed:', error.message, error)
+      } else {
+        console.log('[Kasrat:init] setSession() success — user:', data.session?.user?.email)
+      }
     } catch (err) {
-      console.error('[Kasrat] OAuth session error:', err)
+      console.error('[Kasrat:init] setSession() threw:', err)
     }
-    // Wipe the tokens from the URL now (before router renders).
-    // Router will start cleanly at #/ with the session already stored.
     window.history.replaceState(null, '', window.location.pathname + '#/')
   } else {
-    // Normal page load — restore session from localStorage.
-    await supabase.auth.getSession()
+    console.log('[Kasrat:init] Normal load — calling getSession()')
+    const { data, error } = await supabase.auth.getSession()
+    if (error) {
+      console.error('[Kasrat:init] getSession() failed:', error.message)
+    } else {
+      console.log('[Kasrat:init] getSession() result — user:', data.session?.user?.email ?? 'none (not logged in)')
+    }
   }
 
-  // By this point, session is in localStorage no matter what.
-  // React Router rendering now cannot interfere with auth.
+  console.log('[Kasrat:init] Rendering React...')
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <RouterProvider router={router} />
