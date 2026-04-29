@@ -56,19 +56,36 @@ export default function App() {
         setSession(session)
 
         if (event === 'INITIAL_SESSION') {
-          setLoading(false)
           if (!session) {
-            console.log('[Kasrat:auth] INITIAL_SESSION — no session, hasSupabase:', hasSupabase)
+            setLoading(false)
+            console.log('[Kasrat:auth] INITIAL_SESSION — no session')
             if (hasSupabase) {
               const isPublic = PUBLIC_PATHS.some(p => pathnameRef.current.startsWith(p))
-              console.log('[Kasrat:auth] isPublic path:', isPublic)
               if (!isPublic) {
                 console.log('[Kasrat:auth] → redirecting to /login')
                 navigate('/login', { replace: true })
               }
             }
           } else {
-            console.log('[Kasrat:auth] INITIAL_SESSION — session found, staying on current route')
+            // Session exists — check onboarding BEFORE revealing the app.
+            // This handles both OAuth callback (lands on '/') and normal
+            // refresh. If user is already deep in the app (e.g. '/graphs'),
+            // they've already onboarded — skip the check.
+            const currentPath = pathnameRef.current
+            const onEntryPoint =
+              currentPath === '/' ||
+              currentPath === '' ||
+              PUBLIC_PATHS.some(p => currentPath.startsWith(p))
+
+            console.log('[Kasrat:auth] INITIAL_SESSION — session found | path:', currentPath, '| onEntryPoint:', onEntryPoint)
+
+            if (onEntryPoint) {
+              const done = await checkOnboarding(session.user.id)
+              console.log('[Kasrat:auth] onboarding done:', done)
+              if (!done) navigate('/onboarding', { replace: true })
+            }
+
+            setLoading(false)
           }
           return
         }
