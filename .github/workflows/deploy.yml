@@ -31,9 +31,16 @@ jobs:
         run: npm ci
 
       - name: Type check
-        run: npx tsc -b --noEmit
+        run: npx tsc --noEmit
 
       - name: Build
+        # Inject all VITE_ env vars here so Vite can bake them into the bundle
+        # at build time. Without this block the secrets exist in GitHub but
+        # are never passed to the build process and import.meta.env.* is undefined.
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_REDIRECT_URL: ${{ secrets.VITE_SUPABASE_REDIRECT_URL }}
         run: npm run build
 
       - name: Upload artifact

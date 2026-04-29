@@ -1,13 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+// Vite replaces import.meta.env.* at BUILD TIME with the literal value, or
+// the string "undefined" when the variable was not set. The ?? operator does
+// NOT help here because "undefined" (string) is truthy. This helper handles
+// both JS undefined and the string "undefined" produced by Vite.
+const env = (value?: string) =>
+  value && value !== 'undefined' ? value : undefined
 
-// Guard: if env vars are missing (e.g. local dev without .env), create a
-// no-op client so the rest of the app still compiles and runs offline.
-export const supabase = createClient(
-  supabaseUrl ?? 'https://placeholder.supabase.co',
-  supabaseAnonKey ?? 'placeholder-anon-key',
-)
+const supabaseUrl =
+  env(import.meta.env.VITE_SUPABASE_URL) ??
+  'https://placeholder.supabase.co'
+
+const supabaseAnonKey =
+  env(import.meta.env.VITE_SUPABASE_ANON_KEY) ??
+  'placeholder-anon-key'
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type SupabaseClient = typeof supabase

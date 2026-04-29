@@ -53,15 +53,20 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     setError('')
-    // Build the redirectTo URL dynamically so it works in both environments:
-    //   Local dev  → http://localhost:5173/Kasrat/
-    //   Production → https://ashutosh3021.github.io/Kasrat/
-    // We use VITE_SUPABASE_REDIRECT_URL if explicitly set, otherwise derive
-    // it from window.location so it's always correct for the current host.
-    const envRedirect = import.meta.env.VITE_SUPABASE_REDIRECT_URL
-    const redirectTo = (envRedirect && envRedirect !== 'your-redirect-url-here')
-      ? envRedirect
-      : `${window.location.origin}${window.location.pathname.replace(/\/$/, '')}`
+    // Determine redirectTo:
+    //   - Production (GitHub Pages): VITE_SUPABASE_REDIRECT_URL is set in
+    //     GitHub Actions secrets → always use it when present.
+    //   - Local dev: fall back to http://localhost:5173/Kasrat
+    //     (Vite dev server serves from /Kasrat/ because base: '/Kasrat/')
+    const envRedirect = import.meta.env.VITE_SUPABASE_REDIRECT_URL as string | undefined
+    const isDev = import.meta.env.DEV
+    const redirectTo =
+      envRedirect && envRedirect.startsWith('http')
+        ? envRedirect                          // production: use the env var
+        : isDev
+          ? `${window.location.origin}/Kasrat` // local: http://localhost:5173/Kasrat
+          : 'https://ashutosh3021.github.io/Kasrat' // safe fallback
+
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },

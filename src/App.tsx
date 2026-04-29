@@ -31,7 +31,8 @@ const PUBLIC_PATHS = ['/login', '/onboarding']
 
 const hasSupabase =
   !!import.meta.env.VITE_SUPABASE_URL &&
-  import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co'
+  import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co' &&
+  import.meta.env.VITE_SUPABASE_URL !== 'undefined'
 
 async function checkOnboarding(userId: string): Promise<boolean> {
   try {
