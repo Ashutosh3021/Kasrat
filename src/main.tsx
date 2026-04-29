@@ -9,7 +9,7 @@ import { supabase } from './supabase/client'
 registerSW({ onNeedRefresh() {}, onOfflineReady() {} })
 
 async function init() {
-  const rawHash = window.location.hash.slice(1)
+  const rawHash = window.location.hash.replace(/^#+/, '')
   const params = new URLSearchParams(rawHash)
   const accessToken = params.get('access_token')
   const refreshToken = params.get('refresh_token')

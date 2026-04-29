@@ -14,7 +14,7 @@ function getOAuthRedirectTo(): string {
     ?? (import.meta.env.DEV
       ? `${window.location.origin}/Kasrat`
       : 'https://ashutosh3021.github.io/Kasrat')
-  return base.replace(/[/#]+$/, '') + '/#'
+  return base.replace(/[/#]+$/, '') + '/'
 }
 
 export default function LoginPage() {
