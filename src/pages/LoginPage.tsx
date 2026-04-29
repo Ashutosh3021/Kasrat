@@ -97,21 +97,27 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     setError('')
-    // FIX 1 + 2: signInWithOAuth triggers a FULL BROWSER REDIRECT to Google.
-    // We must NEVER pass its result to navigate() or any React Router method.
-    // Supabase handles the redirect automatically — we just call it and wait.
-    // The browser will leave this page entirely and return to redirectTo after auth.
-    const { error: err } = await supabase.auth.signInWithOAuth({
+    // KEY FIX: skipBrowserRedirect: true
+    // Without this, Supabase internally calls history.pushState() or
+    // modifies window.location.hash BEFORE the full redirect happens.
+    // React Router sees that change and tries to match it as a route → 404.
+    //
+    // With skipBrowserRedirect: true, Supabase just returns the URL.
+    // We then use window.location.href = url which is a true full-page
+    // navigation that React Router cannot intercept.
+    const { data, error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: getOAuthRedirectTo(),
-        // queryParams can be used to force account selection on every login:
-        // queryParams: { prompt: 'select_account' },
+        skipBrowserRedirect: true,
       },
     })
-    // If we reach here, the redirect didn't happen (error case only).
-    if (err) setError(err.message)
-    // DO NOT call navigate() here — the browser is already navigating away.
+    if (err) { setError(err.message); return }
+    // window.location.href bypasses React Router entirely.
+    // Never use navigate() here — this is an external URL.
+    if (data?.url) {
+      window.location.href = data.url
+    }
   }
 
   const inputCls =

@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Vite replaces import.meta.env.* at BUILD TIME with the literal value, or
-// the string "undefined" when the variable was not set.
 const env = (value?: string) =>
   value && value !== 'undefined' ? value : undefined
 
@@ -15,12 +13,14 @@ const supabaseAnonKey =
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // detectSessionInUrl: Supabase reads access_token from the URL on load.
-    detectSessionInUrl: true,
-    // persistSession: keeps the user logged in across page refreshes.
+    detectSessionInUrl: true,   // reads access_token from hash on return
     persistSession: true,
-    // storageKey: namespaced so multiple Supabase projects don't collide.
     storageKey: 'kasrat-auth',
+    // 'implicit' flow means Supabase returns the token directly in the URL
+    // hash on redirect, which pairs correctly with HashRouter + GitHub Pages.
+    // 'pkce' (the newer default) uses a code exchange step that requires a
+    // server round-trip and can cause history API conflicts with HashRouter.
+    flowType: 'implicit',
   },
 })
 
