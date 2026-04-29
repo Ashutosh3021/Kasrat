@@ -81,6 +81,14 @@ export interface ExercisePreset {
   type: 'strength'
 }
 
+export interface SyncQueueItem {
+  id?: number
+  tableName: string
+  operation: 'upsert' | 'delete'
+  payload: Record<string, unknown>
+  timestamp: string
+}
+
 export interface SupplementLog {
   id?: number
   date: string   // YYYY-MM-DD
@@ -137,6 +145,7 @@ export class KasratDB extends Dexie {
   daily_nutrition!: Table<DailyNutrition>
   exercise_presets!: Table<ExercisePreset>
   supplement_logs!: Table<SupplementLog>
+  sync_queue!: Table<SyncQueueItem>
 
   constructor() {
     super('KasratDB')
@@ -225,6 +234,20 @@ export class KasratDB extends Dexie {
       daily_nutrition: '&date',
       exercise_presets: '&name',
       supplement_logs: '++id, [date+name], date',
+    })
+
+    // v9 – adds sync_queue for offline-first Supabase sync
+    this.version(9).stores({
+      gym_sets: '++id, name, created, cardio, planId',
+      plans: '++id, sequence, title',
+      plan_exercises: '++id, planId, exercise',
+      settings: '++id',
+      body_measurements: '++id, created',
+      exercise_meta: '&name',
+      daily_nutrition: '&date',
+      exercise_presets: '&name',
+      supplement_logs: '++id, [date+name], date',
+      sync_queue: '++id, tableName, timestamp',
     })
   }
 }

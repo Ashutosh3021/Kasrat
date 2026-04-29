@@ -1,0 +1,140 @@
+-- ─────────────────────────────────────────────────────────────────────────────
+-- KASRAT – Supabase Database Schema
+-- Run this in the Supabase SQL editor (Dashboard → SQL Editor → New query)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- ── profiles ─────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id              uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  name            text,
+  units           jsonb NOT NULL DEFAULT '{"weight":"kg","distance":"km"}',
+  macro_targets   jsonb NOT NULL DEFAULT '{"calories":null,"protein":null,"carbs":null,"fats":null,"water":null}',
+  supplements     jsonb NOT NULL DEFAULT '[]',
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- ── plans ─────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.plans (
+  id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id     uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  title       text NOT NULL DEFAULT '',
+  days        text NOT NULL DEFAULT '',
+  exercises   text NOT NULL DEFAULT '',
+  sequence    int  NOT NULL DEFAULT 0,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS plans_user_id_idx ON public.plans(user_id);
+ALTER TABLE public.plans ENABLE ROW LEVEL SECURITY;
+
+-- ── plan_exercises ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.plan_exercises (
+  id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  plan_id         bigint NOT NULL REFERENCES public.plans(id) ON DELETE CASCADE,
+  exercise        text NOT NULL,
+  max_sets        int  NOT NULL DEFAULT 3,
+  set_type        text NOT NULL DEFAULT 'normal',
+  superset_group  text,
+  superset_color  text,
+  sort_order      int  NOT NULL DEFAULT 0,
+  enabled         boolean NOT NULL DEFAULT true
+);
+
+CREATE INDEX IF NOT EXISTS plan_exercises_plan_id_idx ON public.plan_exercises(plan_id);
+ALTER TABLE public.plan_exercises ENABLE ROW LEVEL SECURITY;
+
+-- ── custom_exercises ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.custom_exercises (
+  id               bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id          uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  name             text NOT NULL,
+  primary_muscle   text,
+  secondary_muscle text,
+  equipment        text,
+  cues             text,
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS custom_exercises_user_id_idx ON public.custom_exercises(user_id);
+ALTER TABLE public.custom_exercises ENABLE ROW LEVEL SECURITY;
+
+-- ── gym_sets ──────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.gym_sets (
+  id               bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id          uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  name             text NOT NULL,
+  reps             double precision NOT NULL DEFAULT 0,
+  weight           double precision NOT NULL DEFAULT 0,
+  unit             text NOT NULL DEFAULT 'kg',
+  created          timestamptz NOT NULL DEFAULT now(),
+  hidden           boolean NOT NULL DEFAULT false,
+  body_weight      double precision NOT NULL DEFAULT 0,
+  duration         double precision NOT NULL DEFAULT 0,
+  distance         double precision NOT NULL DEFAULT 0,
+  cardio           boolean NOT NULL DEFAULT false,
+  rest_ms          int NOT NULL DEFAULT 0,
+  incline          int,
+  plan_id          bigint REFERENCES public.plans(id) ON DELETE SET NULL,
+  image            text,
+  notes            text,
+  primary_muscle   text,
+  secondary_muscle text,
+  rpe              int,
+  rir              int,
+  warmup           boolean NOT NULL DEFAULT false
+);
+
+CREATE INDEX IF NOT EXISTS gym_sets_user_id_idx  ON public.gym_sets(user_id);
+CREATE INDEX IF NOT EXISTS gym_sets_created_idx  ON public.gym_sets(created);
+CREATE INDEX IF NOT EXISTS gym_sets_plan_id_idx  ON public.gym_sets(plan_id);
+ALTER TABLE public.gym_sets ENABLE ROW LEVEL SECURITY;
+
+-- ── body_measurements ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.body_measurements (
+  id              bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id         uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created         timestamptz NOT NULL DEFAULT now(),
+  body_weight     double precision,
+  fat_percentage  double precision,
+  arms            double precision,
+  chest           double precision,
+  thigh           double precision,
+  calves          double precision,
+  waist           double precision,
+  notes           text
+);
+
+CREATE INDEX IF NOT EXISTS body_measurements_user_id_idx ON public.body_measurements(user_id);
+ALTER TABLE public.body_measurements ENABLE ROW LEVEL SECURITY;
+
+-- ── daily_nutrition ───────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.daily_nutrition (
+  id        bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id   uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  date      date NOT NULL,
+  calories  double precision,
+  protein   double precision,
+  carbs     double precision,
+  fats      double precision,
+  water     double precision,
+  notes     text,
+  UNIQUE (user_id, date)
+);
+
+CREATE INDEX IF NOT EXISTS daily_nutrition_user_id_idx ON public.daily_nutrition(user_id);
+ALTER TABLE public.daily_nutrition ENABLE ROW LEVEL SECURITY;
+
+-- ── supplement_logs ───────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.supplement_logs (
+  id        bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id   uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  date      date NOT NULL,
+  name      text NOT NULL,
+  taken     boolean NOT NULL DEFAULT false,
+  UNIQUE (user_id, date, name)
+);
+
+CREATE INDEX IF NOT EXISTS supplement_logs_user_id_idx ON public.supplement_logs(user_id);
+ALTER TABLE public.supplement_logs ENABLE ROW LEVEL SECURITY;

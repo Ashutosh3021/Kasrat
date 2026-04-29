@@ -26,8 +26,15 @@ import CalendarPage from './pages/CalendarPage'
 import NutritionPage from './pages/NutritionPage'
 import SwapWorkoutPage from './pages/SwapWorkoutPage'
 import QuickWorkoutPage from './pages/QuickWorkoutPage'
+import LoginPage from './pages/LoginPage'
+import OnboardingPage from './pages/OnboardingPage'
 
 export const router = createHashRouter([
+  // Public routes (no App shell / nav)
+  { path: '/login', element: <LoginPage /> },
+  { path: '/onboarding', element: <OnboardingPage /> },
+
+  // App shell routes
   {
     path: '/',
     element: <App />,

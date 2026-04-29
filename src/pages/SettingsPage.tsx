@@ -1,23 +1,34 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Minus, Plus } from 'lucide-react'
+import { ChevronRight, Minus, Plus, LogOut } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import Toggle from '../components/Toggle'
 import { useSettingsStore } from '../store/settingsStore'
 import { useUIStore } from '../store/uiStore'
 import WhatsNewDialog from '../overlays/WhatsNewDialog'
 import { restoreDefaultExercises } from '../db/defaults'
+import { supabase } from '../supabase/client'
+import { clearLocalUserData } from '../supabase/sync'
+import { useAuthStore } from '../store/authStore'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
   const { settings, updateSetting } = useSettingsStore()
   const { openWhatsNew, whatsNewDialogOpen, closeWhatsNew } = useUIStore()
+  const { user, setSession } = useAuthStore()
   const [restoreMessage, setRestoreMessage] = useState('')
 
   async function handleRestoreExercises() {
     await restoreDefaultExercises()
     setRestoreMessage('Default exercises restored')
     setTimeout(() => setRestoreMessage(''), 3000)
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    await clearLocalUserData()
+    setSession(null)
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -203,6 +214,26 @@ export default function SettingsPage() {
             </button>
           </div>
         </section>
+
+        {/* Account */}
+        {user && (
+          <section className="flex flex-col gap-2">
+            <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Account</h3>
+            <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
+              <div className="flex items-center justify-between h-12 px-3">
+                <span className="text-[15px] text-[#A1A1A6] truncate max-w-[220px]">{user.email}</span>
+              </div>
+              <hr className="border-t border-[#2C2C2E]" />
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors text-[#FF453A]"
+              >
+                <span className="text-[17px] font-normal">Log Out</span>
+                <LogOut size={18} strokeWidth={1.5} />
+              </button>
+            </div>
+          </section>
+        )}
       </main>
 
       {whatsNewDialogOpen && <WhatsNewDialog onClose={closeWhatsNew} />}
