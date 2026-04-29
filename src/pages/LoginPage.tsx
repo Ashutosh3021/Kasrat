@@ -5,6 +5,10 @@ import { supabase } from '../supabase/client'
 
 type Tab = 'login' | 'signup'
 
+// Same safe env helper as client.ts — handles Vite's string "undefined"
+const env = (value?: string) =>
+  value && value !== 'undefined' ? value : undefined
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('login')
@@ -53,19 +57,23 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     setError('')
-    // Determine redirectTo:
-    //   - Production (GitHub Pages): VITE_SUPABASE_REDIRECT_URL is set in
-    //     GitHub Actions secrets → always use it when present.
-    //   - Local dev: fall back to http://localhost:5173/Kasrat
-    //     (Vite dev server serves from /Kasrat/ because base: '/Kasrat/')
-    const envRedirect = import.meta.env.VITE_SUPABASE_REDIRECT_URL as string | undefined
-    const isDev = import.meta.env.DEV
-    const redirectTo =
-      envRedirect && envRedirect.startsWith('http')
-        ? envRedirect                          // production: use the env var
-        : isDev
-          ? `${window.location.origin}/Kasrat` // local: http://localhost:5173/Kasrat
-          : 'https://ashutosh3021.github.io/Kasrat' // safe fallback
+    // CRITICAL for hash router + GitHub Pages:
+    // redirectTo must end with /#  so Supabase appends tokens as:
+    //   https://ashutosh3021.github.io/Kasrat/#access_token=...
+    // The hash router then sees route "/" and Supabase JS reads the token
+    // from window.location.hash automatically via detectSessionInUrl.
+    //
+    // Without the trailing /#, tokens land as:
+    //   https://ashutosh3021.github.io/Kasrat#access_token=...
+    // which the hash router tries to match as a route → 404.
+    const envRedirect = env(import.meta.env.VITE_SUPABASE_REDIRECT_URL)
+    const base = envRedirect ?? (
+      import.meta.env.DEV
+        ? `${window.location.origin}/Kasrat`
+        : 'https://ashutosh3021.github.io/Kasrat'
+    )
+    // Ensure the URL ends with /#  (strip any existing trailing slash/hash first)
+    const redirectTo = base.replace(/\/?#?$/, '') + '/#'
 
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
