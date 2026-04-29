@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, ChevronRight, Dumbbell } from 'lucide-react'
+import { Play, ChevronRight, Dumbbell, Zap } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { db, type Plan, type GymSet } from '../db/database'
 import { format } from '../utils/dateUtils'
@@ -133,29 +133,32 @@ function SessionCard({ session, onTap }: SessionCardProps) {
 export default function HomePage() {
   const navigate = useNavigate()
   const { activePlanId, activePlanTitle } = useWorkoutStore()
-  const [todayPlan, setTodayPlan] = useState<Plan | null>(null)
-  const [planExerciseCount, setPlanExerciseCount] = useState(0)
+  const [todayPlans, setTodayPlans] = useState<Plan[]>([])
+  const [planExerciseCounts, setPlanExerciseCounts] = useState<Record<number, number>>({})
   const [weekSets, setWeekSets] = useState(0)
   const [weekExercises, setWeekExercises] = useState(0)
   const [mostUsed, setMostUsed] = useState('')
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
   const [showConflictDialog, setShowConflictDialog] = useState(false)
+  const [conflictTargetId, setConflictTargetId] = useState<number | null>(null)
 
   const today = new Date()
   const dayOfWeek = today.getDay()
 
   useEffect(() => {
     async function load() {
-      // ── Today's plan ──────────────────────────────────────────────────────
+      // ── Today's plans (all matching today's day) ─────────────────────────
       const plans = await db.plans.toArray()
-      const todaysPlan = plans.find(p => {
+      const todayMatchingPlans = plans.filter(p => {
         const days = p.days.split(',').map(Number)
         return days.includes(dayOfWeek)
       })
-      setTodayPlan(todaysPlan ?? null)
-      if (todaysPlan) {
-        setPlanExerciseCount(todaysPlan.exercises.split(',').filter(Boolean).length)
-      }
+      setTodayPlans(todayMatchingPlans)
+      const counts: Record<number, number> = {}
+      todayMatchingPlans.forEach(p => {
+        counts[p.id!] = p.exercises.split(',').filter(Boolean).length
+      })
+      setPlanExerciseCounts(counts)
 
       // ── Weekly stats — exclude hidden/template sets ────────────────────────
       const weekStart = new Date()
@@ -172,9 +175,9 @@ export default function HomePage() {
       setWeekExercises(new Set(weekSetsList.map(s => s.name)).size)
 
       // ── Most used (real sets only) ─────────────────────────────────────────
-      const counts: Record<string, number> = {}
-      realSets.forEach(s => { counts[s.name] = (counts[s.name] ?? 0) + 1 })
-      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
+      const usageCounts: Record<string, number> = {}
+      realSets.forEach(s => { usageCounts[s.name] = (usageCounts[s.name] ?? 0) + 1 })
+      const top = Object.entries(usageCounts).sort((a, b) => b[1] - a[1])[0]
       setMostUsed(top ? top[0] : 'None yet')
 
       // ── Recent sessions (last 7 days, real sets only) ─────────────────────
@@ -191,11 +194,21 @@ export default function HomePage() {
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   const dateStr = `${dayNames[today.getDay()]}, ${today.getDate()} ${monthNames[today.getMonth()]}`
 
-  function handleStartPlan() {
-    if (activePlanId && activePlanId !== todayPlan?.id) {
+  function handleStartPlan(plan: Plan) {
+    if (activePlanId && activePlanId !== plan.id) {
+      setConflictTargetId(plan.id!)
       setShowConflictDialog(true)
     } else {
-      navigate(`/start-plan/${todayPlan!.id}`)
+      navigate(`/start-plan/${plan.id}`)
+    }
+  }
+
+  function handleEmptyWorkout() {
+    if (activePlanId) {
+      setConflictTargetId(null)
+      setShowConflictDialog(true)
+    } else {
+      navigate('/quick-workout')
     }
   }
 
@@ -227,35 +240,49 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* Today's plan card */}
-        {todayPlan ? (
-          <section className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-3" style={{ borderRadius: '4px' }}>
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col gap-0.5">
-                <h2 className="text-[22px] font-semibold text-white leading-tight">{todayPlan.title}</h2>
-                <span className="text-[13px] font-medium text-[#A1A1A6]">
-                  {planExerciseCount} exercise{planExerciseCount !== 1 ? 's' : ''} scheduled
-                </span>
-              </div>
-              <div className="bg-[#2C2C2E] px-2 py-1 shrink-0" style={{ borderRadius: '2px' }}>
-                <span className="text-[11px] font-medium text-[#A1A1A6]">TODAY</span>
-              </div>
-            </div>
-            <button
-              onClick={handleStartPlan}
-              className="w-full bg-[#93032E] text-white font-medium h-11 flex items-center justify-center gap-2"
-              style={{ borderRadius: '2px' }}
-            >
-              <Play size={16} strokeWidth={1.5} fill="white" />
-              Start Workout
-            </button>
-          </section>
+        {/* Today's plan cards */}
+        {todayPlans.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {todayPlans.map(plan => (
+              <section key={plan.id} className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-3" style={{ borderRadius: '4px' }}>
+                <div className="flex justify-between items-start">
+                  <div className="flex flex-col gap-0.5">
+                    <h2 className="text-[22px] font-semibold text-white leading-tight">{plan.title}</h2>
+                    <span className="text-[13px] font-medium text-[#A1A1A6]">
+                      {planExerciseCounts[plan.id!] ?? 0} exercise{(planExerciseCounts[plan.id!] ?? 0) !== 1 ? 's' : ''} scheduled
+                    </span>
+                  </div>
+                  <div className="bg-[#2C2C2E] px-2 py-1 shrink-0" style={{ borderRadius: '2px' }}>
+                    <span className="text-[11px] font-medium text-[#A1A1A6]">TODAY</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleStartPlan(plan)}
+                  className="w-full bg-[#93032E] text-white font-medium h-11 flex items-center justify-center gap-2"
+                  style={{ borderRadius: '2px' }}
+                >
+                  <Play size={16} strokeWidth={1.5} fill="white" />
+                  Start Workout
+                </button>
+              </section>
+            ))}
+          </div>
         ) : (
           <section className="bg-[#1C1C1E] border border-[#2C2C2E] text-center py-8" style={{ borderRadius: '4px' }}>
             <p className="text-[#A1A1A6] text-[15px]">No plan scheduled for today</p>
             <button onClick={() => navigate('/plans')} className="mt-3 text-[#93032E] font-medium text-[15px]">View Plans</button>
           </section>
         )}
+
+        {/* Empty / Quick workout */}
+        <button
+          onClick={handleEmptyWorkout}
+          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] h-11 flex items-center justify-center gap-2 text-[#A1A1A6] font-medium text-[15px] hover:border-[#93032E]/40 transition-colors"
+          style={{ borderRadius: '2px' }}
+        >
+          <Zap size={16} strokeWidth={1.5} />
+          Empty Workout
+        </button>
 
         {/* Weekly stats */}
         <section className="grid grid-cols-2 gap-3">
@@ -346,14 +373,17 @@ export default function HomePage() {
               Finish it before starting a new one.
             </p>
             <button
-              onClick={() => { setShowConflictDialog(false); navigate(`/start-plan/${activePlanId}`) }}
+              onClick={() => {
+                setShowConflictDialog(false)
+                navigate(activePlanId === -1 ? '/quick-workout' : `/start-plan/${activePlanId}`)
+              }}
               className="w-full h-12 bg-[#93032E] text-white font-medium text-[15px]"
               style={{ borderRadius: '2px' }}
             >
               Go to Current Session
             </button>
             <button
-              onClick={() => setShowConflictDialog(false)}
+              onClick={() => { setShowConflictDialog(false); setConflictTargetId(null) }}
               className="w-full h-12 border border-[#2C2C2E] text-white font-medium text-[15px]"
               style={{ borderRadius: '2px' }}
             >

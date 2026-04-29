@@ -11,14 +11,14 @@ export default function WorkoutBubble() {
   const { activePlanId, activePlanTitle, completedExercises, loggedSets } = useWorkoutStore()
 
   // Don't show on the active session page itself
-  if (!activePlanId || location.pathname.startsWith('/start-plan/')) return null
+  if (!activePlanId || location.pathname.startsWith('/start-plan/') || location.pathname === '/quick-workout') return null
 
   const totalSets = Object.values(loggedSets).reduce((n, arr) => n + arr.length, 0)
   const doneCount = completedExercises.length
 
   return (
     <button
-      onClick={() => navigate(`/start-plan/${activePlanId}`)}
+      onClick={() => navigate(activePlanId === -1 ? '/quick-workout' : `/start-plan/${activePlanId}`)}
       className="fixed bottom-20 right-4 z-[200] flex items-center gap-2 bg-[#93032E] text-white px-3 py-2 border border-[#93032E] active:opacity-80 transition-opacity"
       style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)', borderRadius: '2px' }}
     >

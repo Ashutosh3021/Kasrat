@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, GripVertical, Minus, ChevronDown, LayoutTemplate } from 'lucide-react'
+import { ArrowLeft, Plus, GripVertical, Minus, ChevronDown, LayoutTemplate, Trash2 } from 'lucide-react'
 import { db, type Plan, type PlanExercise, type SetType } from '../db/database'
 import Toggle from '../components/Toggle'
 import { useUIStore } from '../store/uiStore'
@@ -121,6 +121,7 @@ export default function EditPlanPage() {
   const [activeDays, setActiveDays] = useState<number[]>([])
   const [exercises, setExercises] = useState<PlanExercise[]>([])
   const [showTemplatePicker, setShowTemplatePicker] = useState(false)
+  const [deleteExConfirm, setDeleteExConfirm] = useState<PlanExercise | null>(null)
   const { openExerciseModal, exerciseModalOpen, closeExerciseModal, openDeleteConfirm, deleteConfirmOpen, deleteConfirmTarget, closeDeleteConfirm } = useUIStore()
 
   async function load() {
@@ -159,6 +160,17 @@ export default function EditPlanPage() {
 
   async function toggleExercise(ex: PlanExercise) {
     await db.plan_exercises.update(ex.id!, { enabled: !ex.enabled })
+    load()
+  }
+
+  async function deleteExercisePermanently(ex: PlanExercise) {
+    await db.plan_exercises.delete(ex.id!)
+    // Update plan's exercises string
+    if (plan?.id) {
+      const remaining = exercises.filter(e => e.id !== ex.id && e.enabled).map(e => e.exercise)
+      await db.plans.update(plan.id, { exercises: remaining.join(',') })
+    }
+    setDeleteExConfirm(null)
     load()
   }
 
@@ -315,6 +327,13 @@ export default function EditPlanPage() {
             <span className="text-[17px] text-white truncate">{ex.exercise}</span>
             <SetTypeBadge type={ex.setType ?? 'normal'} />
           </div>
+          <button
+            onClick={() => setDeleteExConfirm(ex)}
+            className="p-1 text-[#A1A1A6] hover:text-[#FF453A] transition-colors"
+            aria-label="Delete exercise"
+          >
+            <Trash2 size={16} strokeWidth={1.5} />
+          </button>
           <Toggle checked={ex.enabled} onChange={() => toggleExercise(ex)} />
         </div>
 
@@ -443,6 +462,35 @@ export default function EditPlanPage() {
       )}
       {showTemplatePicker && (
         <TemplatePicker onClose={() => setShowTemplatePicker(false)} />
+      )}
+
+      {/* Permanent exercise delete confirmation */}
+      {deleteExConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#151515]/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
+            <h3 className="text-[17px] font-semibold text-white">Delete Exercise</h3>
+            <p className="text-[15px] text-[#A1A1A6]">
+              Delete <span className="text-white font-medium">"{deleteExConfirm.exercise}"</span> from this plan? This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteExConfirm(null)}
+                className="flex-1 h-11 border border-[#2C2C2E] text-white font-medium text-[15px]"
+                style={{ borderRadius: '2px' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteExercisePermanently(deleteExConfirm)}
+                className="flex-1 h-11 bg-[#FF453A] text-white font-medium text-[15px] flex items-center justify-center gap-2"
+                style={{ borderRadius: '2px' }}
+              >
+                <Trash2 size={16} strokeWidth={1.5} />
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
