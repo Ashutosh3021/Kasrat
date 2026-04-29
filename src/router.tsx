@@ -1,4 +1,4 @@
-import { createHashRouter } from 'react-router-dom'
+import { createHashRouter, Navigate } from 'react-router-dom'
 import App from './App'
 import HomePage from './pages/HomePage'
 import GraphsPage from './pages/GraphsPage'
@@ -65,6 +65,11 @@ export const router = createHashRouter([
       { path: 'nutrition', element: <NutritionPage /> },
       { path: 'swap/:planId/:exerciseName', element: <SwapWorkoutPage /> },
       { path: 'quick-workout', element: <QuickWorkoutPage /> },
+      // FIX 5: Catch-all — any unknown child route redirects to home
+      // instead of crashing with React Router's default error boundary.
+      { path: '*', element: <Navigate to="/" replace /> },
     ]
-  }
+  },
+  // Top-level catch-all for completely unknown hash paths
+  { path: '*', element: <Navigate to="/" replace /> },
 ])
