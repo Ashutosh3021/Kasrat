@@ -5,26 +5,15 @@ import { supabase } from '../supabase/client'
 
 type Tab = 'login' | 'signup'
 
-// Safe env helper — handles Vite's string "undefined" for missing vars.
 const env = (value?: string) =>
   value && value !== 'undefined' ? value : undefined
 
-// Build the OAuth redirectTo URL.
-// MUST end with /# so that after Google redirects back:
-//   https://ashutosh3021.github.io/Kasrat/#access_token=...
-// The hash router sees route "/" (correct), and Supabase reads the token
-// from window.location.hash via detectSessionInUrl.
-//
-// Without /#, tokens land as:
-//   https://ashutosh3021.github.io/Kasrat#access_token=...
-// Hash router tries to match "/auth/v1/authorize..." as a route → 404.
 function getOAuthRedirectTo(): string {
   const configured = env(import.meta.env.VITE_SUPABASE_REDIRECT_URL)
   const base = configured
     ?? (import.meta.env.DEV
       ? `${window.location.origin}/Kasrat`
       : 'https://ashutosh3021.github.io/Kasrat')
-  // Strip any trailing slash or hash, then append /#
   return base.replace(/[/#]+$/, '') + '/#'
 }
 
@@ -40,26 +29,17 @@ export default function LoginPage() {
 
   async function checkOnboarding(userId: string): Promise<boolean> {
     try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle()
+      const { data } = await supabase.from('profiles').select('id').eq('id', userId).maybeSingle()
       return !!data
     } catch {
       return false
     }
   }
 
-  // FIX 3: Single form submit handler — called by both the button and
-  // the form's onSubmit so Enter key and autofill both work correctly.
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()  // prevents page reload (fixes browser password warning)
-    if (tab === 'login') {
-      await handleLogin()
-    } else {
-      await handleSignUp()
-    }
+    e.preventDefault()
+    if (tab === 'login') await handleLogin()
+    else await handleSignUp()
   }
 
   async function handleLogin() {
@@ -72,7 +52,6 @@ export default function LoginPage() {
     })
     setLoading(false)
     if (err) { setError(err.message); return }
-    // navigate() is safe here — signInWithPassword does NOT do a browser redirect.
     const done = await checkOnboarding(data.user.id)
     navigate(done ? '/' : '/onboarding', { replace: true })
   }
@@ -110,6 +89,7 @@ export default function LoginPage() {
       options: {
         redirectTo: getOAuthRedirectTo(),
         skipBrowserRedirect: true,
+        queryParams: { prompt: 'select_account' }, // always show account picker
       },
     })
     if (err) { setError(err.message); return }
@@ -164,21 +144,12 @@ export default function LoginPage() {
           ))}
         </div>
 
-        {/* Error / info */}
         {error && <p className="text-[#FF453A] text-[13px] font-medium -mt-2">{error}</p>}
         {info  && <p className="text-emerald-400 text-[13px] font-medium -mt-2">{info}</p>}
 
-        {/* FIX 4: Wrap email + password + submit inside a real <form>.
-            This enables:
-            - Browser password manager autofill
-            - Enter key submission
-            - No "password field not inside a form" browser warning
-            - Correct autocomplete attributes */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-[13px] font-medium text-[#A1A1A6]">
-              Email
-            </label>
+            <label htmlFor="email" className="text-[13px] font-medium text-[#A1A1A6]">Email</label>
             <input
               id="email"
               type="email"
@@ -192,9 +163,7 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-[13px] font-medium text-[#A1A1A6]">
-              Password
-            </label>
+            <label htmlFor="password" className="text-[13px] font-medium text-[#A1A1A6]">Password</label>
             <div className="relative">
               <input
                 id="password"
@@ -219,27 +188,22 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* type="submit" so Enter key and form submission both work */}
           <button
             type="submit"
             disabled={loading}
             className="w-full h-12 bg-[#93032E] text-white font-semibold text-[15px] mt-1 disabled:opacity-60 transition-opacity"
             style={{ borderRadius: '2px' }}
           >
-            {loading
-              ? 'Please wait…'
-              : tab === 'login' ? 'Log In' : 'Create Account'}
+            {loading ? 'Please wait…' : tab === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </form>
 
-        {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-[#2C2C2E]" />
           <span className="text-[13px] text-[#424754]">or</span>
           <div className="flex-1 h-px bg-[#2C2C2E]" />
         </div>
 
-        {/* Google OAuth — type="button" prevents accidental form submission */}
         <button
           type="button"
           onClick={handleGoogle}
@@ -255,7 +219,6 @@ export default function LoginPage() {
           Continue with Google
         </button>
 
-        {/* Offline skip */}
         <button
           type="button"
           onClick={() => navigate('/', { replace: true })}
