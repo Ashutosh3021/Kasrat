@@ -53,33 +53,12 @@ export default function App() {
   const { loadSettings } = useSettingsStore()
   const { setSession, setLoading, loading } = useAuthStore()
 
-  // Keep a live ref to location.pathname so the auth listener always reads
-  // the current path, not the stale closure value from mount time.
   const pathnameRef = useRef(location.pathname)
   useEffect(() => { pathnameRef.current = location.pathname }, [location.pathname])
 
   useEffect(() => {
     seedDatabase()
     loadSettings()
-
-    // ── Auth state listener ───────────────────────────────────────────────
-    // Set up BEFORE any navigation so we catch the OAuth SIGNED_IN event
-    // that fires when Supabase exchanges the tokens from the redirect URL.
-    //
-    // Event sequence on Google OAuth:
-    //   1. User clicks "Continue with Google" → browser navigates to Google
-    //   2. Google redirects back to redirectTo URL
-    //   3. Supabase JS detects the access_token in the URL hash/query
-    //   4. onAuthStateChange fires with event = 'SIGNED_IN'
-    //   5. We navigate to '/' or '/onboarding'
-    //
-    // Event sequence on normal page load (already logged in):
-    //   1. onAuthStateChange fires with event = 'INITIAL_SESSION', session = existing
-    //   2. setLoading(false) — spinner disappears, app renders
-    //
-    // Event sequence on page load (not logged in):
-    //   1. onAuthStateChange fires with event = 'INITIAL_SESSION', session = null
-    //   2. setLoading(false), redirect to /login if Supabase is configured
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -97,15 +76,15 @@ export default function App() {
         }
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // Use the live ref so we always have the current path, not the
-          // stale closure value from when the effect was first registered.
+          // Navigate away from any auth-related page on sign-in.
+          // This covers:
+          //   - Coming back from Google OAuth (lands on / or catches as *)
+          //   - Email/password login from /login
+          // We always redirect — if they're already on a real page (e.g. deep
+          // link), the route stays unchanged because currentPath won't match.
           const currentPath = pathnameRef.current
-          const shouldRedirect =
-            currentPath.startsWith('/login') ||
-            currentPath === '/' ||
-            currentPath === ''
-
-          if (shouldRedirect) {
+          const onAuthPage = PUBLIC_PATHS.some(p => currentPath.startsWith(p))
+          if (onAuthPage) {
             const done = await checkOnboarding(session.user.id)
             navigate(done ? '/' : '/onboarding', { replace: true })
           }
@@ -122,7 +101,6 @@ export default function App() {
       }
     )
 
-    // ── Online: trigger background sync ──────────────────────────────────
     function handleOnline() {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) syncToSupabase(session.user.id).catch(console.warn)
