@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar'
 import { db, type Plan, type GymSet } from '../db/database'
 import { format } from '../utils/dateUtils'
 import { useWorkoutStore } from '../store/workoutStore'
+import { supabase } from '../supabase/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -141,6 +142,7 @@ export default function HomePage() {
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
   const [showConflictDialog, setShowConflictDialog] = useState(false)
   const [conflictTargetId, setConflictTargetId] = useState<number | null>(null)
+  const [userName, setUserName] = useState('')
 
   const today = new Date()
   const dayOfWeek = today.getDay()
@@ -186,6 +188,14 @@ export default function HomePage() {
       const recentSets = realSets.filter(s => new Date(s.created) >= sevenDaysAgo)
       const planTitles = new Map<number, string>(plans.map(p => [p.id!, p.title]))
       setSessions(buildSessions(recentSets, planTitles).slice(0, 5))
+
+      // ── User name from Supabase profile ───────────────────────────────
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles').select('name').eq('id', user.id).maybeSingle()
+        if (profile?.name) setUserName(profile.name)
+      }
     }
     load()
   }, [dayOfWeek])
@@ -218,7 +228,11 @@ export default function HomePage() {
       <main className="px-4 space-y-8 max-w-2xl mx-auto">
         <div className="pt-4">
           <p className="text-[13px] font-medium text-[#A1A1A6]">{dateStr}</p>
-          <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white mt-1">Ready to lift?</h1>
+          <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white mt-1">
+            {userName
+              ? <>Ready to lift, <span className="text-[#93032E]">{userName}</span>?</>
+              : 'Ready to lift?'}
+          </h1>
         </div>
 
         {/* Resume banner */}
