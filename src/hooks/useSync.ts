@@ -35,7 +35,7 @@ export async function pullRemoteData(userId: string): Promise<void> {
     const { data: sets } = await supabase
       .from('gym_sets').select('*').eq('user_id', userId)
     if (sets?.length) {
-      await db.gym_sets.bulkAdd(sets.map(r => ({
+      await db.gym_sets.bulkPut(sets.map(r => ({
         id: r.id,
         name: r.name,
         reps: r.reps,
@@ -62,7 +62,7 @@ export async function pullRemoteData(userId: string): Promise<void> {
     const { data: plans } = await supabase
       .from('plans').select('*').eq('user_id', userId)
     if (plans?.length) {
-      await db.plans.bulkAdd(plans.map(r => ({
+      await db.plans.bulkPut(plans.map(r => ({
         id: r.id,
         sequence: r.sequence ?? 0,
         title: r.title ?? '',
@@ -75,7 +75,7 @@ export async function pullRemoteData(userId: string): Promise<void> {
       const { data: exs } = await supabase
         .from('plan_exercises').select('*').in('plan_id', planIds)
       if (exs?.length) {
-        await db.plan_exercises.bulkAdd(exs.map(r => ({
+        await db.plan_exercises.bulkPut(exs.map(r => ({
           id: r.id,
           planId: r.plan_id,
           exercise: r.exercise,
@@ -93,7 +93,7 @@ export async function pullRemoteData(userId: string): Promise<void> {
     const { data: measurements } = await supabase
       .from('body_measurements').select('*').eq('user_id', userId)
     if (measurements?.length) {
-      await db.body_measurements.bulkAdd(measurements.map(r => ({
+      await db.body_measurements.bulkPut(measurements.map(r => ({
         id: r.id,
         created: r.created,
         bodyWeight: r.body_weight,
@@ -111,7 +111,7 @@ export async function pullRemoteData(userId: string): Promise<void> {
     const { data: nutrition } = await supabase
       .from('daily_nutrition').select('*').eq('user_id', userId)
     if (nutrition?.length) {
-      await db.daily_nutrition.bulkAdd(nutrition.map(r => ({
+      await db.daily_nutrition.bulkPut(nutrition.map(r => ({
         date: r.date,
         calories: r.calories,
         protein: r.protein,
@@ -126,7 +126,7 @@ export async function pullRemoteData(userId: string): Promise<void> {
     const { data: supps } = await supabase
       .from('supplement_logs').select('*').eq('user_id', userId)
     if (supps?.length) {
-      await db.supplement_logs.bulkAdd(supps.map(r => ({
+      await db.supplement_logs.bulkPut(supps.map(r => ({
         id: r.id,
         date: r.date,
         name: r.name,
@@ -153,12 +153,18 @@ export async function processSyncQueue(userId: string): Promise<void> {
 
     for (const item of items) {
       try {
-        const record = { ...item.payload, user_id: userId }
+        // plan_exercises has no user_id column — its payload already omits it.
+        // For all other tables the payload was stored without user_id (to keep
+        // it generic), so we inject it here. But if the payload already has
+        // user_id (e.g. daily_nutrition delete), don't overwrite it.
+        const tablesWithoutUserId = new Set(['plan_exercises'])
+        const record = tablesWithoutUserId.has(item.tableName)
+          ? { ...item.payload }
+          : { ...item.payload, user_id: (item.payload.user_id as string | undefined) ?? userId }
 
         if (item.operation === 'upsert') {
           const { error } = await supabase.from(item.tableName).upsert(record)
           if (error) {
-            // 23505 = unique_violation — already exists, safe to discard
             if ((error as { code?: string }).code === '23505') {
               await db.sync_queue.delete(item.id!)
               continue
@@ -166,18 +172,26 @@ export async function processSyncQueue(userId: string): Promise<void> {
             throw error
           }
         } else if (item.operation === 'delete') {
-          const { error } = await supabase
-            .from(item.tableName)
-            .delete()
-            .eq('id', (item.payload as { id: number }).id)
-            .eq('user_id', userId)
-          if (error) throw error
+          // For plan_exercises, delete by id only (no user_id column)
+          if (item.tableName === 'plan_exercises') {
+            const { error } = await supabase
+              .from(item.tableName)
+              .delete()
+              .eq('id', (item.payload as { id: number }).id)
+            if (error) throw error
+          } else {
+            const { error } = await supabase
+              .from(item.tableName)
+              .delete()
+              .eq('id', (item.payload as { id: number }).id)
+              .eq('user_id', userId)
+            if (error) throw error
+          }
         }
 
         await db.sync_queue.delete(item.id!)
       } catch (err) {
         console.warn('[sync] queue item failed, will retry later:', err)
-        // Don't break the loop — try remaining items
       }
     }
     console.log('[sync] processSyncQueue complete, processed', items.length, 'items')
