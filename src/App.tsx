@@ -11,7 +11,7 @@ import { pullRemoteData, processSyncQueue, setupOnlineListener } from './hooks/u
 const NO_NAV_PATHS = [
   '/edit-plan/', '/start-plan/', '/add-exercise', '/edit-set/',
   '/settings/appearance', '/settings/timer', '/settings/tabs',
-  '/settings/data', '/settings/format', '/about', '/edit-graph/',
+  '/settings/data', '/settings/format', '/settings/security', '/about', '/edit-graph/',
   '/body-measurements', '/stats', '/login', '/onboarding', '/quick-workout',
 ]
 

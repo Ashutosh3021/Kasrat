@@ -28,6 +28,7 @@ import SwapWorkoutPage from './pages/SwapWorkoutPage'
 import QuickWorkoutPage from './pages/QuickWorkoutPage'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
+import SecuritySettingsPage from './pages/settings/SecuritySettingsPage'
 
 export const router = createHashRouter([
   // Public routes (no App shell / nav)
@@ -54,6 +55,7 @@ export const router = createHashRouter([
       { path: 'settings/tabs', element: <TabSettingsPage /> },
       { path: 'settings/data', element: <DataSettingsPage /> },
       { path: 'settings/format', element: <FormatSettingsPage /> },
+      { path: 'settings/security', element: <SecuritySettingsPage /> },
       { path: 'edit-plan/:id', element: <EditPlanPage /> },
       { path: 'start-plan/:id', element: <StartPlanPage /> },
       { path: 'add-exercise', element: <AddExercisePage /> },

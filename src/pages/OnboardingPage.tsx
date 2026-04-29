@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, ChevronLeft, Check } from 'lucide-react'
 import { supabase } from '../supabase/client'
@@ -39,6 +39,16 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Guard: if profile already exists, redirect to home
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) { navigate('/login', { replace: true }); return }
+      const { data } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle()
+      if (data) navigate('/', { replace: true })
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Step 1 – Name
   const [name, setName] = useState('')
@@ -159,7 +169,7 @@ export default function OnboardingPage() {
               {name.trim() && (
                 <div className="bg-[#151515] border border-[#2C2C2E] px-4 py-3" style={{ borderRadius: '4px' }}>
                   <p className="text-[20px] font-semibold text-white">
-                    Ready to lift, <span style={{ color: '#93032E' }}>{name.trim()}</span>?
+                    Ready to lift, <span className="text-[#93032E]">{name.trim()}</span>?
                   </p>
                 </div>
               )}

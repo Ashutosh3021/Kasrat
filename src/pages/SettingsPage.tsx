@@ -225,6 +225,14 @@ export default function SettingsPage() {
               </div>
               <hr className="border-t border-[#2C2C2E]" />
               <button
+                onClick={() => navigate('/settings/security')}
+                className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors"
+              >
+                <span className="text-[17px] font-normal text-white">Security</span>
+                <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
+              </button>
+              <hr className="border-t border-[#2C2C2E]" />
+              <button
                 onClick={handleLogout}
                 className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors text-[#FF453A]"
               >

@@ -142,41 +142,48 @@ export async function pullRemoteData(userId: string): Promise<void> {
 
 // ─── Process sync queue ───────────────────────────────────────────────────────
 
+let _queueRunning = false
+
 export async function processSyncQueue(userId: string): Promise<void> {
-  if (!userId || !navigator.onLine) return
-  const items = await db.sync_queue.orderBy('timestamp').toArray()
-  if (!items.length) return
+  if (!userId || !navigator.onLine || _queueRunning) return
+  _queueRunning = true
+  try {
+    const items = await db.sync_queue.orderBy('timestamp').toArray()
+    if (!items.length) return
 
-  for (const item of items) {
-    try {
-      const record = { ...item.payload, user_id: userId }
+    for (const item of items) {
+      try {
+        const record = { ...item.payload, user_id: userId }
 
-      if (item.operation === 'upsert') {
-        const { error } = await supabase.from(item.tableName).upsert(record)
-        if (error) {
-          // 23505 = unique_violation — already exists, safe to discard
-          if ((error as { code?: string }).code === '23505') {
-            await db.sync_queue.delete(item.id!)
-            continue
+        if (item.operation === 'upsert') {
+          const { error } = await supabase.from(item.tableName).upsert(record)
+          if (error) {
+            // 23505 = unique_violation — already exists, safe to discard
+            if ((error as { code?: string }).code === '23505') {
+              await db.sync_queue.delete(item.id!)
+              continue
+            }
+            throw error
           }
-          throw error
+        } else if (item.operation === 'delete') {
+          const { error } = await supabase
+            .from(item.tableName)
+            .delete()
+            .eq('id', (item.payload as { id: number }).id)
+            .eq('user_id', userId)
+          if (error) throw error
         }
-      } else if (item.operation === 'delete') {
-        const { error } = await supabase
-          .from(item.tableName)
-          .delete()
-          .eq('id', (item.payload as { id: number }).id)
-          .eq('user_id', userId)
-        if (error) throw error
-      }
 
-      await db.sync_queue.delete(item.id!)
-    } catch (err) {
-      console.warn('[sync] queue item failed, will retry later:', err)
-      // Don't break the loop — try remaining items
+        await db.sync_queue.delete(item.id!)
+      } catch (err) {
+        console.warn('[sync] queue item failed, will retry later:', err)
+        // Don't break the loop — try remaining items
+      }
     }
+    console.log('[sync] processSyncQueue complete, processed', items.length, 'items')
+  } finally {
+    _queueRunning = false
   }
-  console.log('[sync] processSyncQueue complete, processed', items.length, 'items')
 }
 
 // ─── Online listener ──────────────────────────────────────────────────────────
