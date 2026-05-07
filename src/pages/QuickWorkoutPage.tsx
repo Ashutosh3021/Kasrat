@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Plus, CheckCircle, X, GripVertical,
@@ -12,11 +12,11 @@ import { useWorkoutStore } from '../store/workoutStore'
 import { useUIStore } from '../store/uiStore'
 import ExerciseModal from '../overlays/ExerciseModal'
 import { useDragToReorder } from '../hooks/useDragToReorder'
-import { addGymSet, addPlan, addPlanExercise, deletePlanExercise, updatePlanExercise } from '../supabase/writeSync'
+import { addGymSet, addPlan, addPlanExercise, deletePlanExercise, updatePlanExercise, deleteGymSet } from '../supabase/writeSync'
 
 // ─── Brzycki 1RM ──────────────────────────────────────────────────────────────
 function brzycki(w: number, r: number): number | null {
-  if (w <= 0 || r <= 0 || r >= 37) return null
+  if (w <= 0 || r <= 0 || r > 10) return null
   return Math.round(w * (36 / (37 - r)))
 }
 
@@ -162,26 +162,37 @@ export default function QuickWorkoutPage() {
   }
 
   // ── Log a set ─────────────────────────────────────────────────────────────
+  const isLogging = useRef(false)
+
   async function logSet(ex: PlanExercise, exIdx: number) {
+    if (isLogging.current) return  // SESSION-002: double-tap guard
     const inp = getInput(ex.exercise)
-    if (!inp.weight || !inp.reps) return
-    const w = parseFloat(inp.weight), r = parseInt(inp.reps)
-    const set: Omit<GymSet, 'id'> = {
-      name: ex.exercise, weight: w, reps: r,
-      unit: settings.strengthUnit,
-      created: new Date().toISOString(),
-      hidden: false, bodyWeight: false, duration: 0, distance: 0, cardio: false,
-      restMs: settings.timerDuration * 1000,
-      planId: undefined, // quick workout sets have no planId
-      rpe: inp.rpe !== '' ? parseFloat(inp.rpe) : undefined,
-      rir: inp.rir !== '' ? parseFloat(inp.rir) : undefined,
+    const w = parseFloat(inp.weight)
+    const r = parseInt(inp.reps)
+    // SESSION-001: validate parsed numbers, not string truthiness
+    if (isNaN(w) || w <= 0 || isNaN(r) || r <= 0) return
+    isLogging.current = true
+    try {
+      patchInput(ex.exercise, { reps: '', rpe: '', rir: '' }) // clear immediately (optimistic)
+      const set: Omit<GymSet, 'id'> = {
+        name: ex.exercise, weight: w, reps: r,
+        unit: settings.strengthUnit,
+        created: new Date().toISOString(),
+        hidden: false, bodyWeight: false, duration: 0, distance: 0, cardio: false,
+        restMs: settings.timerDuration * 1000,
+        planId: undefined,
+        sessionId: workout.sessionId ?? undefined, // SESSION-004: stamp sessionId
+        rpe: inp.rpe !== '' ? parseFloat(inp.rpe) : undefined,
+        rir: inp.rir !== '' ? parseFloat(inp.rir) : undefined,
+      }
+      await addGymSet(set)
+      workout.addLoggedSet(ex.exercise, { exercise: ex.exercise, weight: w, reps: r, rpe: set.rpe, rir: set.rir })
+      if (settings.restTimers) startTimer(settings.timerDuration)
+      const setsForEx = [...(loggedSets[ex.exercise] ?? []), { exercise: ex.exercise, weight: w, reps: r }]
+      if (setsForEx.length >= ex.maxSets) workout.markExerciseDone(ex.exercise)
+    } finally {
+      isLogging.current = false
     }
-    await addGymSet(set)
-    workout.addLoggedSet(ex.exercise, { exercise: ex.exercise, weight: w, reps: r, rpe: set.rpe, rir: set.rir })
-    patchInput(ex.exercise, { reps: '', rpe: '', rir: '' })
-    if (settings.restTimers) startTimer(settings.timerDuration)
-    const setsForEx = [...(loggedSets[ex.exercise] ?? []), { exercise: ex.exercise, weight: w, reps: r }]
-    if (setsForEx.length >= ex.maxSets) workout.markExerciseDone(ex.exercise)
   }
 
   // ── Finish ────────────────────────────────────────────────────────────────
@@ -209,10 +220,14 @@ export default function QuickWorkoutPage() {
   }
 
   async function handleDiscard() {
-    // Delete any sets logged in this session
-    if (workout.startedAt) {
-      const since = workout.startedAt
-      await db.gym_sets.filter(s => s.planId == null && s.created >= since).delete()
+    // SESSION-004 + SYNC-003: use sessionId for precise, indexed, sync-aware delete
+    if (workout.sessionId) {
+      const setsToDelete = await db.gym_sets
+        .where('sessionId').equals(workout.sessionId)
+        .toArray()
+      for (const s of setsToDelete) {
+        await deleteGymSet(s.id!)
+      }
     }
     await cleanupTempExercises()
     workout.finishSession()
@@ -392,6 +407,7 @@ export default function QuickWorkoutPage() {
   }
 
   const totalSets = Object.values(loggedSets).reduce((n, arr) => n + arr.length, 0)
+  const canFinish = totalSets > 0
 
   return (
     <div className="min-h-screen bg-[#151515] pb-8">
@@ -437,8 +453,10 @@ export default function QuickWorkoutPage() {
         {/* Finish */}
         <button
           onClick={handleFinish}
-          className="w-full bg-[#1C1C1E] border border-[#93032E] text-[#93032E] font-medium text-[15px] h-12 flex items-center justify-center gap-2"
+          disabled={!canFinish}
+          className="w-full bg-[#1C1C1E] border border-[#93032E] text-[#93032E] font-medium text-[15px] h-12 flex items-center justify-center gap-2 disabled:opacity-40 disabled:border-[#2C2C2E] disabled:text-[#A1A1A6] transition-opacity"
           style={{ borderRadius: '2px' }}
+          title={!canFinish ? 'Log at least one set to finish' : undefined}
         >
           <Flag size={18} strokeWidth={1.5} />
           Finish & Save

@@ -1,22 +1,26 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Minus, Plus, LogOut } from 'lucide-react'
+import { ChevronRight, Minus, Plus, LogOut, RefreshCw } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import Toggle from '../components/Toggle'
 import { useSettingsStore } from '../store/settingsStore'
 import { useUIStore } from '../store/uiStore'
+import { useSyncStore } from '../store/syncStore'
 import WhatsNewDialog from '../overlays/WhatsNewDialog'
 import { restoreDefaultExercises } from '../db/defaults'
 import { supabase } from '../supabase/client'
 import { clearLocalUserData } from '../supabase/sync'
 import { useAuthStore } from '../store/authStore'
+import { processSyncQueue, pullRemoteData } from '../hooks/useSync'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
   const { settings, updateSetting } = useSettingsStore()
   const { openWhatsNew, whatsNewDialogOpen, closeWhatsNew } = useUIStore()
   const { user, setSession } = useAuthStore()
+  const { isSyncing, setIsSyncing, lastSyncedAt, setHasPulled } = useSyncStore()
   const [restoreMessage, setRestoreMessage] = useState('')
+  const [syncMessage, setSyncMessage] = useState('')
 
   async function handleRestoreExercises() {
     await restoreDefaultExercises()
@@ -28,8 +32,32 @@ export default function SettingsPage() {
     await supabase.auth.signOut()
     await clearLocalUserData()
     setSession(null)
+    useSyncStore.getState().resetSync()
     navigate('/login', { replace: true })
   }
+
+  async function handleSyncNow() {
+    if (!user || isSyncing) return
+    setIsSyncing(true)
+    setSyncMessage('')
+    try {
+      setHasPulled(false) // Unlock the pull gate
+      await processSyncQueue(user.id) // Push before pull
+      await pullRemoteData(user.id)
+      setSyncMessage('Data synced successfully')
+    } catch (err) {
+      console.error('[settings] sync failed:', err)
+      setSyncMessage('Sync failed — check your connection')
+    } finally {
+      setIsSyncing(false)
+      setTimeout(() => setSyncMessage(''), 3000)
+    }
+  }
+
+  // Format "Last synced" time
+  const lastSyncedText = lastSyncedAt
+    ? `Last synced: ${new Date(lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    : 'Never synced'
 
   return (
     <div className="min-h-screen bg-[#151515] pb-8 pt-14">
@@ -233,6 +261,18 @@ export default function SettingsPage() {
               </button>
               <hr className="border-t border-[#2C2C2E]" />
               <button
+                onClick={handleSyncNow}
+                disabled={isSyncing}
+                className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors disabled:opacity-50"
+              >
+                <div className="flex flex-col items-start">
+                  <span className="text-[17px] font-normal text-white">Sync Now</span>
+                  <span className="text-[11px] text-[#A1A1A6]">{lastSyncedText}</span>
+                </div>
+                <RefreshCw size={18} strokeWidth={1.5} className={`${isSyncing ? 'animate-spin' : ''} text-[#A1A1A6]`} />
+              </button>
+              <hr className="border-t border-[#2C2C2E]" />
+              <button
                 onClick={handleLogout}
                 className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors text-[#FF453A]"
               >
@@ -240,6 +280,9 @@ export default function SettingsPage() {
                 <LogOut size={18} strokeWidth={1.5} />
               </button>
             </div>
+            {syncMessage && (
+              <p className="text-[13px] text-[#93032E] px-2 mt-2">{syncMessage}</p>
+            )}
           </section>
         )}
       </main>

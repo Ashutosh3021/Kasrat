@@ -34,5 +34,6 @@ export async function clearLocalUserData(): Promise<void> {
   await db.body_measurements.clear()
   await db.daily_nutrition.clear()
   await db.supplement_logs.clear()
+  await db.exercise_meta.clear()
   await db.sync_queue.clear()
 }

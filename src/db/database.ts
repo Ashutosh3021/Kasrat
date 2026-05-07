@@ -17,12 +17,14 @@ export interface GymSet {
   restMs: number
   incline?: number
   planId?: number
+  sessionId?: string   // UUID stamped on quick-workout sets for safe discard
   image?: string
   notes?: string
   primaryMuscle?: string
   secondaryMuscle?: string
   rpe?: number
   rir?: number
+  isWarmup?: boolean   // true = warmup set, excluded from volume calculations
 }
 
 export interface Plan {
@@ -239,6 +241,20 @@ export class KasratDB extends Dexie {
     // v9 – adds sync_queue for offline-first Supabase sync
     this.version(9).stores({
       gym_sets: '++id, name, created, cardio, planId',
+      plans: '++id, sequence, title',
+      plan_exercises: '++id, planId, exercise',
+      settings: '++id',
+      body_measurements: '++id, created',
+      exercise_meta: '&name',
+      daily_nutrition: '&date',
+      exercise_presets: '&name',
+      supplement_logs: '++id, [date+name], date',
+      sync_queue: '++id, tableName, timestamp',
+    })
+
+    // v10 – adds sessionId index (quick-workout discard) and isWarmup field
+    this.version(10).stores({
+      gym_sets: '++id, name, created, cardio, planId, sessionId',
       plans: '++id, sequence, title',
       plan_exercises: '++id, planId, exercise',
       settings: '++id',

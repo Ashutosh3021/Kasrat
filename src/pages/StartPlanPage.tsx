@@ -13,7 +13,7 @@ import { addGymSet, deleteGymSet, updatePlanExercise } from '../supabase/writeSy
 
 // ─── Brzycki 1RM ─────────────────────────────────────────────────────────────
 function brzycki(w: number, r: number): number | null {
-  if (w <= 0 || r <= 0 || r >= 37) return null
+  if (w <= 0 || r <= 0 || r > 10) return null
   return Math.round(w * (36 / (37 - r)))
 }
 
@@ -148,22 +148,38 @@ export default function StartPlanPage() {
   const totalDone = completedSet.size
   const progress = exercises.length > 0 ? totalDone / exercises.length : 0
 
-  // Load previous sets and cues for all exercises whenever the list changes
+  // Load previous sets and cues for all exercises — batched to avoid N re-renders (PERF-002)
   useEffect(() => {
     if (exercises.length === 0) return
-    exercises.forEach(ex => {
-      db.gym_sets
-        .where('name').equals(ex.exercise)
-        .filter(s => !s.hidden && s.reps > 0)
-        .toArray()
-        .then(rows => {
+    async function loadAll() {
+      const results = await Promise.all(
+        exercises.map(async ex => {
+          const [rows, meta] = await Promise.all([
+            db.gym_sets
+              .where('name').equals(ex.exercise)
+              .filter(s => !s.hidden && s.reps > 0)
+              .toArray(),
+            db.exercise_meta.get(ex.exercise),
+          ])
           const last = rows.sort((a, b) => b.created.localeCompare(a.created))[0]
-          setPrevSets(prev => ({ ...prev, [ex.exercise]: last ? { weight: last.weight, reps: last.reps } : null }))
+          return {
+            name: ex.exercise,
+            prev: last ? { weight: last.weight, reps: last.reps } : null,
+            cue: meta?.cues ?? '',
+          }
         })
-      db.exercise_meta.get(ex.exercise).then(meta => {
-        setCuesMap(prev => ({ ...prev, [ex.exercise]: meta?.cues ?? '' }))
-      })
-    })
+      )
+      // Single state update for all exercises — one re-render instead of 2N
+      const newPrevSets: Record<string, { weight: number; reps: number } | null> = {}
+      const newCuesMap: Record<string, string> = {}
+      for (const r of results) {
+        newPrevSets[r.name] = r.prev
+        newCuesMap[r.name] = r.cue
+      }
+      setPrevSets(newPrevSets)
+      setCuesMap(newCuesMap)
+    }
+    loadAll()
   }, [exercises])
 
   function isInGroup(idx: number): boolean {
@@ -180,9 +196,10 @@ export default function StartPlanPage() {
 
   async function logSet(ex: PlanExercise, exIdx: number) {
     const inp = getInput(ex.exercise)
-    if (!inp.weight || !inp.reps) return
     const w = parseFloat(inp.weight)
     const r = parseInt(inp.reps)
+    // SESSION-001: validate parsed numbers, not string truthiness
+    if (isNaN(w) || w <= 0 || isNaN(r) || r <= 0) return
     const set: Omit<GymSet, 'id'> = {
       name: ex.exercise,
       weight: w,
@@ -201,7 +218,6 @@ export default function StartPlanPage() {
     }
     const id = await addGymSet(set)
     workout.addLoggedSet(ex.exercise, { exercise: ex.exercise, weight: w, reps: r, rpe: set.rpe, rir: set.rir })
-    // Clear reps/rpe/rir but keep weight for convenience
     patchInput(ex.exercise, { reps: '', rpe: '', rir: '' })
 
     const inGroup = isInGroup(exIdx)
@@ -256,20 +272,23 @@ export default function StartPlanPage() {
 
   async function deleteExercise(ex: PlanExercise, idx: number) {
     await updatePlanExercise(ex.id!, { enabled: false })
-    
-    // If this was the current exercise, adjust current index
-    if (idx === currentIdx) {
-      if (currentIdx < exercises.length - 1) {
-        workout.setCurrentIdx(currentIdx)
-      } else if (currentIdx > 0) {
-        workout.setCurrentIdx(currentIdx - 1)
-      }
-    } else if (idx < currentIdx) {
-      workout.setCurrentIdx(currentIdx - 1)
-    }
-    
-    // Reload exercises
+    // Reload first so we know the new array length
     await loadExercises()
+    // EDGE-002: clamp currentIdx to the new valid range after reload
+    // We read the updated exercises from Dexie directly to avoid stale closure
+    const updated = await db.plan_exercises
+      .where('planId').equals(planId)
+      .filter(e => e.enabled)
+      .toArray()
+    const newMax = updated.length - 1
+    if (newMax < 0) {
+      // No exercises left — finish the session
+      workout.finishSession()
+      navigate('/', { replace: true })
+      return
+    }
+    const safeIdx = Math.min(currentIdx, newMax)
+    workout.setCurrentIdx(safeIdx)
   }
 
   function toggleExpanded(idx: number) {

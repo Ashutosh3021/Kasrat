@@ -8,8 +8,9 @@ import {
 import { db, type GymSet } from '../db/database'
 
 // ─── Brzycki 1RM ─────────────────────────────────────────────────────────────
+// STATS-003: only reliable up to 10 reps — return null above that
 function brzycki(w: number, r: number): number | null {
-  if (w <= 0 || r <= 0 || r >= 37) return null
+  if (w <= 0 || r <= 0 || r > 10) return null  // unreliable above 10 reps
   return Math.round(w * (36 / (37 - r)))
 }
 
@@ -175,16 +176,24 @@ export default function GlobalProgressPage() {
 
       if (tab === 'muscle') return  // handled by ByMuscleTab
 
-      const filtered = sets.filter(s => tab === 'cardio' ? s.cardio : !s.cardio)
+      const filtered = sets.filter(s => tab === 'cardio' ? s.cardio : (!s.cardio && !s.hidden))
       const weekMap: Record<string, number> = {}
       filtered.forEach(s => {
+        // STATS-001: use ISO year+week key so data is never merged across months
         const d = new Date(s.created)
-        const weekStart = new Date(d)
-        weekStart.setDate(d.getDate() - d.getDay())
-        const key = `W${Math.ceil(weekStart.getDate() / 7)}`
+        const day = d.getUTCDay() === 0 ? 7 : d.getUTCDay()
+        const thu = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 4 - day))
+        const yearStart = new Date(Date.UTC(thu.getUTCFullYear(), 0, 1))
+        const weekNo = Math.ceil(((thu.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+        const key = `${thu.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`
         weekMap[key] = (weekMap[key] ?? 0) + (s.cardio ? s.distance : s.weight * s.reps)
       })
-      setVolumeData(Object.entries(weekMap).map(([week, volume]) => ({ week, volume })))
+      // Sort by ISO week key so chart is chronological
+      setVolumeData(
+        Object.entries(weekMap)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([week, volume]) => ({ week: week.slice(5), volume })) // display "W18"
+      )
 
       const nameMap: Record<string, GymSet[]> = {}
       filtered.forEach(s => {
@@ -196,7 +205,8 @@ export default function GlobalProgressPage() {
         .slice(0, 5)
         .map(([name, items]) => {
           const best = items.reduce((a, b) => (b.weight > a.weight ? b : a), items[0])
-          return { name, best: `${best.weight} kg`, cardio: items[0].cardio }
+          // STATS-002: use the set's actual unit, not hardcoded 'kg'
+          return { name, best: `${best.weight} ${best.unit ?? 'kg'}`, cardio: items[0].cardio }
         })
       setTopMovements(top)
     }

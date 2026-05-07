@@ -4,9 +4,12 @@ import BottomNav from './components/BottomNav'
 import WorkoutBubble from './components/WorkoutBubble'
 import { useSettingsStore } from './store/settingsStore'
 import { useAuthStore } from './store/authStore'
+import { useSyncStore } from './store/syncStore'
 import { seedDatabase } from './db/defaults'
 import { supabase } from './supabase/client'
-import { syncToSupabase } from './supabase/sync'
+import { syncToSupabase, clearLocalUserData } from './supabase/sync'
+import { clearStaleSession } from './store/workoutStore'
+import SyncLoadingScreen from './components/SyncLoadingScreen'
 
 const NO_NAV_PATHS = [
   '/edit-plan/', '/start-plan/', '/add-exercise', '/edit-set/',
@@ -49,6 +52,7 @@ export default function App() {
   useEffect(() => {
     seedDatabase()
     loadSettings()
+    clearStaleSession() // SESSION-005: clear persisted session if > 12h old
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -118,6 +122,8 @@ export default function App() {
 
         if (event === 'SIGNED_OUT') {
           console.log('[Kasrat:auth] SIGNED_OUT — hasSupabase:', hasSupabase)
+          useSyncStore.getState().resetSync()
+          clearLocalUserData().catch(console.warn)
           if (hasSupabase) navigate('/login', { replace: true })
         }
       }
@@ -154,6 +160,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#151515] text-white">
+      <SyncLoadingScreen />
       <Outlet />
       {!hideNav && <BottomNav />}
       <WorkoutBubble />

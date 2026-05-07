@@ -57,6 +57,7 @@ export default function EditSetPage() {
   const [rir, setRir] = useState('')
   const [notes, setNotes] = useState('')
   const [warmup, setWarmup] = useState(false)
+  const [hasChanges, setHasChanges] = useState(false)  // EDGE-001: dirty flag
 
   useEffect(() => {
     if (!id) return
@@ -72,6 +73,14 @@ export default function EditSetPage() {
     })
   }, [id])
 
+  // EDGE-001: intercept back navigation when there are unsaved changes
+  function handleBack() {
+    if (hasChanges) {
+      if (!window.confirm('Discard unsaved changes?')) return
+    }
+    navigate(-1)
+  }
+
   async function save() {
     if (!set?.id) return
     await updateGymSet(set.id, {
@@ -82,6 +91,7 @@ export default function EditSetPage() {
       notes,
       hidden: warmup,
     })
+    setHasChanges(false)
     navigate(-1)
   }
 
@@ -98,7 +108,7 @@ export default function EditSetPage() {
   return (
     <div className="min-h-screen bg-[#151515] pb-safe">
       <header className="fixed top-0 w-full z-50 flex justify-between items-center px-3 h-14 bg-[#151515] border-b border-[#2C2C2E]">
-        <button onClick={() => navigate(-1)} className="text-white flex items-center justify-center p-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
+        <button onClick={handleBack} className="text-white flex items-center justify-center p-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
         <h1 className="text-[22px] font-medium text-white">Edit Set</h1>
@@ -125,7 +135,7 @@ export default function EditSetPage() {
                 type="number"
                 inputMode="decimal"
                 value={weight}
-                onChange={e => setWeight(e.target.value)}
+                onChange={e => { setWeight(e.target.value); setHasChanges(true) }}
                 className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E]"
                 style={{ borderRadius: '2px' }}
               />
@@ -136,7 +146,7 @@ export default function EditSetPage() {
                 type="number"
                 inputMode="numeric"
                 value={reps}
-                onChange={e => setReps(e.target.value)}
+                onChange={e => { setReps(e.target.value); setHasChanges(true) }}
                 className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E]"
                 style={{ borderRadius: '2px' }}
               />
@@ -146,8 +156,8 @@ export default function EditSetPage() {
           {/* RPE / RIR row */}
           {!set?.cardio && (
             <div className="flex items-end gap-4">
-              <TinyInput label="RPE" value={rpe} onChange={setRpe} min={1} max={10} placeholder="1-10" />
-              <TinyInput label="RIR" value={rir} onChange={setRir} min={0} max={5} placeholder="0-5" />
+              <TinyInput label="RPE" value={rpe} onChange={v => { setRpe(v); setHasChanges(true) }} min={1} max={10} placeholder="1-10" />
+              <TinyInput label="RIR" value={rir} onChange={v => { setRir(v); setHasChanges(true) }} min={0} max={5} placeholder="0-5" />
               {/* live 1RM chip */}
               <div className="flex-1 flex justify-end items-end pb-0.5">
                 <span
@@ -172,7 +182,7 @@ export default function EditSetPage() {
               <div className="text-[17px] text-white">Warmup Set</div>
               <div className="text-[13px] font-medium text-[#A1A1A6]">Does not count towards volume</div>
             </div>
-            <Toggle checked={warmup} onChange={setWarmup} />
+            <Toggle checked={warmup} onChange={v => { setWarmup(v); setHasChanges(true) }} />
           </div>
 
           <div className="h-px bg-[#2C2C2E] w-full" />
@@ -182,7 +192,7 @@ export default function EditSetPage() {
             <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Notes</label>
             <textarea
               value={notes}
-              onChange={e => setNotes(e.target.value)}
+              onChange={e => { setNotes(e.target.value); setHasChanges(true) }}
               className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E] resize-none"
               style={{ borderRadius: '2px' }}
               rows={3}

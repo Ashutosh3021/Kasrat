@@ -13,7 +13,7 @@ export function useTimer() {
       alarmPlayedRef.current = false
       intervalRef.current = setInterval(() => {
         tick()
-      }, 1000)
+      }, 500) // poll at 500ms so wall-clock correction stays responsive
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
@@ -22,19 +22,26 @@ export function useTimer() {
     }
   }, [running, tick])
 
+  // TIMER-002: recalculate immediately when tab becomes visible again
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === 'visible' && running) {
+        tick()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [running, tick])
+
   useEffect(() => {
     if (remaining === 0 && !alarmPlayedRef.current) {
       alarmPlayedRef.current = true
 
-      // Vibrate
       if (settings.vibrate && navigator.vibrate) {
         navigator.vibrate([300, 100, 300, 100, 300])
       }
 
-      // Play beep
       playBeep()
-
-      // Browser notification
       showNotification()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,30 +50,45 @@ export function useTimer() {
   return useTimerStore()
 }
 
+// TIMER-003: singleton AudioContext — never create more than one per page
+let _audioCtx: AudioContext | null = null
+
+function getAudioContext(): AudioContext {
+  if (!_audioCtx || _audioCtx.state === 'closed') {
+    _audioCtx = new AudioContext()
+  }
+  if (_audioCtx.state === 'suspended') {
+    _audioCtx.resume()
+  }
+  return _audioCtx
+}
+
 function playBeep() {
   try {
-    const ctx = new AudioContext()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.frequency.value = 880
-    osc.type = 'sine'
-    gain.gain.setValueAtTime(0.4, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0)
-    osc.start(ctx.currentTime)
-    osc.stop(ctx.currentTime + 1.0)
-    // Second beep
+    const ctx = getAudioContext()
+    const now = ctx.currentTime
+
+    const osc1 = ctx.createOscillator()
+    const gain1 = ctx.createGain()
+    osc1.connect(gain1)
+    gain1.connect(ctx.destination)
+    osc1.frequency.value = 880
+    osc1.type = 'sine'
+    gain1.gain.setValueAtTime(0.4, now)
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.0)
+    osc1.start(now)
+    osc1.stop(now + 1.0)
+
     const osc2 = ctx.createOscillator()
     const gain2 = ctx.createGain()
     osc2.connect(gain2)
     gain2.connect(ctx.destination)
     osc2.frequency.value = 1100
     osc2.type = 'sine'
-    gain2.gain.setValueAtTime(0.4, ctx.currentTime + 0.3)
-    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.1)
-    osc2.start(ctx.currentTime + 0.3)
-    osc2.stop(ctx.currentTime + 1.1)
+    gain2.gain.setValueAtTime(0.4, now + 0.3)
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.1)
+    osc2.start(now + 0.3)
+    osc2.stop(now + 1.1)
   } catch (_) {}
 }
 

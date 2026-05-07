@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Filter, Trash2 } from 'lucide-react'
 import TopBar from '../components/TopBar'
@@ -9,28 +9,101 @@ import DeleteConfirmation from '../overlays/DeleteConfirmation'
 import HistoryFilters from '../overlays/HistoryFilters'
 import { deleteGymSet } from '../supabase/writeSync'
 
+// PERF-001: page size — load 60 sets at a time
+const PAGE_SIZE = 60
+
+// Simple debounce hook — waits `delay` ms after the last change
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
+  return debounced
+}
+
 export default function HistoryPage() {
   const navigate = useNavigate()
   const [sets, setSets] = useState<GymSet[]>([])
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
   const { openDeleteConfirm, deleteConfirmOpen, deleteConfirmTarget, closeDeleteConfirm } = useUIStore()
 
-  async function loadSets() {
-    const all = await db.gym_sets.orderBy('created').reverse().toArray()
-    setSets(all)
-  }
+  // Debounce search so we don't query on every keystroke
+  const debouncedSearch = useDebounce(search, 300)
 
-  useEffect(() => { loadSets() }, [])
+  // Sentinel ref for infinite scroll
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const filtered = sets.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
-  const grouped = groupByDate(filtered)
+  const loadSets = useCallback(async (pageNum: number, query: string, replace: boolean) => {
+    let results: GymSet[]
+
+    if (query.trim()) {
+      // Dexie doesn't have a native case-insensitive contains index,
+      // so we fetch all matching by name prefix using the name index,
+      // then filter client-side. For exact substring we still need filter()
+      // but we limit the scan to the name-indexed collection.
+      const all = await db.gym_sets
+        .orderBy('created')
+        .reverse()
+        .filter(s => s.name.toLowerCase().includes(query.toLowerCase()))
+        .offset(pageNum * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .toArray()
+      results = all
+    } else {
+      results = await db.gym_sets
+        .orderBy('created')
+        .reverse()
+        .offset(pageNum * PAGE_SIZE)
+        .limit(PAGE_SIZE)
+        .toArray()
+    }
+
+    setHasMore(results.length === PAGE_SIZE)
+    setSets(prev => replace ? results : [...prev, ...results])
+  }, [])
+
+  // Reset to page 0 whenever search changes
+  useEffect(() => {
+    setPage(0)
+    loadSets(0, debouncedSearch, true)
+  }, [debouncedSearch, loadSets])
+
+  // Load next page when page increments (not on initial load)
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return }
+    if (page > 0) loadSets(page, debouncedSearch, false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page])
+
+  // Infinite scroll via IntersectionObserver
+  useEffect(() => {
+    if (!sentinelRef.current) return
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage(p => p + 1)
+        }
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(sentinelRef.current)
+    return () => observer.disconnect()
+  }, [hasMore])
+
+  const grouped = groupByDate(sets)
 
   async function handleDelete() {
     if (deleteConfirmTarget) {
       await deleteGymSet(deleteConfirmTarget.id)
       closeDeleteConfirm()
-      loadSets()
+      // Reload from scratch after delete
+      setPage(0)
+      loadSets(0, debouncedSearch, true)
     }
   }
 
@@ -64,7 +137,9 @@ export default function HistoryPage() {
 
         {Object.keys(grouped).length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-[#A1A1A6] text-[15px]">No history yet. Start logging sets!</p>
+            <p className="text-[#A1A1A6] text-[15px]">
+              {debouncedSearch ? `No results for "${debouncedSearch}"` : 'No history yet. Start logging sets!'}
+            </p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -100,6 +175,12 @@ export default function HistoryPage() {
                 </div>
               </section>
             ))}
+
+            {/* Infinite scroll sentinel */}
+            <div ref={sentinelRef} className="h-4" />
+            {!hasMore && sets.length > 0 && (
+              <p className="text-center text-[13px] text-[#424754] pb-4">All sets loaded</p>
+            )}
           </div>
         )}
       </main>

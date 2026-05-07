@@ -16,7 +16,8 @@ type MuscleAxis = typeof MUSCLE_AXES[number]
 
 function weekBounds(offset: number): { start: Date; end: Date } {
   const now = new Date()
-  const day = now.getDay() // 0 = Sun
+  // STATS-004: Monday-start week (getDay() 0=Sun → shift so Mon=0, Sun=6)
+  const day = (now.getDay() + 6) % 7
   const start = new Date(now)
   start.setDate(now.getDate() - day + offset * 7)
   start.setHours(0, 0, 0, 0)
