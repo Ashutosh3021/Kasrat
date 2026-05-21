@@ -12,7 +12,7 @@
 
 import { supabase } from './client'
 import { db, type Plan, type PlanExercise, type GymSet, type BodyMeasurement, type DailyNutrition, type SupplementLog } from '../db/database'
-import { enqueue } from '../hooks/useSync'
+import { enqueue, bodyWeightForSupabase } from '../hooks/useSync'
 
 // ─── Get current user id (null if not logged in) ──────────────────────────────
 async function getUserId(): Promise<string | null> {
@@ -153,7 +153,7 @@ export async function addGymSet(set: Omit<GymSet, 'id'>): Promise<number> {
       unit: set.unit,
       created: set.created,
       hidden: set.hidden,
-      body_weight: set.bodyWeight,
+      body_weight: bodyWeightForSupabase(set.bodyWeight),
       duration: set.duration,
       distance: set.distance,
       cardio: set.cardio,
@@ -184,7 +184,7 @@ export async function updateGymSet(id: number, changes: Partial<GymSet>): Promis
         unit: updated.unit,
         created: updated.created,
         hidden: updated.hidden,
-        body_weight: updated.bodyWeight,
+        body_weight: bodyWeightForSupabase(updated.bodyWeight),
         duration: updated.duration,
         distance: updated.distance,
         cardio: updated.cardio,

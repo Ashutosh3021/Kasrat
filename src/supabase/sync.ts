@@ -20,6 +20,13 @@ import { processSyncQueue, pullRemoteData } from '../hooks/useSync'
 /** Legacy: syncToSupabase = processQueue + pull */
 export async function syncToSupabase(userId: string): Promise<void> {
   if (!navigator.onLine) return
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.access_token || session.user.id !== userId) {
+    console.warn('[sync] syncToSupabase: no valid session, skipping')
+    return
+  }
+
   await processSyncQueue(userId)
   await pullRemoteData(userId)
 }

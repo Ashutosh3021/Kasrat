@@ -21,6 +21,30 @@ import { useSyncStore } from '../store/syncStore'
 
 const PULL_TIMEOUT_MS = 30_000
 
+/** Postgres gym_sets.body_weight is numeric; Dexie stores a boolean flag */
+export function bodyWeightForSupabase(v: boolean | number | undefined | null): number {
+  if (typeof v === 'boolean') return v ? 1 : 0
+  if (typeof v === 'number' && !Number.isNaN(v)) return v
+  return 0
+}
+
+function bodyWeightFromSupabase(v: number | boolean | null | undefined): boolean {
+  if (typeof v === 'boolean') return v
+  return Number(v) > 0
+}
+
+/** Push parent rows before children so RLS checks pass */
+const QUEUE_TABLE_ORDER = [
+  'plans',
+  'plan_exercises',
+  'gym_sets',
+  'body_measurements',
+  'daily_nutrition',
+  'supplement_logs',
+] as const
+
+const PERMANENT_SYNC_ERROR_CODES = new Set(['42501', '22P02', 'PGRST205', '42P01'])
+
 let _pullInFlight: Promise<void> | null = null
 
 function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
@@ -73,7 +97,6 @@ async function executePull(userId: string): Promise<void> {
       { data: measurements, error: measErr },
       { data: nutrition,    error: nutrErr },
       { data: supps,        error: suppsErr },
-      { data: meta,         error: metaErr },
     ] = await withTimeout(
       Promise.all([
         supabase.from('gym_sets').select('*').eq('user_id', userId),
@@ -81,14 +104,13 @@ async function executePull(userId: string): Promise<void> {
         supabase.from('body_measurements').select('*').eq('user_id', userId),
         supabase.from('daily_nutrition').select('*').eq('user_id', userId),
         supabase.from('supplement_logs').select('*').eq('user_id', userId),
-        supabase.from('exercise_meta').select('*').eq('user_id', userId),
       ]),
       PULL_TIMEOUT_MS,
       'pullRemoteData fetch',
     )
 
-    if (setsErr || plansErr || measErr || nutrErr || suppsErr || metaErr) {
-      console.error('[sync] pullRemoteData: fetch failed — local data preserved', { setsErr, plansErr, measErr, nutrErr, suppsErr, metaErr })
+    if (setsErr || plansErr || measErr || nutrErr || suppsErr) {
+      console.error('[sync] pullRemoteData: fetch failed — local data preserved', { setsErr, plansErr, measErr, nutrErr, suppsErr })
       throw new Error('One or more tables failed to fetch')
     }
 
@@ -111,8 +133,9 @@ async function executePull(userId: string): Promise<void> {
     }
 
     // ── REPLACE ATOMICALLY — only runs if ALL fetches succeeded ──────────
+    // exercise_meta is local-only (no Supabase table); do not clear it on pull
     await db.transaction('rw',
-      [db.gym_sets, db.plans, db.plan_exercises, db.body_measurements, db.daily_nutrition, db.supplement_logs, db.exercise_meta],
+      [db.gym_sets, db.plans, db.plan_exercises, db.body_measurements, db.daily_nutrition, db.supplement_logs],
       async () => {
         // gym_sets
         await db.gym_sets.clear()
@@ -125,7 +148,7 @@ async function executePull(userId: string): Promise<void> {
             unit: r.unit,
             created: r.created,
             hidden: r.hidden,
-            bodyWeight: r.body_weight ?? 0,
+            bodyWeight: bodyWeightFromSupabase(r.body_weight),
             duration: r.duration ?? 0,
             distance: r.distance ?? 0,
             cardio: r.cardio,
@@ -209,15 +232,6 @@ async function executePull(userId: string): Promise<void> {
             taken: r.taken,
           })))
         }
-
-        // exercise_meta
-        await db.exercise_meta.clear()
-        if (meta?.length) {
-          await db.exercise_meta.bulkPut(meta.map(r => ({
-            name: r.name,
-            cues: r.cues,
-          })))
-        }
       }
     )
 
@@ -239,23 +253,55 @@ async function executePull(userId: string): Promise<void> {
 
 let _queueRunning = false
 
+function queueSortKey(tableName: string): number {
+  const idx = QUEUE_TABLE_ORDER.indexOf(tableName as (typeof QUEUE_TABLE_ORDER)[number])
+  return idx === -1 ? QUEUE_TABLE_ORDER.length : idx
+}
+
+function normalizeQueueRecord(
+  tableName: string,
+  payload: Record<string, unknown>,
+  userId: string,
+): Record<string, unknown> {
+  const tablesWithoutUserId = new Set(['plan_exercises'])
+  const record = tablesWithoutUserId.has(tableName)
+    ? { ...payload }
+    : { ...payload, user_id: (payload.user_id as string | undefined) ?? userId }
+
+  if (tableName === 'gym_sets' && 'body_weight' in record) {
+    record.body_weight = bodyWeightForSupabase(
+      record.body_weight as boolean | number | undefined | null,
+    )
+  }
+
+  return record
+}
+
+function isPermanentSyncError(err: unknown): boolean {
+  const code = (err as { code?: string })?.code
+  return !!code && PERMANENT_SYNC_ERROR_CODES.has(code)
+}
+
 export async function processSyncQueue(userId: string): Promise<void> {
   if (!userId || !navigator.onLine || _queueRunning) return
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.access_token || session.user.id !== userId) {
+    console.warn('[sync] processSyncQueue: JWT not ready, skipping')
+    return
+  }
+
   _queueRunning = true
   try {
-    const items = await db.sync_queue.orderBy('timestamp').toArray()
+    const items = (await db.sync_queue.orderBy('timestamp').toArray()).sort((a, b) => {
+      const order = queueSortKey(a.tableName) - queueSortKey(b.tableName)
+      return order !== 0 ? order : a.timestamp.localeCompare(b.timestamp)
+    })
     if (!items.length) return
 
     for (const item of items) {
       try {
-        // plan_exercises has no user_id column — its payload already omits it.
-        // For all other tables the payload was stored without user_id (to keep
-        // it generic), so we inject it here. But if the payload already has
-        // user_id (e.g. daily_nutrition delete), don't overwrite it.
-        const tablesWithoutUserId = new Set(['plan_exercises'])
-        const record = tablesWithoutUserId.has(item.tableName)
-          ? { ...item.payload }
-          : { ...item.payload, user_id: (item.payload.user_id as string | undefined) ?? userId }
+        const record = normalizeQueueRecord(item.tableName, item.payload, userId)
 
         if (item.operation === 'upsert') {
           const { error } = await supabase.from(item.tableName).upsert(record)
@@ -293,7 +339,12 @@ export async function processSyncQueue(userId: string): Promise<void> {
 
         await db.sync_queue.delete(item.id!)
       } catch (err) {
-        console.warn('[sync] queue item failed, will retry later:', err)
+        if (isPermanentSyncError(err)) {
+          console.warn('[sync] dropping poison queue item:', item.tableName, item.operation, err)
+          await db.sync_queue.delete(item.id!)
+        } else {
+          console.warn('[sync] queue item failed, will retry later:', err)
+        }
       }
     }
     console.log('[sync] processSyncQueue complete, processed', items.length, 'items')
