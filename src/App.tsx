@@ -90,6 +90,12 @@ export default function App() {
             }
 
             setLoading(false)
+
+            // PWA refresh / mobile reopen only fires INITIAL_SESSION, not SIGNED_IN.
+            // Pull here so IndexedDB is repopulated when local storage was cleared.
+            if (hasSupabase && navigator.onLine) {
+              syncToSupabase(session.user.id).catch(console.warn)
+            }
           }
           return
         }

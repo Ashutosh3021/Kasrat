@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Play, ChevronRight, Dumbbell, Zap } from 'lucide-react'
 import TopBar from '../components/TopBar'
@@ -6,6 +6,7 @@ import { db, type Plan, type GymSet } from '../db/database'
 import { format } from '../utils/dateUtils'
 import { useWorkoutStore } from '../store/workoutStore'
 import { supabase } from '../supabase/client'
+import { useOnSyncComplete } from '../hooks/useOnSyncComplete'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -147,58 +148,52 @@ export default function HomePage() {
   const today = new Date()
   const dayOfWeek = today.getDay()
 
-  useEffect(() => {
-    async function load() {
-      // ── Today's plans (all matching today's day) ─────────────────────────
-      const plans = await db.plans.toArray()
-      const todayMatchingPlans = plans.filter(p => {
-        const days = p.days.split(',').map(Number)
-        return days.includes(dayOfWeek)
-      })
-      setTodayPlans(todayMatchingPlans)
-      const counts: Record<number, number> = {}
-      todayMatchingPlans.forEach(p => {
-        counts[p.id!] = p.exercises.split(',').filter(Boolean).length
-      })
-      setPlanExerciseCounts(counts)
+  const loadHomeData = useCallback(async () => {
+    const plans = await db.plans.toArray()
+    const todayMatchingPlans = plans.filter(p => {
+      const days = p.days.split(',').map(Number)
+      return days.includes(dayOfWeek)
+    })
+    setTodayPlans(todayMatchingPlans)
+    const counts: Record<number, number> = {}
+    todayMatchingPlans.forEach(p => {
+      counts[p.id!] = p.exercises.split(',').filter(Boolean).length
+    })
+    setPlanExerciseCounts(counts)
 
-      // ── Weekly stats — exclude hidden/template sets ────────────────────────
-      const weekStart = new Date()
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-      weekStart.setHours(0, 0, 0, 0)
-      const allSets = await db.gym_sets.toArray()
+    const weekStart = new Date()
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+    weekStart.setHours(0, 0, 0, 0)
+    const allSets = await db.gym_sets.toArray()
 
-      // Real sets: not hidden, and have actual data
-      const realSets = allSets.filter(
-        s => !s.hidden && !(s.weight === 0 && s.reps === 0 && s.distance === 0)
-      )
-      const weekSetsList = realSets.filter(s => new Date(s.created) >= weekStart)
-      setWeekSets(weekSetsList.length)
-      setWeekExercises(new Set(weekSetsList.map(s => s.name)).size)
+    const realSets = allSets.filter(
+      s => !s.hidden && !(s.weight === 0 && s.reps === 0 && s.distance === 0)
+    )
+    const weekSetsList = realSets.filter(s => new Date(s.created) >= weekStart)
+    setWeekSets(weekSetsList.length)
+    setWeekExercises(new Set(weekSetsList.map(s => s.name)).size)
 
-      // ── Most used (real sets only) ─────────────────────────────────────────
-      const usageCounts: Record<string, number> = {}
-      realSets.forEach(s => { usageCounts[s.name] = (usageCounts[s.name] ?? 0) + 1 })
-      const top = Object.entries(usageCounts).sort((a, b) => b[1] - a[1])[0]
-      setMostUsed(top ? top[0] : 'None yet')
+    const usageCounts: Record<string, number> = {}
+    realSets.forEach(s => { usageCounts[s.name] = (usageCounts[s.name] ?? 0) + 1 })
+    const top = Object.entries(usageCounts).sort((a, b) => b[1] - a[1])[0]
+    setMostUsed(top ? top[0] : 'None yet')
 
-      // ── Recent sessions (last 7 days, real sets only) ─────────────────────
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-      const recentSets = realSets.filter(s => new Date(s.created) >= sevenDaysAgo)
-      const planTitles = new Map<number, string>(plans.map(p => [p.id!, p.title]))
-      setSessions(buildSessions(recentSets, planTitles).slice(0, 5))
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const recentSets = realSets.filter(s => new Date(s.created) >= sevenDaysAgo)
+    const planTitles = new Map<number, string>(plans.map(p => [p.id!, p.title]))
+    setSessions(buildSessions(recentSets, planTitles).slice(0, 5))
 
-      // ── User name from Supabase profile ───────────────────────────────
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles').select('name').eq('id', user.id).maybeSingle()
-        if (profile?.name) setUserName(profile.name)
-      }
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles').select('name').eq('id', user.id).maybeSingle()
+      if (profile?.name) setUserName(profile.name)
     }
-    load()
   }, [dayOfWeek])
+
+  useEffect(() => { loadHomeData() }, [loadHomeData])
+  useOnSyncComplete(loadHomeData)
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']

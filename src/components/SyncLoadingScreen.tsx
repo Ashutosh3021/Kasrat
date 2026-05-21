@@ -7,15 +7,22 @@ export default function SyncLoadingScreen() {
   const [showSubMessage, setShowSubMessage] = useState(false)
 
   useEffect(() => {
-    let timer: number
+    let subMessageTimer: number
+    let forceDismissTimer: number
     if (isInitialPulling) {
       setShowSubMessage(false)
-      timer = window.setTimeout(() => {
-        setShowSubMessage(true)
-      }, 5000)
+      subMessageTimer = window.setTimeout(() => setShowSubMessage(true), 5000)
+      // Never block the UI indefinitely on slow mobile networks
+      forceDismissTimer = window.setTimeout(() => {
+        console.warn('[sync] initial pull overlay auto-dismissed after 45s')
+        setIsInitialPulling(false)
+      }, 45_000)
     }
-    return () => clearTimeout(timer)
-  }, [isInitialPulling])
+    return () => {
+      clearTimeout(subMessageTimer)
+      clearTimeout(forceDismissTimer)
+    }
+  }, [isInitialPulling, setIsInitialPulling])
 
   if (!isInitialPulling) return null
 

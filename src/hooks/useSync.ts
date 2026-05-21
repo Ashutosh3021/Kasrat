@@ -19,23 +19,50 @@ import { supabase } from '../supabase/client'
 import { db } from '../db/database'
 import { useSyncStore } from '../store/syncStore'
 
+const PULL_TIMEOUT_MS = 30_000
+
+let _pullInFlight: Promise<void> | null = null
+
+function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    }),
+  ])
+}
+
 // ─── Pull (full replace) ──────────────────────────────────────────────────────
 
 export async function pullRemoteData(userId: string): Promise<void> {
   if (!userId) return
 
-  const { hasPulled, setHasPulled, setIsInitialPulling, setLastSyncedAt } = useSyncStore.getState()
+  const { hasPulled } = useSyncStore.getState()
 
-  // FEATURE 1: hasPulled gate
   if (hasPulled) {
     console.log('[sync] pullRemoteData: already pulled in this session, skipping.')
     return
   }
 
-  // Set isInitialPulling only for the very first pull
-  setIsInitialPulling(true)
-  // Set hasPulled immediately to prevent concurrent duplicate pulls
-  setHasPulled(true)
+  if (_pullInFlight) {
+    console.log('[sync] pullRemoteData: pull already in flight, awaiting…')
+    return _pullInFlight
+  }
+
+  _pullInFlight = executePull(userId).finally(() => {
+    _pullInFlight = null
+  })
+
+  return _pullInFlight
+}
+
+async function executePull(userId: string): Promise<void> {
+  const { setHasPulled, setIsInitialPulling, setLastSyncedAt } = useSyncStore.getState()
+
+  // Full-screen overlay only when local DB looks empty (typical first mobile open)
+  const localPlanCount = await db.plans.count()
+  const showOverlay = localPlanCount === 0
+  if (showOverlay) setIsInitialPulling(true)
 
   try {
     // ── FETCH FIRST — local data is untouched until all fetches succeed ──
@@ -47,21 +74,28 @@ export async function pullRemoteData(userId: string): Promise<void> {
       { data: nutrition,    error: nutrErr },
       { data: supps,        error: suppsErr },
       { data: meta,         error: metaErr },
-    ] = await Promise.all([
-      supabase.from('gym_sets').select('*').eq('user_id', userId),
-      supabase.from('plans').select('*').eq('user_id', userId),
-      supabase.from('body_measurements').select('*').eq('user_id', userId),
-      supabase.from('daily_nutrition').select('*').eq('user_id', userId),
-      supabase.from('supplement_logs').select('*').eq('user_id', userId),
-      supabase.from('exercise_meta').select('*').eq('user_id', userId),
-    ])
+    ] = await withTimeout(
+      Promise.all([
+        supabase.from('gym_sets').select('*').eq('user_id', userId),
+        supabase.from('plans').select('*').eq('user_id', userId),
+        supabase.from('body_measurements').select('*').eq('user_id', userId),
+        supabase.from('daily_nutrition').select('*').eq('user_id', userId),
+        supabase.from('supplement_logs').select('*').eq('user_id', userId),
+        supabase.from('exercise_meta').select('*').eq('user_id', userId),
+      ]),
+      PULL_TIMEOUT_MS,
+      'pullRemoteData fetch',
+    )
 
     if (setsErr || plansErr || measErr || nutrErr || suppsErr || metaErr) {
       console.error('[sync] pullRemoteData: fetch failed — local data preserved', { setsErr, plansErr, measErr, nutrErr, suppsErr, metaErr })
-      setHasPulled(false) // Allow retry
-      setIsInitialPulling(false)
       throw new Error('One or more tables failed to fetch')
     }
+
+    console.log('[sync] pullRemoteData: fetched', {
+      plans: plans?.length ?? 0,
+      sets: sets?.length ?? 0,
+    })
 
     // Fetch plan_exercises only if we have plans (avoids empty .in() query)
     let exs: Record<string, unknown>[] | null = null
@@ -71,8 +105,6 @@ export async function pullRemoteData(userId: string): Promise<void> {
         .from('plan_exercises').select('*').in('plan_id', planIds)
       if (exErr) {
         console.error('[sync] pullRemoteData: plan_exercises fetch failed — local data preserved', exErr)
-        setHasPulled(false)
-        setIsInitialPulling(false)
         throw new Error('plan_exercises fetch failed')
       }
       exs = exData
@@ -189,13 +221,14 @@ export async function pullRemoteData(userId: string): Promise<void> {
       }
     )
 
+    setHasPulled(true)
     setLastSyncedAt(new Date().toISOString())
     console.log('[sync] pullRemoteData complete for', userId)
   } catch (err) {
     // Network error, timeout, etc. — local data still intact
     console.error('[sync] pullRemoteData: unexpected error — local data preserved', err)
-    setHasPulled(false) // Allow retry on failure
-    throw err // Re-throw for manual sync button to catch
+    setHasPulled(false)
+    throw err
   } finally {
     setIsInitialPulling(false)
   }

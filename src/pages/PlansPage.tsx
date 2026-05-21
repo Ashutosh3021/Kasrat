@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, ChevronRight, Trash2 } from 'lucide-react'
 import TopBar from '../components/TopBar'
@@ -7,6 +7,7 @@ import { db, type Plan } from '../db/database'
 import { useUIStore } from '../store/uiStore'
 import NewPlanDialog from '../overlays/NewPlanDialog'
 import { deletePlan as deletePlanSync } from '../supabase/writeSync'
+import { useOnSyncComplete } from '../hooks/useOnSyncComplete'
 
 interface ConfirmState {
   type: 'plan'
@@ -19,12 +20,14 @@ export default function PlansPage() {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const { openNewPlan, newPlanOpen } = useUIStore()
 
-  async function loadPlans() {
+  const loadPlans = useCallback(async () => {
     const p = await db.plans.orderBy('sequence').toArray()
+    console.log('[Plans] loaded', p.length, 'plan(s)')
     setPlans(p)
-  }
+  }, [])
 
-  useEffect(() => { loadPlans() }, [])
+  useEffect(() => { loadPlans() }, [loadPlans])
+  useOnSyncComplete(loadPlans)
 
   async function deletePlan(plan: Plan) {
     await deletePlanSync(plan.id!)
