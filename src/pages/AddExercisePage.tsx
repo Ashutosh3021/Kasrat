@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react'
 import { db, type ExercisePreset } from '../db/database'
 import { MUSCLE_GROUPS, type MuscleGroup } from '../data/exercisePresets'
 import { supabase } from '../supabase/client'
+import { upsertExerciseMeta } from '../supabase/writeSync'
 
 const EXERCISE_TYPES = ['Strength', 'Cardio'] as const
 
@@ -84,8 +85,8 @@ export default function AddExercisePage() {
   async function save() {
     if (!name.trim()) { setNameError('Exercise name is required'); return }
 
-    // Save to exercise_meta locally
-    await db.exercise_meta.put({
+    // Save to exercise_meta locally & sync
+    await upsertExerciseMeta({
       name: name.trim(),
       cues: cues.trim() || undefined
     })

@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Plus, CheckCircle, X, GripVertical,
-  Camera, FileText, Flag, Trash2, Info, ChevronDown,
-  TrendingUp, TrendingDown, Minus, Repeat,
+  Camera, FileText, Flag, Trash2, ChevronDown,
+  TrendingUp, TrendingDown, Minus, Info
 } from 'lucide-react'
 import { db, type PlanExercise, type GymSet } from '../db/database'
 import { useTimerStore } from '../store/timerStore'
@@ -12,7 +12,7 @@ import { useWorkoutStore } from '../store/workoutStore'
 import { useUIStore } from '../store/uiStore'
 import ExerciseModal from '../overlays/ExerciseModal'
 import { useDragToReorder } from '../hooks/useDragToReorder'
-import { addGymSet, addPlan, addPlanExercise, deletePlanExercise, updatePlanExercise, deleteGymSet } from '../supabase/writeSync'
+import { addGymSet, addPlan, addPlanExercise, deletePlanExercise, updatePlanExercise, deleteGymSet, upsertExerciseMeta } from '../supabase/writeSync'
 
 // ─── Brzycki 1RM ──────────────────────────────────────────────────────────────
 function brzycki(w: number, r: number): number | null {
@@ -46,6 +46,43 @@ function DiffBar({ prev, curWeight, curReps, unit }: { prev: PrevSet | null; cur
         </>
       ) : (
         <span className="text-[#A1A1A6] italic">First time — set a baseline!</span>
+      )}
+    </div>
+  )
+}
+
+// ─── Cues popover ─────────────────────────────────────────────────────────────
+function CuesPopover({ cues }: { cues: string }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    document.addEventListener('touchstart', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('touchstart', handler)
+    }
+  }, [open])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`p-1 transition-colors ${open ? 'text-[#93032E]' : 'text-[#A1A1A6] hover:text-[#93032E]'}`}
+        style={{ borderRadius: '2px' }}
+        aria-label="Coach's cues"
+      >
+        <Info size={16} strokeWidth={1.5} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-8 z-50 w-64 bg-[#1C1C1E] border border-[#2C2C2E] p-3 animate-fadeIn" style={{ borderRadius: '4px' }}>
+          <p className="text-[13px] text-[#A1A1A6] leading-relaxed">{cues}</p>
+        </div>
       )}
     </div>
   )
@@ -102,7 +139,7 @@ function SavePlanDialog({ exerciseNames, onSave, onSkip }: SavePlanDialogProps) 
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-// We use planId = -1 as the sentinel for a quick/empty workout in workoutStore.
+// planId = -1 is the sentinel for a quick/empty workout in workoutStore.
 const QUICK_PLAN_ID = -1
 
 export default function QuickWorkoutPage() {
@@ -112,13 +149,23 @@ export default function QuickWorkoutPage() {
   const workout = useWorkoutStore()
   const { openExerciseModal, exerciseModalOpen, closeExerciseModal } = useUIStore()
 
-  // Local exercise list (not backed by a real plan)
   const [exercises, setExercises] = useState<PlanExercise[]>([])
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const [showSavePlan, setShowSavePlan] = useState(false)
   const [prevSets, setPrevSets] = useState<Record<string, PrevSet | null>>({})
+  const [cuesMap, setCuesMap] = useState<Record<string, string>>({})
   const [expandedSet, setExpandedSet] = useState<Set<number>>(() => new Set([0]))
   const [inputMap, setInputMap] = useState<Record<string, ExInput>>({})
+
+  // Fix 4: Camera + coaching notes state
+  const [pendingImages, setPendingImages] = useState<Record<string, string>>({})
+  const [showNoteField, setShowNoteField] = useState<Record<string, boolean>>({})
+  const [coachingNoteInputs, setCoachingNoteInputs] = useState<Record<string, string>>({})
+  const [cameraForExercise, setCameraForExercise] = useState<string | null>(null)
+
+  // Fix 4: Refs (double-tap guard already existed, camera input new)
+  const isLogging = useRef(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function getInput(name: string): ExInput { return inputMap[name] ?? defaultInput() }
   function patchInput(name: string, patch: Partial<ExInput>) {
@@ -133,25 +180,43 @@ export default function QuickWorkoutPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Load prev sets whenever exercises change
+  // PERF-002 fix: batch all prev-set queries into a single Promise.all → one re-render
   useEffect(() => {
-    exercises.forEach(ex => {
-      db.gym_sets
-        .where('name').equals(ex.exercise)
-        .filter(s => !s.hidden && s.reps > 0)
-        .toArray()
-        .then(rows => {
+    if (exercises.length === 0) return
+    async function loadAll() {
+      const results = await Promise.all(
+        exercises.map(async ex => {
+          const [rows, meta] = await Promise.all([
+            db.gym_sets
+              .where('name').equals(ex.exercise)
+              .filter(s => !s.hidden && s.reps > 0)
+              .toArray(),
+            db.exercise_meta.get(ex.exercise),
+          ])
           const last = rows.sort((a, b) => b.created.localeCompare(a.created))[0]
-          setPrevSets(prev => ({ ...prev, [ex.exercise]: last ? { weight: last.weight, reps: last.reps } : null }))
+          return {
+            name: ex.exercise,
+            prev: last ? { weight: last.weight, reps: last.reps } : null,
+            cue: meta?.cues ?? '',
+          }
         })
-    })
+      )
+      const newPrevSets: Record<string, PrevSet | null> = {}
+      const newCuesMap: Record<string, string> = {}
+      for (const r of results) {
+        newPrevSets[r.name] = r.prev
+        newCuesMap[r.name] = r.cue
+      }
+      setPrevSets(newPrevSets)
+      setCuesMap(newCuesMap)
+    }
+    loadAll()
   }, [exercises])
 
   const loggedSets = workout.loggedSets
   const completedSet = new Set(workout.completedExercises)
 
-  // ── Add exercise from modal ───────────────────────────────────────────────
-  // We use a temporary planId = -1 in plan_exercises; clean up on finish/discard
+  // ── Add exercise from modal ────────────────────────────────────────────────
   async function handleExerciseAdded() {
     closeExerciseModal()
     const rows = await db.plan_exercises.where('planId').equals(QUICK_PLAN_ID).toArray()
@@ -161,9 +226,13 @@ export default function QuickWorkoutPage() {
     setExpandedSet(prev => { const n = new Set(prev); n.add(sorted.length - 1); return n })
   }
 
-  // ── Log a set ─────────────────────────────────────────────────────────────
-  const isLogging = useRef(false)
+  async function saveCoachingNote(exerciseName: string, noteText: string) {
+    await upsertExerciseMeta({ name: exerciseName, cues: noteText.trim() || undefined })
+    setCuesMap(prev => ({ ...prev, [exerciseName]: noteText.trim() }))
+    setShowNoteField(prev => ({ ...prev, [exerciseName]: false }))
+  }
 
+  // ── Log a set ──────────────────────────────────────────────────────────────
   async function logSet(ex: PlanExercise, exIdx: number) {
     if (isLogging.current) return  // SESSION-002: double-tap guard
     const inp = getInput(ex.exercise)
@@ -184,9 +253,21 @@ export default function QuickWorkoutPage() {
         sessionId: workout.sessionId ?? undefined, // SESSION-004: stamp sessionId
         rpe: inp.rpe !== '' ? parseFloat(inp.rpe) : undefined,
         rir: inp.rir !== '' ? parseFloat(inp.rir) : undefined,
+        // Fix 4: attach photo when present
+        notes: undefined,
+        image: pendingImages[ex.exercise] || undefined,
       }
-      await addGymSet(set)
-      workout.addLoggedSet(ex.exercise, { exercise: ex.exercise, weight: w, reps: r, rpe: set.rpe, rir: set.rir })
+      // Fix 4 (and Fix 1 parity): stamp the Dexie id on the logged set
+      const gymSetId = await addGymSet(set) as number
+      workout.addLoggedSet(ex.exercise, {
+        exercise: ex.exercise, weight: w, reps: r,
+        rpe: set.rpe, rir: set.rir,
+        id: gymSetId,
+      })
+
+      // Clear per-set image
+      setPendingImages(prev => { const n = { ...prev }; delete n[ex.exercise]; return n })
+
       if (settings.restTimers) startTimer(settings.timerDuration)
       const setsForEx = [...(loggedSets[ex.exercise] ?? []), { exercise: ex.exercise, weight: w, reps: r }]
       if (setsForEx.length >= ex.maxSets) workout.markExerciseDone(ex.exercise)
@@ -195,16 +276,14 @@ export default function QuickWorkoutPage() {
     }
   }
 
-  // ── Finish ────────────────────────────────────────────────────────────────
+  // ── Finish ──────────────────────────────────────────────────────────────────
   async function handleFinish() {
     setShowSavePlan(true)
   }
 
   async function finishAndSave(planTitle: string) {
-    // Create a real plan with the exercises
     const count = await db.plans.count()
     const planId = await addPlan({ sequence: count, title: planTitle, exercises: exercises.map(e => e.exercise).join(','), days: '' })
-    // Move the temp plan_exercises to the real plan
     await Promise.all(exercises.map((ex, i) =>
       addPlanExercise({ planId: planId as number, exercise: ex.exercise, enabled: true, maxSets: ex.maxSets, sortOrder: i })
     ))
@@ -238,13 +317,13 @@ export default function QuickWorkoutPage() {
     await db.plan_exercises.where('planId').equals(QUICK_PLAN_ID).delete()
   }
 
-  // ── Delete exercise from session ──────────────────────────────────────────
+  // ── Delete exercise from session ───────────────────────────────────────────
   async function deleteExercise(ex: PlanExercise) {
     await deletePlanExercise(ex.id!)
     setExercises(prev => prev.filter(e => e.id !== ex.id))
   }
 
-  // ── Drag to reorder ───────────────────────────────────────────────────────
+  // ── Drag to reorder ────────────────────────────────────────────────────────
   async function handleReorder(newItems: PlanExercise[]) {
     setExercises(newItems)
     await Promise.all(newItems.map((ex, i) => updatePlanExercise(ex.id!, { sortOrder: i })))
@@ -254,9 +333,28 @@ export default function QuickWorkoutPage() {
     setExpandedSet(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n })
   }
 
+  // Fix 4: Camera handlers
+  function handleCameraClick(exerciseName: string) {
+    setCameraForExercise(exerciseName)
+    fileInputRef.current?.click()
+  }
+
+  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !cameraForExercise) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string
+      setPendingImages(prev => ({ ...prev, [cameraForExercise]: dataUrl }))
+      setCameraForExercise(null)
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
   const { getHandleProps, getItemProps } = useDragToReorder(exercises, handleReorder)
 
-  // ─── Render exercise card ─────────────────────────────────────────────────
+  // ─── Render exercise card ──────────────────────────────────────────────────
   function renderExerciseRow(ex: PlanExercise, i: number) {
     const done = completedSet.has(ex.exercise)
     const sets = loggedSets[ex.exercise] ?? []
@@ -286,6 +384,7 @@ export default function QuickWorkoutPage() {
           <div className="flex-1 min-w-0 flex items-center gap-2">
             {done && <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E] shrink-0" fill="#93032E" />}
             <h2 className={`text-[17px] font-medium text-white truncate ${done ? 'line-through' : ''}`}>{ex.exercise}</h2>
+            {cuesMap[ex.exercise] && <CuesPopover cues={cuesMap[ex.exercise]} />}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={e => { e.stopPropagation(); deleteExercise(ex) }} className="text-[#A1A1A6] hover:text-[#FF453A] p-1">
@@ -385,6 +484,49 @@ export default function QuickWorkoutPage() {
                 </div>
               )}
 
+              {/* Coaching notes textarea (toggled by the FileText button below) */}
+              {showNoteField[ex.exercise] && (
+                <div className="flex flex-col gap-2 w-full mt-1">
+                  <textarea
+                    value={coachingNoteInputs[ex.exercise] ?? ''}
+                    onChange={e => setCoachingNoteInputs(prev => ({ ...prev, [ex.exercise]: e.target.value }))}
+                    placeholder="e.g., tucking elbows gives more impact on upper chest"
+                    rows={2}
+                    className="w-full bg-[#2C2C2E] border border-[#2C2C2E] px-3 py-2 text-[13px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none resize-none"
+                    style={{ borderRadius: '2px' }}
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => setShowNoteField(prev => ({ ...prev, [ex.exercise]: false }))}
+                      className="px-3 py-1.5 text-[12px] bg-[#2C2C2E] text-white hover:bg-opacity-80 transition-all font-medium"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => saveCoachingNote(ex.exercise, coachingNoteInputs[ex.exercise] ?? '')}
+                      className="px-3 py-1.5 text-[12px] bg-[#93032E] text-white hover:bg-opacity-80 transition-all font-medium"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Fix 4: Camera image indicator */}
+              {pendingImages[ex.exercise] && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-medium text-[#93032E]">📷 Photo attached</span>
+                  <button
+                    onClick={() => setPendingImages(prev => { const n = { ...prev }; delete n[ex.exercise]; return n })}
+                    className="text-[11px] text-[#A1A1A6] hover:text-[#FF453A]"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <button onClick={() => logSet(ex, i)}
                   className="flex-1 bg-[#93032E] text-white font-medium text-[15px] py-2.5 flex items-center justify-center gap-2"
@@ -392,10 +534,28 @@ export default function QuickWorkoutPage() {
                   <Plus size={18} strokeWidth={1.5} />
                   Log Set
                 </button>
-                <button className="w-10 h-10 bg-[#2C2C2E] flex items-center justify-center text-white" style={{ borderRadius: '2px' }}>
+                {/* Fix 4: Camera button — opens device camera/file picker */}
+                <button
+                  onClick={() => handleCameraClick(ex.exercise)}
+                  className={`w-10 h-10 flex items-center justify-center transition-colors ${pendingImages[ex.exercise] ? 'bg-[#93032E]' : 'bg-[#2C2C2E]'} text-white`}
+                  style={{ borderRadius: '2px' }}
+                  title={pendingImages[ex.exercise] ? 'Photo selected — tap to change' : 'Attach photo'}
+                >
                   <Camera size={18} strokeWidth={1.5} />
                 </button>
-                <button className="w-10 h-10 bg-[#2C2C2E] flex items-center justify-center text-white" style={{ borderRadius: '2px' }}>
+                {/* FileText button — toggles coaching note editor */}
+                <button
+                  onClick={() => {
+                    const isOpening = !showNoteField[ex.exercise]
+                    setShowNoteField(prev => ({ ...prev, [ex.exercise]: isOpening }))
+                    if (isOpening) {
+                      setCoachingNoteInputs(prev => ({ ...prev, [ex.exercise]: cuesMap[ex.exercise] ?? '' }))
+                    }
+                  }}
+                  className={`w-10 h-10 flex items-center justify-center transition-colors ${showNoteField[ex.exercise] ? 'bg-[#93032E]' : 'bg-[#2C2C2E]'} text-white`}
+                  style={{ borderRadius: '2px' }}
+                  title="Toggle coaching notes"
+                >
                   <FileText size={18} strokeWidth={1.5} />
                 </button>
               </div>
@@ -459,7 +619,7 @@ export default function QuickWorkoutPage() {
           title={!canFinish ? 'Log at least one set to finish' : undefined}
         >
           <Flag size={18} strokeWidth={1.5} />
-          Finish & Save
+          Finish &amp; Save
         </button>
 
         {/* Discard */}
@@ -488,6 +648,17 @@ export default function QuickWorkoutPage() {
           </div>
         )}
       </main>
+
+      {/* Fix 4: Hidden camera file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={handleFileSelected}
+        aria-hidden="true"
+      />
 
       {exerciseModalOpen && (
         <ExerciseModal planId={QUICK_PLAN_ID} onClose={handleExerciseAdded} />

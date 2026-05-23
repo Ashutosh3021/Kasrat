@@ -7,6 +7,8 @@ export interface LoggedSet {
   reps: number
   rpe?: number
   rir?: number
+  /** Dexie gym_set id — stored on log so inline editing can target the exact row (Fix 1) */
+  id?: number
 }
 
 interface WorkoutState {
@@ -15,14 +17,18 @@ interface WorkoutState {
   completedExercises: string[]
   loggedSets: Record<string, LoggedSet[]>
   currentExerciseIdx: number
-  startedAt: string | null       // ISO timestamp
-  sessionId: string | null       // UUID — unique per quick-workout session
+  startedAt: string | null
+  sessionId: string | null
 
   startSession: (planId: number, planTitle: string) => void
   finishSession: () => void
   markExerciseDone: (name: string) => void
   addLoggedSet: (exercise: string, set: LoggedSet) => void
   setCurrentIdx: (idx: number) => void
+  /** Fix 1: replace a logged set by index (for inline weight/reps editing) */
+  updateLoggedSet: (exercise: string, index: number, set: LoggedSet) => void
+  /** Fix 1: remove a logged set by index (for inline delete) */
+  removeLoggedSet: (exercise: string, index: number) => void
 }
 
 export const useWorkoutStore = create<WorkoutState>()(
@@ -44,8 +50,6 @@ export const useWorkoutStore = create<WorkoutState>()(
           loggedSets: {},
           currentExerciseIdx: 0,
           startedAt: new Date().toISOString(),
-          // Generate a unique sessionId for quick workouts (planId = -1)
-          // For plan-based workouts it's unused but harmless
           sessionId: crypto.randomUUID(),
         }),
 
@@ -76,6 +80,20 @@ export const useWorkoutStore = create<WorkoutState>()(
         })),
 
       setCurrentIdx: (idx) => set({ currentExerciseIdx: idx }),
+
+      updateLoggedSet: (exercise, index, updatedSet) =>
+        set(s => {
+          const existing = s.loggedSets[exercise] ?? []
+          const updated = existing.map((ls, i) => (i === index ? updatedSet : ls))
+          return { loggedSets: { ...s.loggedSets, [exercise]: updated } }
+        }),
+
+      removeLoggedSet: (exercise, index) =>
+        set(s => {
+          const existing = s.loggedSets[exercise] ?? []
+          const updated = existing.filter((_, i) => i !== index)
+          return { loggedSets: { ...s.loggedSets, [exercise]: updated } }
+        }),
     }),
     {
       name: 'kasrat-active-workout',

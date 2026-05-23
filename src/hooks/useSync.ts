@@ -41,6 +41,7 @@ const QUEUE_TABLE_ORDER = [
   'body_measurements',
   'daily_nutrition',
   'supplement_logs',
+  'exercise_meta',
 ] as const
 
 const PERMANENT_SYNC_ERROR_CODES = new Set(['42501', '22P02', 'PGRST205', '42P01'])
@@ -97,6 +98,7 @@ async function executePull(userId: string): Promise<void> {
       { data: measurements, error: measErr },
       { data: nutrition,    error: nutrErr },
       { data: supps,        error: suppsErr },
+      { data: meta,         error: metaErr },
     ] = await withTimeout(
       Promise.all([
         supabase.from('gym_sets').select('*').eq('user_id', userId),
@@ -104,13 +106,14 @@ async function executePull(userId: string): Promise<void> {
         supabase.from('body_measurements').select('*').eq('user_id', userId),
         supabase.from('daily_nutrition').select('*').eq('user_id', userId),
         supabase.from('supplement_logs').select('*').eq('user_id', userId),
+        supabase.from('exercise_meta').select('*').eq('user_id', userId),
       ]),
       PULL_TIMEOUT_MS,
       'pullRemoteData fetch',
     )
 
-    if (setsErr || plansErr || measErr || nutrErr || suppsErr) {
-      console.error('[sync] pullRemoteData: fetch failed — local data preserved', { setsErr, plansErr, measErr, nutrErr, suppsErr })
+    if (setsErr || plansErr || measErr || nutrErr || suppsErr || metaErr) {
+      console.error('[sync] pullRemoteData: fetch failed — local data preserved', { setsErr, plansErr, measErr, nutrErr, suppsErr, metaErr })
       throw new Error('One or more tables failed to fetch')
     }
 
@@ -133,9 +136,8 @@ async function executePull(userId: string): Promise<void> {
     }
 
     // ── REPLACE ATOMICALLY — only runs if ALL fetches succeeded ──────────
-    // exercise_meta is local-only (no Supabase table); do not clear it on pull
     await db.transaction('rw',
-      [db.gym_sets, db.plans, db.plan_exercises, db.body_measurements, db.daily_nutrition, db.supplement_logs],
+      [db.gym_sets, db.plans, db.plan_exercises, db.body_measurements, db.daily_nutrition, db.supplement_logs, db.exercise_meta],
       async () => {
         // gym_sets
         await db.gym_sets.clear()
@@ -232,6 +234,15 @@ async function executePull(userId: string): Promise<void> {
             taken: r.taken,
           })))
         }
+
+        // exercise_meta
+        await db.exercise_meta.clear()
+        if (meta?.length) {
+          await db.exercise_meta.bulkPut(meta.map(r => ({
+            name: r.name,
+            cues: r.cues ?? '',
+          })))
+        }
       }
     )
 
@@ -316,6 +327,7 @@ export async function processSyncQueue(userId: string): Promise<void> {
           // Table-specific primary key lookup (not all tables use 'id')
           const PK: Record<string, string> = {
             daily_nutrition: 'date',
+            exercise_meta: 'name',
           }
           const pkField = PK[item.tableName] ?? 'id'
           const pkValue = (item.payload as Record<string, unknown>)[pkField]

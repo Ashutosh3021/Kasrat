@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { X, Search, Plus, Check, ChevronDown, ChevronRight, Minus } from 'lucide-react'
 import { db, type ExercisePreset } from '../db/database'
 import { MUSCLE_GROUPS, type MuscleGroup } from '../data/exercisePresets'
-import { addPlanExercise, updatePlanExercise } from '../supabase/writeSync'
+import { addPlanExercise, updatePlanExercise, upsertExerciseMeta } from '../supabase/writeSync'
 import { supabase } from '../supabase/client'
 
 const EQUIPMENT_OPTIONS = ['Gym', 'Barbell only', 'Dumbbell only', 'Bodyweight', 'Cables', 'Machine', 'Kettlebell', 'Other'] as const
@@ -52,7 +52,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
     await addPlanExercise({ planId, exercise: name, enabled: true, maxSets: sets })
     const existing = await db.exercise_meta.get(name)
     if (!existing) {
-      await db.exercise_meta.put({ name })
+      await upsertExerciseMeta({ name })
     }
     setAdded(prev => new Set([...prev, name]))
   }
@@ -69,7 +69,7 @@ export default function ExerciseModal({ planId, onClose }: Props) {
     const trimmed = createName.trim()
     if (!trimmed) { setCreateNameError('Name is required'); return }
 
-    await db.exercise_meta.put({ name: trimmed })
+    await upsertExerciseMeta({ name: trimmed })
 
     const existing = await db.gym_sets.where('name').equals(trimmed).first()
     if (!existing) {

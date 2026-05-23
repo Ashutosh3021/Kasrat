@@ -11,7 +11,7 @@
  */
 
 import { supabase } from './client'
-import { db, type Plan, type PlanExercise, type GymSet, type BodyMeasurement, type DailyNutrition, type SupplementLog } from '../db/database'
+import { db, type Plan, type PlanExercise, type GymSet, type BodyMeasurement, type DailyNutrition, type SupplementLog, type ExerciseMeta } from '../db/database'
 import { enqueue, bodyWeightForSupabase } from '../hooks/useSync'
 
 // ─── Get current user id (null if not logged in) ──────────────────────────────
@@ -339,5 +339,16 @@ export async function updateSupplementLog(id: number, taken: boolean): Promise<v
         taken,
       }, userId)
     }
+  }
+}
+
+export async function upsertExerciseMeta(meta: ExerciseMeta): Promise<void> {
+  await db.exercise_meta.put(meta)
+  const userId = await getUserId()
+  if (userId) {
+    await push('exercise_meta', 'upsert', {
+      name: meta.name,
+      cues: meta.cues ?? null,
+    }, userId)
   }
 }

@@ -1,15 +1,21 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Plus, CheckCircle, MoreHorizontal, X, GripVertical,
-  Camera, FileText, Flag, Trash2, Info, ChevronDown, TrendingUp, TrendingDown, Minus, Repeat,
+  ArrowLeft, Plus, CheckCircle, X, GripVertical,
+  Camera, FileText, Flag, Trash2, Info, ChevronDown,
+  TrendingUp, TrendingDown, Minus, Repeat, AlertTriangle,
 } from 'lucide-react'
 import { db, type Plan, type PlanExercise, type GymSet } from '../db/database'
 import { useTimerStore } from '../store/timerStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { useWorkoutStore } from '../store/workoutStore'
+import { useUIStore } from '../store/uiStore'
 import { useDragToReorder } from '../hooks/useDragToReorder'
-import { addGymSet, deleteGymSet, updatePlanExercise } from '../supabase/writeSync'
+import {
+  addGymSet, deleteGymSet, updateGymSet,
+  updatePlanExercise, upsertExerciseMeta,
+} from '../supabase/writeSync'
+import ExerciseModal from '../overlays/ExerciseModal'
 
 // ─── Brzycki 1RM ─────────────────────────────────────────────────────────────
 function brzycki(w: number, r: number): number | null {
@@ -91,6 +97,19 @@ function CuesPopover({ cues }: { cues: string }) {
   )
 }
 
+// ─── Local types ──────────────────────────────────────────────────────────────
+interface EditingSetKey {
+  exercise: string
+  setIdx: number
+  dbId: number
+}
+
+interface IncompleteExercise {
+  name: string
+  logged: number
+  max: number
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function StartPlanPage() {
   const { id } = useParams<{ id: string }>()
@@ -98,6 +117,7 @@ export default function StartPlanPage() {
   const { settings } = useSettingsStore()
   const { start: startTimer } = useTimerStore()
   const workout = useWorkoutStore()
+  const { openExerciseModal, exerciseModalOpen, closeExerciseModal } = useUIStore()
 
   const [plan, setPlan] = useState<Plan | null>(null)
   const [exercises, setExercises] = useState<PlanExercise[]>([])
@@ -114,6 +134,30 @@ export default function StartPlanPage() {
   function patchInput(name: string, patch: Partial<ExInput>) {
     setInputMap(prev => ({ ...prev, [name]: { ...(prev[name] ?? defaultInput()), ...patch } }))
   }
+
+  // ── Fix 1: Inline edit state ─────────────────────────────────────────────────
+  const [editingSetKey, setEditingSetKey] = useState<EditingSetKey | null>(null)
+  const [editWeight, setEditWeight] = useState('')
+  const [editReps, setEditReps] = useState('')
+
+  // ── Fix 2: Remove confirmation ────────────────────────────────────────────────
+  const [removeConfirmEx, setRemoveConfirmEx] = useState<{ ex: PlanExercise; idx: number } | null>(null)
+
+  // ── Fix 3: Skip-sets warning ──────────────────────────────────────────────────
+  const [showSkipWarning, setShowSkipWarning] = useState(false)
+  const [incompleteExercises, setIncompleteExercises] = useState<IncompleteExercise[]>([])
+
+  // ── Fix 4: Camera + coaching notes state ───────────────────────────────────────────────
+  const [pendingImages, setPendingImages] = useState<Record<string, string>>({})
+  const [showNoteField, setShowNoteField] = useState<Record<string, boolean>>({})
+  const [coachingNoteInputs, setCoachingNoteInputs] = useState<Record<string, string>>({})
+  const [cameraForExercise, setCameraForExercise] = useState<string | null>(null)
+
+  // ── Fix 4: Refs ───────────────────────────────────────────────────────────────
+  /** Fix 4: double-tap guard — prevents duplicate set logging */
+  const isLogging = useRef(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const exerciseScrollRef = useRef<HTMLDivElement>(null)
 
   const planId = Number(id)
 
@@ -194,39 +238,103 @@ export default function StartPlanPage() {
     return end
   }
 
+  async function saveCoachingNote(exerciseName: string, noteText: string) {
+    await upsertExerciseMeta({ name: exerciseName, cues: noteText.trim() || undefined })
+    setCuesMap(prev => ({ ...prev, [exerciseName]: noteText.trim() }))
+    setShowNoteField(prev => ({ ...prev, [exerciseName]: false }))
+  }
+
+  // ── Fix 4: Double-tap guard + notes + image stamping ─────────────────────────
   async function logSet(ex: PlanExercise, exIdx: number) {
-    const inp = getInput(ex.exercise)
-    const w = parseFloat(inp.weight)
-    const r = parseInt(inp.reps)
-    // SESSION-001: validate parsed numbers, not string truthiness
-    if (isNaN(w) || w <= 0 || isNaN(r) || r <= 0) return
-    const set: Omit<GymSet, 'id'> = {
-      name: ex.exercise,
-      weight: w,
-      reps: r,
-      unit: settings.strengthUnit,
-      created: new Date().toISOString(),
-      hidden: false,
-      bodyWeight: false,
-      duration: 0,
-      distance: 0,
-      cardio: false,
-      restMs: settings.timerDuration * 1000,
-      planId,
-      rpe: inp.rpe !== '' ? parseFloat(inp.rpe) : undefined,
-      rir: inp.rir !== '' ? parseFloat(inp.rir) : undefined,
+    // Fix 4: double-tap guard
+    if (isLogging.current) return
+    isLogging.current = true
+    try {
+      const inp = getInput(ex.exercise)
+      const w = parseFloat(inp.weight)
+      const r = parseInt(inp.reps)
+      // SESSION-001: validate parsed numbers, not string truthiness
+      if (isNaN(w) || w <= 0 || isNaN(r) || r <= 0) return
+
+      const set: Omit<GymSet, 'id'> = {
+        name: ex.exercise,
+        weight: w,
+        reps: r,
+        unit: settings.strengthUnit,
+        created: new Date().toISOString(),
+        hidden: false,
+        bodyWeight: false,
+        duration: 0,
+        distance: 0,
+        cardio: false,
+        restMs: settings.timerDuration * 1000,
+        planId,
+        rpe: inp.rpe !== '' ? parseFloat(inp.rpe) : undefined,
+        rir: inp.rir !== '' ? parseFloat(inp.rir) : undefined,
+        // Fix 4: include captured image when present
+        notes: undefined,
+        image: pendingImages[ex.exercise] || undefined,
+      }
+
+      // Fix 1: stamp the Dexie id so logged sets can be inline-edited later
+      const gymSetId = await addGymSet(set) as number
+      workout.addLoggedSet(ex.exercise, {
+        exercise: ex.exercise, weight: w, reps: r,
+        rpe: set.rpe, rir: set.rir,
+        id: gymSetId,
+      })
+      patchInput(ex.exercise, { reps: '', rpe: '', rir: '' })
+
+      // Clear per-set image after logging
+      setPendingImages(prev => { const n = { ...prev }; delete n[ex.exercise]; return n })
+
+      const inGroup = isInGroup(exIdx)
+      const atGroupEnd = !inGroup || exIdx === groupEnd(exIdx)
+      if (settings.restTimers && atGroupEnd) startTimer(settings.timerDuration)
+
+      const setsForEx = [...(loggedSets[ex.exercise] ?? []), { exercise: ex.exercise, weight: w, reps: r }]
+      if (setsForEx.length >= ex.maxSets) {
+        workout.markExerciseDone(ex.exercise)
+      }
+    } finally {
+      isLogging.current = false
     }
-    const id = await addGymSet(set)
-    workout.addLoggedSet(ex.exercise, { exercise: ex.exercise, weight: w, reps: r, rpe: set.rpe, rir: set.rir })
-    patchInput(ex.exercise, { reps: '', rpe: '', rir: '' })
+  }
 
-    const inGroup = isInGroup(exIdx)
-    const atGroupEnd = !inGroup || exIdx === groupEnd(exIdx)
-    if (settings.restTimers && atGroupEnd) startTimer(settings.timerDuration)
+  // ── Fix 3: Finish with skip-sets check ────────────────────────────────────────
+  function doFinish() {
+    workout.finishSession()
+    navigate('/', { replace: true })
+  }
 
-    const setsForEx = [...(loggedSets[ex.exercise] ?? []), { exercise: ex.exercise, weight: w, reps: r }]
-    if (setsForEx.length >= ex.maxSets) {
-      workout.markExerciseDone(ex.exercise)
+  function handleFinishWithCheck() {
+    const incomplete = exercises
+      .filter(ex => (workout.loggedSets[ex.exercise] ?? []).length < ex.maxSets)
+      .map(ex => ({
+        name: ex.exercise,
+        logged: (workout.loggedSets[ex.exercise] ?? []).length,
+        max: ex.maxSets,
+      }))
+
+    if (incomplete.length > 0) {
+      setIncompleteExercises(incomplete)
+      setShowSkipWarning(true)
+    } else {
+      doFinish()
+    }
+  }
+
+  function handleLogThem() {
+    setShowSkipWarning(false)
+    const firstIncompleteIdx = exercises.findIndex(
+      ex => (workout.loggedSets[ex.exercise] ?? []).length < ex.maxSets
+    )
+    if (firstIncompleteIdx >= 0) {
+      workout.setCurrentIdx(firstIncompleteIdx)
+      setExpandedSet(prev => { const n = new Set(prev); n.add(firstIncompleteIdx); return n })
+      // Scroll the exercise list to the first incomplete item
+      const el = exerciseScrollRef.current?.querySelector(`[data-ex-idx="${firstIncompleteIdx}"]`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }
 
@@ -238,13 +346,9 @@ export default function StartPlanPage() {
       workout.setCurrentIdx(nextIdx)
       setExpandedSet(prev => { const n = new Set(prev); n.add(nextIdx); return n })
     } else {
-      handleFinish()
+      // Fix 3: use the skip-check version when finishing via "Next/Finish Workout"
+      handleFinishWithCheck()
     }
-  }
-
-  function handleFinish() {
-    workout.finishSession()
-    navigate('/', { replace: true })
   }
 
   async function handleDiscard() {
@@ -270,34 +374,109 @@ export default function StartPlanPage() {
     await Promise.all(newItems.map((ex, i) => updatePlanExercise(ex.id!, { sortOrder: i })))
   }
 
-  async function deleteExercise(ex: PlanExercise, idx: number) {
+  // ── Fix 2: Remove with confirmation ──────────────────────────────────────────
+  async function actualDeleteExercise(ex: PlanExercise) {
     await updatePlanExercise(ex.id!, { enabled: false })
     // Reload first so we know the new array length
     await loadExercises()
     // EDGE-002: clamp currentIdx to the new valid range after reload
-    // We read the updated exercises from Dexie directly to avoid stale closure
     const updated = await db.plan_exercises
       .where('planId').equals(planId)
       .filter(e => e.enabled)
       .toArray()
     const newMax = updated.length - 1
     if (newMax < 0) {
-      // No exercises left — finish the session
       workout.finishSession()
       navigate('/', { replace: true })
       return
     }
     const safeIdx = Math.min(currentIdx, newMax)
     workout.setCurrentIdx(safeIdx)
+    setRemoveConfirmEx(null)
   }
 
+  // ── Fix 2: Add exercise via ExerciseModal ─────────────────────────────────────
+  async function handleExerciseAdded() {
+    closeExerciseModal()
+    if (!id) return
+    // Reload from Dexie — ExerciseModal already wrote the new plan_exercise
+    const exs = await db.plan_exercises
+      .where('planId').equals(planId)
+      .filter(e => e.enabled)
+      .toArray()
+    const sorted = exs.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    setExercises(sorted)
+    // Auto-expand the newly added exercise
+    if (sorted.length > 0) {
+      setExpandedSet(prev => { const n = new Set(prev); n.add(sorted.length - 1); return n })
+    }
+  }
+
+  // Clear any active inline edit when toggling expand/collapse
   function toggleExpanded(idx: number) {
+    setEditingSetKey(null)
     setExpandedSet(prev => {
       const next = new Set(prev)
       if (next.has(idx)) next.delete(idx)
       else next.add(idx)
       return next
     })
+  }
+
+  // ── Fix 1: Inline edit handlers ───────────────────────────────────────────────
+  function startInlineEdit(exercise: string, setIdx: number, s: { weight: number; reps: number; id?: number }) {
+    if (!s.id) return // cannot edit without a DB id (old sessions without ids)
+    setEditingSetKey({ exercise, setIdx, dbId: s.id })
+    setEditWeight(String(s.weight))
+    setEditReps(String(s.reps))
+  }
+
+  async function handleSaveInlineEdit() {
+    if (!editingSetKey) return
+    const w = parseFloat(editWeight)
+    const r = parseInt(editReps)
+    if (isNaN(w) || w <= 0 || isNaN(r) || r <= 0) return
+    const { exercise, setIdx, dbId } = editingSetKey
+    try {
+      await updateGymSet(dbId, { weight: w, reps: r })
+      const current = workout.loggedSets[exercise]?.[setIdx]
+      if (current) {
+        workout.updateLoggedSet(exercise, setIdx, { ...current, weight: w, reps: r })
+      }
+    } finally {
+      setEditingSetKey(null)
+    }
+  }
+
+  async function handleDeleteInlineSet() {
+    if (!editingSetKey) return
+    const { exercise, setIdx, dbId } = editingSetKey
+    try {
+      await deleteGymSet(dbId)
+      workout.removeLoggedSet(exercise, setIdx)
+    } finally {
+      setEditingSetKey(null)
+    }
+  }
+
+  // ── Fix 4: Camera handlers ────────────────────────────────────────────────────
+  function handleCameraClick(exerciseName: string) {
+    setCameraForExercise(exerciseName)
+    fileInputRef.current?.click()
+  }
+
+  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !cameraForExercise) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string
+      setPendingImages(prev => ({ ...prev, [cameraForExercise]: dataUrl }))
+      setCameraForExercise(null)
+    }
+    reader.readAsDataURL(file)
+    // Reset so the same file can be re-selected if needed
+    e.target.value = ''
   }
 
   const { getHandleProps, getItemProps } = useDragToReorder(exercises, handleReorder)
@@ -310,6 +489,7 @@ export default function StartPlanPage() {
       ? 'Next Exercise'
       : 'Finish Workout'
 
+  // ─────────────────────────────────────────────────────────────────────────────
   function renderExerciseRow(ex: PlanExercise, i: number) {
     const done = completedSet.has(ex.exercise)
     const isCurrent = i === currentIdx
@@ -321,12 +501,13 @@ export default function StartPlanPage() {
     const inp = getInput(ex.exercise)
     const orm = brzycki(parseFloat(inp.weight), parseInt(inp.reps))
 
-    // Current exercise highlight
     const currentBorder = isCurrent ? 'border-[#93032E]' : 'border-[#2C2C2E]'
     const warmupBorder = st === 'warmup' ? 'border-l-[3px] border-amber-400' : ''
+
     return (
       <article
         key={ex.id}
+        data-ex-idx={i}
         className={`bg-[#1C1C1E] p-3 flex flex-col gap-3 relative border ${currentBorder} ${warmupBorder || groupBorderClass(st)} ${done && !isCurrent ? 'opacity-50' : ''}`}
         {...getItemProps(i)}
         style={{ borderRadius: '4px' }}
@@ -336,17 +517,12 @@ export default function StartPlanPage() {
           <span className="absolute top-3 right-3 text-[11px] font-medium text-amber-400 bg-amber-400/10 px-2 py-0.5" style={{ borderRadius: '2px' }}>Warm-up</span>
         )}
 
-        {/* Header row - clickable to expand/collapse */}
-        <div 
+        {/* Header row — clickable to expand/collapse */}
+        <div
           className="flex items-center gap-3 cursor-pointer"
           onClick={(e) => {
-            // Check if click is on a button or drag handle
             const target = e.target as HTMLElement
-            const isButton = target.closest('button')
-            const isDragHandle = target.closest('[data-drag-handle]')
-            
-            // Only toggle if not clicking a button or drag handle
-            if (!isButton && !isDragHandle) {
+            if (!target.closest('button') && !target.closest('[data-drag-handle]')) {
               toggleExpanded(i)
             }
           }}
@@ -354,7 +530,7 @@ export default function StartPlanPage() {
           <span {...getHandleProps(i)} data-drag-handle>
             <GripVertical size={20} strokeWidth={1.5} className="text-[#A1A1A6] shrink-0" />
           </span>
-          
+
           <div className="flex-1 min-w-0 flex items-center gap-2">
             {done && <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E] shrink-0" fill="#93032E" />}
             <h2 className={`text-[17px] font-medium text-white truncate ${done ? 'line-through' : ''}`}>
@@ -371,10 +547,11 @@ export default function StartPlanPage() {
             >
               <Repeat size={18} strokeWidth={1.5} />
             </button>
+            {/* Fix 2: X now triggers confirmation instead of direct delete */}
             <button
-              onClick={(e) => { e.stopPropagation(); deleteExercise(ex, i) }}
+              onClick={(e) => { e.stopPropagation(); setRemoveConfirmEx({ ex, idx: i }) }}
               className="text-[#A1A1A6] hover:text-[#FF453A] p-1"
-              aria-label="Delete exercise"
+              aria-label="Remove exercise from session"
             >
               <X size={18} strokeWidth={1.5} />
             </button>
@@ -387,7 +564,7 @@ export default function StartPlanPage() {
           </div>
         </div>
 
-        {/* Exercise info */}
+        {/* Exercise info badges */}
         <div className="flex gap-2 flex-wrap pl-8">
           <span className="bg-[#2C2C2E] text-white px-2 py-1 text-[11px] font-medium" style={{ borderRadius: '2px' }}>
             {sets.length}/{ex.maxSets} sets
@@ -404,125 +581,261 @@ export default function StartPlanPage() {
           <>
             <div className="w-full h-px bg-[#2C2C2E]" />
 
-            {/* Logged sets */}
+            {/* Fix 1: Logged sets — each row is now tappable for inline editing */}
             {sets.length > 0 && (
-              <div className="flex flex-col gap-2 pl-8">
-                {sets.map((s, si) => (
-                  <div key={si} className="flex items-center justify-between py-1.5 border-b border-[#2C2C2E]">
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-3">
-                        <span className="text-[13px] font-medium text-[#A1A1A6] w-10">Set {si + 1}</span>
-                        <span className="text-[15px] text-white font-medium">{s.weight} {settings.strengthUnit}</span>
-                        <span className="text-[#A1A1A6] text-sm">×</span>
-                        <span className="text-[15px] text-white font-medium">{s.reps} reps</span>
+              <div className="flex flex-col gap-1 pl-8">
+                {sets.map((s, si) => {
+                  const isEditingThis =
+                    editingSetKey?.exercise === ex.exercise && editingSetKey?.setIdx === si
+
+                  if (isEditingThis) {
+                    // ── Inline edit form ─────────────────────────────────────
+                    return (
+                      <div key={si} className="py-2 border-b border-[#2C2C2E] flex flex-col gap-2 animate-fadeIn">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px] font-medium text-[#93032E] w-10 shrink-0">
+                            Set {si + 1}
+                          </span>
+                          <div className="flex-1 flex gap-2">
+                            <div className="relative flex-1">
+                              <label className="absolute -top-2 left-2 bg-[#1C1C1E] px-1 text-[10px] text-[#A1A1A6]">
+                                Wt ({settings.strengthUnit})
+                              </label>
+                              <input
+                                type="number"
+                                inputMode="decimal"
+                                value={editWeight}
+                                onChange={e => setEditWeight(e.target.value)}
+                                className="w-full bg-[#2C2C2E] border border-[#2C2C2E] px-2 py-2 text-white text-[14px] text-center focus:border-[#93032E] focus:outline-none"
+                                style={{ borderRadius: '2px' }}
+                                autoFocus
+                              />
+                            </div>
+                            <div className="relative flex-1">
+                              <label className="absolute -top-2 left-2 bg-[#1C1C1E] px-1 text-[10px] text-[#A1A1A6]">
+                                Reps
+                              </label>
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                value={editReps}
+                                onChange={e => setEditReps(e.target.value)}
+                                className="w-full bg-[#2C2C2E] border border-[#2C2C2E] px-2 py-2 text-white text-[14px] text-center focus:border-[#93032E] focus:outline-none"
+                                style={{ borderRadius: '2px' }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 pl-10">
+                          <button
+                            onClick={handleSaveInlineEdit}
+                            className="flex-1 h-8 bg-[#93032E] text-white font-medium text-[13px]"
+                            style={{ borderRadius: '2px' }}
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={handleDeleteInlineSet}
+                            className="h-8 px-3 border border-[#FF453A] text-[#FF453A] font-medium text-[13px]"
+                            style={{ borderRadius: '2px' }}
+                          >
+                            Delete
+                          </button>
+                          <button
+                            onClick={() => setEditingSetKey(null)}
+                            className="h-8 px-3 border border-[#2C2C2E] text-[#A1A1A6] font-medium text-[13px]"
+                            style={{ borderRadius: '2px' }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </div>
-                      {(s.rpe != null || s.rir != null) && (
-                        <span className="text-[11px] text-[#A1A1A6] pl-10">
-                          {s.rpe != null && `RPE ${s.rpe}`}{s.rpe != null && s.rir != null && ', '}{s.rir != null && `RIR ${s.rir}`}
-                        </span>
-                      )}
+                    )
+                  }
+
+                  // ── Static logged-set row (tappable to enter edit mode) ──
+                  return (
+                    <div
+                      key={si}
+                      onClick={() => s.id && startInlineEdit(ex.exercise, si, s)}
+                      className={`flex items-center justify-between py-1.5 border-b border-[#2C2C2E] transition-colors ${s.id ? 'cursor-pointer hover:bg-[#2C2C2E]/40 active:bg-[#2C2C2E]/60' : ''}`}
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[13px] font-medium text-[#A1A1A6] w-10">Set {si + 1}</span>
+                          <span className="text-[15px] text-white font-medium">{s.weight} {settings.strengthUnit}</span>
+                          <span className="text-[#A1A1A6] text-sm">×</span>
+                          <span className="text-[15px] text-white font-medium">{s.reps} reps</span>
+                        </div>
+                        {(s.rpe != null || s.rir != null) && (
+                          <span className="text-[11px] text-[#A1A1A6] pl-10">
+                            {s.rpe != null && `RPE ${s.rpe}`}{s.rpe != null && s.rir != null && ', '}{s.rir != null && `RIR ${s.rir}`}
+                          </span>
+                        )}
+                      </div>
+                      <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E]" fill="#93032E" />
                     </div>
-                    <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E]" fill="#93032E" />
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 
             {/* Input area — shown for ALL expanded exercises */}
             <div className="mt-2 bg-[#151515]/50 p-3 border border-[#2C2C2E] flex flex-col gap-3 ml-8" style={{ borderRadius: '4px' }}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[13px] font-medium text-[#93032E] w-10 shrink-0">Set {sets.length + 1}</span>
-                    <div className="flex-1 flex gap-3">
-                      <div className="relative flex-1">
-                        <label className="absolute -top-2 left-3 bg-[#151515] px-1 text-[10px] text-[#A1A1A6]">
-                          Weight ({settings.strengthUnit})
-                        </label>
-                        <input
-                          type="number" inputMode="decimal" value={inp.weight}
-                          onChange={e => patchInput(ex.exercise, { weight: e.target.value })}
-                          className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#93032E] focus:outline-none"
-                          style={{ borderRadius: '2px' }}
-                          placeholder="0"
-                        />
-                      </div>
-                      <div className="relative flex-1">
-                        <label className="absolute -top-2 left-3 bg-[#151515] px-1 text-[10px] text-[#A1A1A6]">Reps</label>
-                        <input
-                          type="number" inputMode="numeric" value={inp.reps}
-                          onChange={e => patchInput(ex.exercise, { reps: e.target.value })}
-                          className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#93032E] focus:outline-none"
-                          style={{ borderRadius: '2px' }}
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[13px] font-medium text-[#93032E] w-10 shrink-0">Set {sets.length + 1}</span>
+                <div className="flex-1 flex gap-3">
+                  <div className="relative flex-1">
+                    <label className="absolute -top-2 left-3 bg-[#151515] px-1 text-[10px] text-[#A1A1A6]">
+                      Weight ({settings.strengthUnit})
+                    </label>
+                    <input
+                      type="number" inputMode="decimal" value={inp.weight}
+                      onChange={e => patchInput(ex.exercise, { weight: e.target.value })}
+                      className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#93032E] focus:outline-none"
+                      style={{ borderRadius: '2px' }}
+                      placeholder="0"
+                    />
                   </div>
+                  <div className="relative flex-1">
+                    <label className="absolute -top-2 left-3 bg-[#151515] px-1 text-[10px] text-[#A1A1A6]">Reps</label>
+                    <input
+                      type="number" inputMode="numeric" value={inp.reps}
+                      onChange={e => patchInput(ex.exercise, { reps: e.target.value })}
+                      className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#93032E] focus:outline-none"
+                      style={{ borderRadius: '2px' }}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              </div>
 
-                  {/* Live 1RM chip */}
-                  {orm != null && (
-                    <div className="flex justify-end">
-                      <span className="text-[11px] font-medium bg-[#1C1C1E]/80 text-[#93032E] border border-[#93032E]/30 px-2 py-0.5" style={{ borderRadius: '2px' }}>
-                        ≈ 1RM: {orm} {settings.strengthUnit}
-                      </span>
-                    </div>
-                  )}
+              {/* Live 1RM chip */}
+              {orm != null && (
+                <div className="flex justify-end">
+                  <span className="text-[11px] font-medium bg-[#1C1C1E]/80 text-[#93032E] border border-[#93032E]/30 px-2 py-0.5" style={{ borderRadius: '2px' }}>
+                    ≈ 1RM: {orm} {settings.strengthUnit}
+                  </span>
+                </div>
+              )}
 
-                  {/* Previous session diff bar */}
-                  {prevSet !== undefined && (
-                    <DiffBar prev={prevSet ?? null} curWeight={inp.weight} curReps={inp.reps} unit={settings.strengthUnit} />
-                  )}
+              {/* Previous session diff bar */}
+              {prevSet !== undefined && (
+                <DiffBar prev={prevSet ?? null} curWeight={inp.weight} curReps={inp.reps} unit={settings.strengthUnit} />
+              )}
 
-                  {/* RPE / RIR (progressive disclosure) */}
-                  <button
-                    onClick={() => patchInput(ex.exercise, { showMore: !inp.showMore })}
-                    className="flex items-center gap-1 text-[11px] font-medium text-[#A1A1A6] hover:text-white transition-colors self-start"
-                  >
-                    <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform duration-150 ${inp.showMore ? 'rotate-180' : ''}`} />
-                    {inp.showMore ? 'Less' : 'RPE / RIR'}
-                  </button>
-                  {inp.showMore && (
-                    <div className="flex items-center gap-4 animate-fadeIn">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-[11px] font-medium text-[#A1A1A6]">RPE</span>
-                        <input
-                          type="number" inputMode="numeric" value={inp.rpe}
-                          onChange={e => patchInput(ex.exercise, { rpe: e.target.value })}
-                          min={1} max={10} placeholder="1-10"
-                          className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
-                          style={{ borderRadius: '2px' }}
-                        />
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-[11px] font-medium text-[#A1A1A6]">RIR</span>
-                        <input
-                          type="number" inputMode="numeric" value={inp.rir}
-                          onChange={e => patchInput(ex.exercise, { rir: e.target.value })}
-                          min={0} max={5} placeholder="0-5"
-                          className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
-                          style={{ borderRadius: '2px' }}
-                        />
-                      </div>
-                    </div>
-                  )}
+              {/* RPE / RIR (progressive disclosure) */}
+              <button
+                onClick={() => patchInput(ex.exercise, { showMore: !inp.showMore })}
+                className="flex items-center gap-1 text-[11px] font-medium text-[#A1A1A6] hover:text-white transition-colors self-start"
+              >
+                <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform duration-150 ${inp.showMore ? 'rotate-180' : ''}`} />
+                {inp.showMore ? 'Less' : 'RPE / RIR'}
+              </button>
+              {inp.showMore && (
+                <div className="flex items-center gap-4 animate-fadeIn">
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-[11px] font-medium text-[#A1A1A6]">RPE</span>
+                    <input
+                      type="number" inputMode="numeric" value={inp.rpe}
+                      onChange={e => patchInput(ex.exercise, { rpe: e.target.value })}
+                      min={1} max={10} placeholder="1-10"
+                      className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
+                      style={{ borderRadius: '2px' }}
+                    />
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-[11px] font-medium text-[#A1A1A6]">RIR</span>
+                    <input
+                      type="number" inputMode="numeric" value={inp.rir}
+                      onChange={e => patchInput(ex.exercise, { rir: e.target.value })}
+                      min={0} max={5} placeholder="0-5"
+                      className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
+                      style={{ borderRadius: '2px' }}
+                    />
+                  </div>
+                </div>
+              )}
 
-                  {/* Action buttons */}
-                  <div className="flex gap-2">
+              {/* Coaching notes textarea (toggled by the FileText button below) */}
+              {showNoteField[ex.exercise] && (
+                <div className="flex flex-col gap-2 w-full mt-1">
+                  <textarea
+                    value={coachingNoteInputs[ex.exercise] ?? ''}
+                    onChange={e => setCoachingNoteInputs(prev => ({ ...prev, [ex.exercise]: e.target.value }))}
+                    placeholder="e.g., tucking elbows gives more impact on upper chest"
+                    rows={2}
+                    className="w-full bg-[#2C2C2E] border border-[#2C2C2E] px-3 py-2 text-[13px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none resize-none"
+                    style={{ borderRadius: '2px' }}
+                  />
+                  <div className="flex gap-2 justify-end">
                     <button
-                      onClick={() => logSet(ex, i)}
-                      className="flex-1 bg-[#93032E] text-white font-medium text-[15px] py-2.5 flex items-center justify-center gap-2"
+                      onClick={() => setShowNoteField(prev => ({ ...prev, [ex.exercise]: false }))}
+                      className="px-3 py-1.5 text-[12px] bg-[#2C2C2E] text-white hover:bg-opacity-80 transition-all font-medium"
                       style={{ borderRadius: '2px' }}
                     >
-                      <Plus size={18} strokeWidth={1.5} />
-                      Log Set
+                      Cancel
                     </button>
-                    <button className="w-10 h-10 bg-[#2C2C2E] flex items-center justify-center text-white" style={{ borderRadius: '2px' }}>
-                      <Camera size={18} strokeWidth={1.5} />
-                    </button>
-                    <button className="w-10 h-10 bg-[#2C2C2E] flex items-center justify-center text-white" style={{ borderRadius: '2px' }}>
-                      <FileText size={18} strokeWidth={1.5} />
+                    <button
+                      onClick={() => saveCoachingNote(ex.exercise, coachingNoteInputs[ex.exercise] ?? '')}
+                      className="px-3 py-1.5 text-[12px] bg-[#93032E] text-white hover:bg-opacity-80 transition-all font-medium"
+                      style={{ borderRadius: '2px' }}
+                    >
+                      Save
                     </button>
                   </div>
                 </div>
+              )}
+
+              {/* Fix 4: Camera image attachment indicator */}
+              {pendingImages[ex.exercise] && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-medium text-[#93032E]">📷 Photo attached</span>
+                  <button
+                    onClick={() => setPendingImages(prev => { const n = { ...prev }; delete n[ex.exercise]; return n })}
+                    className="text-[11px] text-[#A1A1A6] hover:text-[#FF453A]"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => logSet(ex, i)}
+                  className="flex-1 bg-[#93032E] text-white font-medium text-[15px] py-2.5 flex items-center justify-center gap-2"
+                  style={{ borderRadius: '2px' }}
+                >
+                  <Plus size={18} strokeWidth={1.5} />
+                  Log Set
+                </button>
+                {/* Fix 4: Camera button — opens device file picker / camera */}
+                <button
+                  onClick={() => handleCameraClick(ex.exercise)}
+                  className={`w-10 h-10 flex items-center justify-center transition-colors ${pendingImages[ex.exercise] ? 'bg-[#93032E]' : 'bg-[#2C2C2E]'} text-white`}
+                  style={{ borderRadius: '2px' }}
+                  title={pendingImages[ex.exercise] ? 'Photo selected — tap to change' : 'Attach photo'}
+                >
+                  <Camera size={18} strokeWidth={1.5} />
+                </button>
+                {/* FileText button — toggles coaching note editor */}
+                <button
+                  onClick={() => {
+                    const isOpening = !showNoteField[ex.exercise]
+                    setShowNoteField(prev => ({ ...prev, [ex.exercise]: isOpening }))
+                    if (isOpening) {
+                      setCoachingNoteInputs(prev => ({ ...prev, [ex.exercise]: cuesMap[ex.exercise] ?? '' }))
+                    }
+                  }}
+                  className={`w-10 h-10 flex items-center justify-center transition-colors ${showNoteField[ex.exercise] ? 'bg-[#93032E]' : 'bg-[#2C2C2E]'} text-white`}
+                  style={{ borderRadius: '2px' }}
+                  title="Toggle coaching notes"
+                >
+                  <FileText size={18} strokeWidth={1.5} />
+                </button>
+              </div>
+            </div>
 
             {/* "Next Exercise" only for the current exercise */}
             {isCurrent && (
@@ -540,6 +853,7 @@ export default function StartPlanPage() {
     )
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#151515] pb-8">
       <header className="fixed top-0 w-full z-40 bg-[#151515]/90 backdrop-blur-md flex flex-col">
@@ -548,7 +862,8 @@ export default function StartPlanPage() {
             <ArrowLeft size={20} strokeWidth={1.5} />
           </button>
           <h1 className="text-[22px] font-medium text-white">{plan?.title}</h1>
-          <button onClick={handleFinish} className="flex items-center gap-1 text-[#93032E] font-medium text-[15px] p-2 -mr-1">
+          {/* Fix 3: Finish button now checks for incomplete sets */}
+          <button onClick={handleFinishWithCheck} className="flex items-center gap-1 text-[#93032E] font-medium text-[15px] p-2 -mr-1">
             <Flag size={18} strokeWidth={1.5} />
             <span className="hidden sm:inline">Finish</span>
           </button>
@@ -565,26 +880,21 @@ export default function StartPlanPage() {
 
       <main className="flex-1 px-3 pt-28 pb-8 flex flex-col gap-4">
         {/* Scrollable exercise list */}
-        <div className="flex flex-col gap-3 max-h-[calc(100vh-300px)] overflow-y-auto" data-drag-list>
+        <div
+          ref={exerciseScrollRef}
+          className="flex flex-col gap-3 max-h-[calc(100vh-300px)] overflow-y-auto"
+          data-drag-list
+        >
           {(() => {
-            // Group exercises by supersetGroup for visual rendering
-            type VisualGroup = { 
-              type: 'single'; 
-              ex: PlanExercise; 
-              idx: number 
-            } | { 
-              type: 'group'; 
-              groupId: string;
-              color: string;
-              items: { ex: PlanExercise; idx: number }[] 
-            }
+            type VisualGroup =
+              | { type: 'single'; ex: PlanExercise; idx: number }
+              | { type: 'group'; groupId: string; color: string; items: { ex: PlanExercise; idx: number }[] }
 
             const visualGroups: VisualGroup[] = []
             let i = 0
             while (i < exercises.length) {
               const ex = exercises[i]
               if (ex.supersetGroup && ex.supersetColor) {
-                // Start of a superset group
                 const groupId = ex.supersetGroup
                 const groupItems: { ex: PlanExercise; idx: number }[] = []
                 while (i < exercises.length && exercises[i].supersetGroup === groupId) {
@@ -602,7 +912,6 @@ export default function StartPlanPage() {
               if (g.type === 'single') {
                 return renderExerciseRow(g.ex, g.idx)
               }
-              // Superset group with colored border
               return (
                 <div key={`group-${gi}`} className="border-l-[3px] pl-2 flex flex-col gap-2" style={{ borderColor: g.color, borderRadius: '0 4px 4px 0' }}>
                   <span className="text-[11px] font-bold uppercase tracking-widest px-1" style={{ color: g.color }}>
@@ -615,10 +924,20 @@ export default function StartPlanPage() {
           })()}
         </div>
 
-        {/* Finish */}
+        {/* Fix 2: Add Exercise button */}
         <button
-          onClick={handleFinish}
-          className="w-full mt-4 bg-[#1C1C1E] border border-[#93032E] text-[#93032E] font-medium text-[15px] h-12 flex items-center justify-center gap-2"
+          onClick={() => openExerciseModal(planId)}
+          className="w-full mt-2 border border-[#2C2C2E] text-[#93032E] font-medium text-[15px] h-12 flex items-center justify-center gap-2 hover:border-[#93032E]/40 transition-colors"
+          style={{ borderRadius: '2px' }}
+        >
+          <Plus size={18} strokeWidth={1.5} />
+          Add Exercise
+        </button>
+
+        {/* Fix 3: Finish button now checks for incomplete sets */}
+        <button
+          onClick={handleFinishWithCheck}
+          className="w-full bg-[#1C1C1E] border border-[#93032E] text-[#93032E] font-medium text-[15px] h-12 flex items-center justify-center gap-2"
           style={{ borderRadius: '2px' }}
         >
           <Flag size={18} strokeWidth={1.5} />
@@ -651,6 +970,91 @@ export default function StartPlanPage() {
           </div>
         )}
       </main>
+
+      {/* Fix 4: Hidden camera file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={handleFileSelected}
+        aria-hidden="true"
+      />
+
+      {/* Fix 2: Add Exercise modal */}
+      {exerciseModalOpen && (
+        <ExerciseModal planId={planId} onClose={handleExerciseAdded} />
+      )}
+
+      {/* Fix 2: Remove exercise confirmation dialog */}
+      {removeConfirmEx && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#151515]/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
+            <h3 className="text-[17px] font-semibold text-white">Remove Exercise</h3>
+            <p className="text-[15px] text-[#A1A1A6]">
+              Remove{' '}
+              <span className="text-white font-medium">"{removeConfirmEx.ex.exercise}"</span>{' '}
+              from this session?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRemoveConfirmEx(null)}
+                className="flex-1 h-11 border border-[#2C2C2E] text-white font-medium text-[15px]"
+                style={{ borderRadius: '2px' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => actualDeleteExercise(removeConfirmEx.ex)}
+                className="flex-1 h-11 bg-[#FF453A] text-white font-medium text-[15px] flex items-center justify-center gap-2"
+                style={{ borderRadius: '2px' }}
+              >
+                <X size={16} strokeWidth={1.5} />
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fix 3: Incomplete-sets warning dialog */}
+      {showSkipWarning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#151515]/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={20} strokeWidth={1.5} className="text-amber-400 shrink-0" />
+              <h3 className="text-[17px] font-semibold text-white">Incomplete Sets</h3>
+            </div>
+            <div className="flex flex-col gap-2">
+              {incompleteExercises.map(ex => (
+                <div key={ex.name} className="flex items-center justify-between bg-[#151515] px-3 py-2" style={{ borderRadius: '2px' }}>
+                  <span className="text-[15px] text-[#e4e2e4] truncate flex-1 mr-3">{ex.name}</span>
+                  <span className="text-[13px] font-semibold text-amber-400 shrink-0 tabular-nums">
+                    {ex.logged}/{ex.max} sets
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleLogThem}
+                className="w-full h-11 bg-[#93032E] text-white font-medium text-[15px]"
+                style={{ borderRadius: '2px' }}
+              >
+                Log them
+              </button>
+              <button
+                onClick={() => { setShowSkipWarning(false); doFinish() }}
+                className="w-full h-11 border border-[#2C2C2E] text-white font-medium text-[15px] hover:bg-[#2C2C2E] transition-colors"
+                style={{ borderRadius: '2px' }}
+              >
+                Continue anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
