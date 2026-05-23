@@ -28,6 +28,30 @@ interface WorkoutSession {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/** Correctly formats session date, distinguishing today, yesterday, N days ago, or absolute date calendar-wise */
+function formatSessionDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  const now = new Date()
+  
+  // Clear time components to compare calendar days
+  const dDate = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  
+  const diffTime = nowDate.getTime() - dDate.getTime()
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) {
+    const diffMs = now.getTime() - d.getTime()
+    const hours = Math.max(0, Math.floor(diffMs / 3600000))
+    if (hours < 1) return 'Just now'
+    return `${hours}h ago`
+  }
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 /** Build session list from raw sets + plan title map */
 function buildSessions(
   sets: GymSet[],
@@ -104,7 +128,7 @@ function SessionCard({ session, onTap }: SessionCardProps) {
             {session.planTitle}
           </span>
           <span className="text-[13px] font-medium text-[#A1A1A6]">
-            {format(session.latestCreated)}
+            {formatSessionDate(session.latestCreated)}
           </span>
         </div>
         <ChevronRight size={18} className="text-[#424754] shrink-0" />
@@ -141,6 +165,7 @@ export default function HomePage() {
   const [weekExercises, setWeekExercises] = useState(0)
   const [mostUsed, setMostUsed] = useState('')
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
+  const [expanded, setExpanded] = useState(false)
   const [showConflictDialog, setShowConflictDialog] = useState(false)
   const [conflictTargetId, setConflictTargetId] = useState<number | null>(null)
   const [userName, setUserName] = useState('')
@@ -178,11 +203,8 @@ export default function HomePage() {
     const top = Object.entries(usageCounts).sort((a, b) => b[1] - a[1])[0]
     setMostUsed(top ? top[0] : 'None yet')
 
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    const recentSets = realSets.filter(s => new Date(s.created) >= sevenDaysAgo)
     const planTitles = new Map<number, string>(plans.map(p => [p.id!, p.title]))
-    setSessions(buildSessions(recentSets, planTitles).slice(0, 5))
+    setSessions(buildSessions(realSets, planTitles).slice(0, 10))
 
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
@@ -328,7 +350,7 @@ export default function HomePage() {
               </button>
             </div>
             <div className="flex flex-col gap-3">
-              {sessions.map(session => (
+              {(expanded ? sessions : sessions.slice(0, 3)).map(session => (
                 <SessionCard
                   key={session.key}
                   session={session}
@@ -336,6 +358,17 @@ export default function HomePage() {
                 />
               ))}
             </div>
+            {sessions.length > 3 && (
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="text-[13px] font-medium transition-colors focus:outline-none bg-transparent border-0 p-1 cursor-pointer"
+                  style={{ color: '#DC143C' }}
+                >
+                  {expanded ? 'View less' : 'View more'}
+                </button>
+              </div>
+            )}
           </section>
         )}
 
