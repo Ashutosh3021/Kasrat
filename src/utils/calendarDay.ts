@@ -25,3 +25,25 @@ export function addCalendarDays(dayKey: string, delta: number): string {
 export function isNextCalendarDay(a: string, b: string): boolean {
   return addCalendarDays(a, 1) === b
 }
+
+/** 0 = Sunday … 6 = Saturday for a calendar day key */
+export function weekdayFromDayKey(dayKey: string): number {
+  const [y, m, d] = dayKey.split('-').map(Number)
+  return new Date(y, m - 1, d).getDay()
+}
+
+/** Negative if a is before b, 0 if equal, positive if a is after b */
+export function compareCalendarDays(a: string, b: string): number {
+  return a.localeCompare(b)
+}
+
+/** Month label for session counter, e.g. "May" */
+export function monthLabelFromDayKey(dayKey: string = toLocalDayKey()): string {
+  const [y, m] = dayKey.split('-').map(Number)
+  return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'long' })
+}
+
+/** YYYY-MM prefix for current local month */
+export function currentMonthPrefix(dayKey: string = toLocalDayKey()): string {
+  return dayKey.slice(0, 7)
+}

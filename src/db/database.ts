@@ -83,13 +83,29 @@ export interface ExercisePreset {
   type: 'strength'
 }
 
+export type DayResolution = 'pending' | 'rest' | 'missed' | 'completed'
+
+export interface DayStatus {
+  date: string
+  resolution: DayResolution
+  source: 'auto' | 'user'
+  scheduled: boolean
+  hadSession: boolean
+  updatedAt: string
+  note?: string
+}
+
 export interface StreakMeta {
   id: 'meta'
   currentStreak: number
+  previousStreak: number
   longestStreak: number
+  sessionsThisMonth: number
+  totalSessions: number
   lastComputedAt: string
   lastNotifiedStreak: number
   lastActivityDay?: string
+  lastBrokenAt?: string
 }
 
 export interface SyncQueueItem {
@@ -158,6 +174,7 @@ export class KasratDB extends Dexie {
   supplement_logs!: Table<SupplementLog>
   sync_queue!: Table<SyncQueueItem>
   streak_meta!: Table<StreakMeta>
+  day_status!: Table<DayStatus>
 
   constructor() {
     super('KasratDB')
@@ -290,6 +307,30 @@ export class KasratDB extends Dexie {
       sync_queue: '++id, tableName, timestamp',
       streak_meta: '&id',
     })
+
+    // v12 – streak v2: day_status, session-based streak, rest/missed resolution
+    this.version(12)
+      .stores({
+        gym_sets: '++id, name, created, cardio, planId, sessionId',
+        plans: '++id, sequence, title',
+        plan_exercises: '++id, planId, exercise',
+        settings: '++id',
+        body_measurements: '++id, created',
+        exercise_meta: '&name',
+        daily_nutrition: '&date',
+        exercise_presets: '&name',
+        supplement_logs: '++id, [date+name], date',
+        sync_queue: '++id, tableName, timestamp',
+        streak_meta: '&id',
+        day_status: '&date',
+      })
+      .upgrade(tx =>
+        tx.table('streak_meta').toCollection().modify(row => {
+          if (row.previousStreak === undefined) row.previousStreak = 0
+          if (row.sessionsThisMonth === undefined) row.sessionsThisMonth = 0
+          if (row.totalSessions === undefined) row.totalSessions = 0
+        }),
+      )
   }
 }
 

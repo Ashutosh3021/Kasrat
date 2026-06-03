@@ -12,6 +12,7 @@ import { clearStaleSession } from './store/workoutStore'
 import SyncLoadingScreen from './components/SyncLoadingScreen'
 import StreakToast from './components/StreakToast'
 import { refreshStreak } from './services/streakService'
+import { toLocalDayKey } from './utils/calendarDay'
 
 const NO_NAV_PATHS = [
   '/edit-plan/', '/start-plan/', '/add-exercise', '/edit-set/',
@@ -155,6 +156,20 @@ export default function App() {
 
   useEffect(() => {
     if (!loading) void refreshStreak()
+  }, [loading])
+
+  useEffect(() => {
+    if (loading) return
+    let lastDayKey = toLocalDayKey()
+    const onVisible = () => {
+      const key = toLocalDayKey()
+      if (key !== lastDayKey) {
+        lastDayKey = key
+        void refreshStreak({ announce: true })
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [loading])
 
   if (loading) {

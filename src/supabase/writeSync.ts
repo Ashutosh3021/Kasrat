@@ -14,7 +14,7 @@ import { supabase } from './client'
 import { db, type Plan, type PlanExercise, type GymSet, type BodyMeasurement, type DailyNutrition, type SupplementLog, type ExerciseMeta } from '../db/database'
 import { enqueue, bodyWeightForSupabase } from '../hooks/useSync'
 import { onActivityLogged, refreshStreak } from '../services/streakService'
-import { hasNutritionActivity, isCountableGymSet } from '../utils/streak'
+import { isCountableGymSet } from '../utils/streak'
 
 // ─── Get current user id (null if not logged in) ──────────────────────────────
 async function getUserId(): Promise<string | null> {
@@ -60,6 +60,7 @@ export async function addPlan(plan: Omit<Plan, 'id'>): Promise<number> {
       sequence: plan.sequence,
     }, userId)
   }
+  void refreshStreak()
   return id
 }
 
@@ -78,6 +79,7 @@ export async function updatePlan(id: number, changes: Partial<Plan>): Promise<vo
       }, userId)
     }
   }
+  void refreshStreak()
 }
 
 export async function deletePlan(id: number): Promise<void> {
@@ -87,6 +89,7 @@ export async function deletePlan(id: number): Promise<void> {
   if (userId) {
     await push('plans', 'delete', { id }, userId)
   }
+  void refreshStreak()
 }
 
 // ─── Plan exercises ───────────────────────────────────────────────────────────
@@ -202,6 +205,7 @@ export async function updateGymSet(id: number, changes: Partial<GymSet>): Promis
       }, userId)
     }
   }
+  void refreshStreak()
 }
 
 export async function deleteGymSet(id: number): Promise<void> {
@@ -232,7 +236,6 @@ export async function addBodyMeasurement(m: Omit<BodyMeasurement, 'id'>): Promis
       notes: m.notes ?? null,
     }, userId)
   }
-  void onActivityLogged()
   return id
 }
 
@@ -273,10 +276,7 @@ export async function putDailyNutrition(entry: DailyNutrition): Promise<void> {
   await db.daily_nutrition.put(entry)
   const userId = await getUserId()
 
-  if (!userId) {
-    if (hasNutritionActivity(entry)) void onActivityLogged()
-    return
-  }
+  if (!userId) return
 
   const record = {
     user_id: userId,
@@ -302,7 +302,6 @@ export async function putDailyNutrition(entry: DailyNutrition): Promise<void> {
     }
   }
 
-  if (hasNutritionActivity(entry)) void onActivityLogged()
 }
 
 export async function deleteDailyNutrition(date: string): Promise<void> {

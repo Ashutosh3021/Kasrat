@@ -9,18 +9,36 @@ export interface StreakToast {
 
 interface StreakState {
   currentStreak: number
+  previousStreak: number
   longestStreak: number
+  sessionsThisMonth: number
+  totalSessions: number
+  pendingCount: number
+  activeToday: boolean
   toast: StreakToast | null
-  setStreak: (current: number, longest: number) => void
+  setSnapshot: (data: {
+    currentStreak: number
+    previousStreak: number
+    longestStreak: number
+    sessionsThisMonth: number
+    totalSessions: number
+    pendingCount: number
+    activeToday: boolean
+  }) => void
   setToast: (toast: StreakToast) => void
   dismissToast: () => void
 }
 
 export const useStreakStore = create<StreakState>((set) => ({
   currentStreak: 0,
+  previousStreak: 0,
   longestStreak: 0,
+  sessionsThisMonth: 0,
+  totalSessions: 0,
+  pendingCount: 0,
+  activeToday: false,
   toast: null,
-  setStreak: (currentStreak, longestStreak) => set({ currentStreak, longestStreak }),
+  setSnapshot: (data) => set(data),
   setToast: (toast) => set({ toast }),
   dismissToast: () => set({ toast: null }),
 }))
