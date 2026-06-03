@@ -16,6 +16,7 @@ import {
   updatePlanExercise, upsertExerciseMeta,
 } from '../supabase/writeSync'
 import ExerciseModal from '../overlays/ExerciseModal'
+import { getOverloadTrend } from '../utils/progressiveOverload'
 
 // ─── Brzycki 1RM ─────────────────────────────────────────────────────────────
 function brzycki(w: number, r: number): number | null {
@@ -36,8 +37,9 @@ function DiffBar({ prev, curWeight, curReps, unit }: { prev: PrevSet | null; cur
 
   let indicator: React.ReactNode = null
   if (prev && hasInput) {
-    if (cw > prev.weight) indicator = <TrendingUp size={14} className="text-emerald-400" />
-    else if (cw < prev.weight) indicator = <TrendingDown size={14} className="text-red-400" />
+    const trend = getOverloadTrend(prev, cw, cr)
+    if (trend === 'up') indicator = <TrendingUp size={14} className="text-emerald-400" />
+    else if (trend === 'down') indicator = <TrendingDown size={14} className="text-red-400" />
     else indicator = <Minus size={14} className="text-[#A1A1A6]" />
   }
 

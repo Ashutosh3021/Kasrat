@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, ChevronRight, Dumbbell, Zap } from 'lucide-react'
+import { Play, ChevronRight, Dumbbell, Zap, Flame } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { db, type Plan, type GymSet } from '../db/database'
 import { format } from '../utils/dateUtils'
 import { useWorkoutStore } from '../store/workoutStore'
 import { supabase } from '../supabase/client'
 import { useOnSyncComplete } from '../hooks/useOnSyncComplete'
+import { collectActivityDays, refreshStreak } from '../services/streakService'
+import { useStreakStore } from '../store/streakStore'
+import { toLocalDayKey } from '../utils/calendarDay'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -169,6 +172,9 @@ export default function HomePage() {
   const [showConflictDialog, setShowConflictDialog] = useState(false)
   const [conflictTargetId, setConflictTargetId] = useState<number | null>(null)
   const [userName, setUserName] = useState('')
+  const currentStreak = useStreakStore(s => s.currentStreak)
+  const longestStreak = useStreakStore(s => s.longestStreak)
+  const [activeToday, setActiveToday] = useState(false)
 
   const today = new Date()
   const dayOfWeek = today.getDay()
@@ -212,6 +218,10 @@ export default function HomePage() {
         .from('profiles').select('name').eq('id', user.id).maybeSingle()
       if (profile?.name) setUserName(profile.name)
     }
+
+    const days = await collectActivityDays()
+    setActiveToday(days.has(toLocalDayKey()))
+    await refreshStreak({ announce: true })
   }, [dayOfWeek])
 
   useEffect(() => { loadHomeData() }, [loadHomeData])
@@ -251,6 +261,53 @@ export default function HomePage() {
               : 'Ready to lift?'}
           </h1>
         </div>
+
+        {/* Activity streak */}
+        <section
+          className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center justify-between"
+          style={{ borderRadius: '4px' }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 flex items-center justify-center shrink-0 ${
+                currentStreak > 0 ? 'bg-[#93032E]/20' : 'bg-[#2C2C2E]'
+              }`}
+              style={{ borderRadius: '4px' }}
+            >
+              <Flame
+                size={22}
+                className={currentStreak > 0 ? 'text-[#93032E]' : 'text-[#A1A1A6]'}
+                strokeWidth={1.5}
+              />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[13px] font-medium text-[#A1A1A6]">Activity streak</span>
+              <span className="text-[22px] font-semibold text-white leading-tight">
+                {currentStreak} {currentStreak === 1 ? 'day' : 'days'}
+              </span>
+            </div>
+          </div>
+          <div className="text-right flex flex-col gap-0.5">
+            {activeToday ? (
+              <span className="text-[11px] font-medium text-emerald-400 uppercase tracking-wide">
+                Active today
+              </span>
+            ) : currentStreak > 0 ? (
+              <span className="text-[11px] font-medium text-[#A1A1A6]">
+                Log today to extend
+              </span>
+            ) : (
+              <span className="text-[11px] font-medium text-[#A1A1A6]">
+                Log activity to start
+              </span>
+            )}
+            {longestStreak > 0 && (
+              <span className="text-[13px] text-[#A1A1A6]">
+                Best: {longestStreak} {longestStreak === 1 ? 'day' : 'days'}
+              </span>
+            )}
+          </div>
+        </section>
 
         {/* Resume banner */}
         {activePlanId && (

@@ -13,6 +13,8 @@
 import { supabase } from './client'
 import { db, type Plan, type PlanExercise, type GymSet, type BodyMeasurement, type DailyNutrition, type SupplementLog, type ExerciseMeta } from '../db/database'
 import { enqueue, bodyWeightForSupabase } from '../hooks/useSync'
+import { onActivityLogged, refreshStreak } from '../services/streakService'
+import { hasNutritionActivity, isCountableGymSet } from '../utils/streak'
 
 // ─── Get current user id (null if not logged in) ──────────────────────────────
 async function getUserId(): Promise<string | null> {
@@ -167,6 +169,7 @@ export async function addGymSet(set: Omit<GymSet, 'id'>): Promise<number> {
       rir: set.rir ?? null,
     }, userId)
   }
+  if (isCountableGymSet({ ...set, id })) void onActivityLogged()
   return id
 }
 
@@ -207,6 +210,7 @@ export async function deleteGymSet(id: number): Promise<void> {
   if (userId) {
     await push('gym_sets', 'delete', { id }, userId)
   }
+  void refreshStreak()
 }
 
 // ─── Body measurements ────────────────────────────────────────────────────────
@@ -228,6 +232,7 @@ export async function addBodyMeasurement(m: Omit<BodyMeasurement, 'id'>): Promis
       notes: m.notes ?? null,
     }, userId)
   }
+  void onActivityLogged()
   return id
 }
 
@@ -259,6 +264,7 @@ export async function deleteBodyMeasurement(id: number): Promise<void> {
   if (userId) {
     await push('body_measurements', 'delete', { id }, userId)
   }
+  void refreshStreak()
 }
 
 // ─── Daily nutrition ──────────────────────────────────────────────────────────
@@ -266,7 +272,11 @@ export async function deleteBodyMeasurement(id: number): Promise<void> {
 export async function putDailyNutrition(entry: DailyNutrition): Promise<void> {
   await db.daily_nutrition.put(entry)
   const userId = await getUserId()
-  if (!userId) return
+
+  if (!userId) {
+    if (hasNutritionActivity(entry)) void onActivityLogged()
+    return
+  }
 
   const record = {
     user_id: userId,
@@ -281,23 +291,28 @@ export async function putDailyNutrition(entry: DailyNutrition): Promise<void> {
 
   if (!navigator.onLine) {
     await enqueue('daily_nutrition', 'upsert', record as Record<string, unknown>)
-    return
+  } else {
+    const { error } = await supabase
+      .from('daily_nutrition')
+      .upsert(record, { onConflict: 'user_id,date' })
+
+    if (error) {
+      console.warn('[writeSync] daily_nutrition upsert failed, queuing:', error.message)
+      await enqueue('daily_nutrition', 'upsert', record as Record<string, unknown>)
+    }
   }
 
-  const { error } = await supabase
-    .from('daily_nutrition')
-    .upsert(record, { onConflict: 'user_id,date' })
-
-  if (error) {
-    console.warn('[writeSync] daily_nutrition upsert failed, queuing:', error.message)
-    await enqueue('daily_nutrition', 'upsert', record as Record<string, unknown>)
-  }
+  if (hasNutritionActivity(entry)) void onActivityLogged()
 }
 
 export async function deleteDailyNutrition(date: string): Promise<void> {
   await db.daily_nutrition.delete(date)
   const userId = await getUserId()
-  if (!userId) return
+
+  if (!userId) {
+    void refreshStreak()
+    return
+  }
 
   if (navigator.onLine) {
     await supabase
@@ -308,6 +323,7 @@ export async function deleteDailyNutrition(date: string): Promise<void> {
   } else {
     await enqueue('daily_nutrition', 'delete', { date, user_id: userId })
   }
+  void refreshStreak()
 }
 
 // ─── Supplement logs ──────────────────────────────────────────────────────────

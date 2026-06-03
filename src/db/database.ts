@@ -83,6 +83,15 @@ export interface ExercisePreset {
   type: 'strength'
 }
 
+export interface StreakMeta {
+  id: 'meta'
+  currentStreak: number
+  longestStreak: number
+  lastComputedAt: string
+  lastNotifiedStreak: number
+  lastActivityDay?: string
+}
+
 export interface SyncQueueItem {
   id?: number
   tableName: string
@@ -148,6 +157,7 @@ export class KasratDB extends Dexie {
   exercise_presets!: Table<ExercisePreset>
   supplement_logs!: Table<SupplementLog>
   sync_queue!: Table<SyncQueueItem>
+  streak_meta!: Table<StreakMeta>
 
   constructor() {
     super('KasratDB')
@@ -264,6 +274,21 @@ export class KasratDB extends Dexie {
       exercise_presets: '&name',
       supplement_logs: '++id, [date+name], date',
       sync_queue: '++id, tableName, timestamp',
+    })
+
+    // v11 – local streak metadata (activity-derived; single row)
+    this.version(11).stores({
+      gym_sets: '++id, name, created, cardio, planId, sessionId',
+      plans: '++id, sequence, title',
+      plan_exercises: '++id, planId, exercise',
+      settings: '++id',
+      body_measurements: '++id, created',
+      exercise_meta: '&name',
+      daily_nutrition: '&date',
+      exercise_presets: '&name',
+      supplement_logs: '++id, [date+name], date',
+      sync_queue: '++id, tableName, timestamp',
+      streak_meta: '&id',
     })
   }
 }

@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
-  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip,
 } from 'recharts'
 import { db } from '../db/database'
+import { RADAR_MUSCLE_AXES, toRadarMuscleAxis, type RadarMuscleAxis } from '../utils/muscleMapping'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MUSCLE_AXES = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'] as const
-type MuscleAxis = typeof MUSCLE_AXES[number]
+const MUSCLE_AXES = RADAR_MUSCLE_AXES
+type MuscleAxis = RadarMuscleAxis
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -41,40 +42,41 @@ export default function StatsPage() {
   const [data, setData] = useState<RadarPoint[]>([])
   const [hasData, setHasData] = useState(false)
 
+  const loadWeekStats = useCallback(async (offset: number) => {
+    const { start, end } = weekBounds(offset)
+    const allSets = await db.gym_sets.toArray()
+    const inWeek = allSets.filter(s => {
+      const d = new Date(s.created)
+      return d >= start && d <= end && !s.hidden
+    })
+
+    const setsMap: Record<MuscleAxis, number> = {} as Record<MuscleAxis, number>
+    const volMap: Record<MuscleAxis, number> = {} as Record<MuscleAxis, number>
+    MUSCLE_AXES.forEach(m => { setsMap[m] = 0; volMap[m] = 0 })
+
+    inWeek.forEach(s => {
+      const axis = toRadarMuscleAxis(s.primaryMuscle)
+      if (axis) {
+        setsMap[axis] += 1
+        volMap[axis] += s.weight * s.reps
+      }
+    })
+
+    const points: RadarPoint[] = MUSCLE_AXES.map(m => ({
+      muscle: m,
+      sets: setsMap[m],
+      volume: Math.round(volMap[m]),
+    }))
+
+    setData(points)
+    setHasData(points.some(p => p.sets > 0))
+  }, [])
+
   const { start, end } = weekBounds(weekOffset)
 
   useEffect(() => {
-    async function load() {
-      const allSets = await db.gym_sets.toArray()
-      const inWeek = allSets.filter(s => {
-        const d = new Date(s.created)
-        return d >= start && d <= end && !s.hidden
-      })
-
-      const setsMap: Record<string, number> = {}
-      const volMap: Record<string, number> = {}
-      MUSCLE_AXES.forEach(m => { setsMap[m] = 0; volMap[m] = 0 })
-
-      inWeek.forEach(s => {
-        const muscle = (s.primaryMuscle ?? 'Other') as string
-        if (MUSCLE_AXES.includes(muscle as MuscleAxis)) {
-          setsMap[muscle as MuscleAxis] += 1
-          volMap[muscle as MuscleAxis] += s.weight * s.reps
-        }
-      })
-
-      const points: RadarPoint[] = MUSCLE_AXES.map(m => ({
-        muscle: m,
-        sets: setsMap[m],
-        volume: Math.round(volMap[m]),
-      }))
-
-      setData(points)
-      setHasData(inWeek.length > 0)
-    }
-    load()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weekOffset])
+    loadWeekStats(weekOffset)
+  }, [weekOffset, loadWeekStats])
 
   const dateRange = `${fmtDate(start)} – ${fmtDate(end)}`
 
@@ -130,6 +132,7 @@ export default function StatsPage() {
                       dataKey="muscle"
                       tick={{ fill: '#A1A1A6', fontSize: 12, fontWeight: 600 }}
                     />
+                    <PolarRadiusAxis tick={{ fill: '#A1A1A6', fontSize: 10 }} axisLine={false} />
                     <Tooltip
                       contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
                       formatter={(v) => [`${v ?? 0} sets`, 'Sets']}
@@ -159,6 +162,7 @@ export default function StatsPage() {
                       dataKey="muscle"
                       tick={{ fill: '#A1A1A6', fontSize: 12, fontWeight: 600 }}
                     />
+                    <PolarRadiusAxis tick={{ fill: '#A1A1A6', fontSize: 10 }} axisLine={false} />
                     <Tooltip
                       contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
                       formatter={(v) => [`${Number(v ?? 0).toLocaleString()} kg`, 'Volume']}

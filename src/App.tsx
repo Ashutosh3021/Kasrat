@@ -10,6 +10,8 @@ import { supabase } from './supabase/client'
 import { syncToSupabase, clearLocalUserData } from './supabase/sync'
 import { clearStaleSession } from './store/workoutStore'
 import SyncLoadingScreen from './components/SyncLoadingScreen'
+import StreakToast from './components/StreakToast'
+import { refreshStreak } from './services/streakService'
 
 const NO_NAV_PATHS = [
   '/edit-plan/', '/start-plan/', '/add-exercise', '/edit-set/',
@@ -151,6 +153,10 @@ export default function App() {
 
   const hideNav = NO_NAV_PATHS.some(p => location.pathname.startsWith(p))
 
+  useEffect(() => {
+    if (!loading) void refreshStreak()
+  }, [loading])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#151515] flex items-center justify-center">
@@ -167,6 +173,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#151515] text-white">
       <SyncLoadingScreen />
+      <StreakToast />
       <Outlet />
       {!hideNav && <BottomNav />}
       <WorkoutBubble />
