@@ -44,7 +44,10 @@ const QUEUE_TABLE_ORDER = [
   'exercise_meta',
 ] as const
 
-const PERMANENT_SYNC_ERROR_CODES = new Set(['42501', '22P02', 'PGRST205', '42P01'])
+// 42501 = RLS violation — NOT permanent for child tables (e.g. plan_exercises)
+// whose ownership is derived from a parent that may not have synced yet.
+// Only treat schema/permission errors that will never self-heal as permanent.
+const PERMANENT_SYNC_ERROR_CODES = new Set(['22P02', 'PGRST205', '42P01'])
 
 let _pullInFlight: Promise<void> | null = null
 
@@ -65,12 +68,10 @@ export async function pullRemoteData(userId: string): Promise<void> {
   const { hasPulled } = useSyncStore.getState()
 
   if (hasPulled) {
-    console.log('[sync] pullRemoteData: already pulled in this session, skipping.')
     return
   }
 
   if (_pullInFlight) {
-    console.log('[sync] pullRemoteData: pull already in flight, awaiting…')
     return _pullInFlight
   }
 
@@ -120,9 +121,7 @@ async function executePull(userId: string): Promise<void> {
     console.log('[sync] pullRemoteData: fetched', {
       plans: plans?.length ?? 0,
       sets: sets?.length ?? 0,
-    })
-
-    // Fetch plan_exercises only if we have plans (avoids empty .in() query)
+    })    // Fetch plan_exercises only if we have plans (avoids empty .in() query)
     let exs: Record<string, unknown>[] | null = null
     if (plans?.length) {
       const planIds = plans.map(p => p.id)
@@ -248,7 +247,6 @@ async function executePull(userId: string): Promise<void> {
 
     setHasPulled(true)
     setLastSyncedAt(new Date().toISOString())
-    console.log('[sync] pullRemoteData complete for', userId)
   } catch (err) {
     // Network error, timeout, etc. — local data still intact
     console.error('[sync] pullRemoteData: unexpected error — local data preserved', err)
@@ -310,8 +308,7 @@ export async function processSyncQueue(userId: string): Promise<void> {
     })
     if (!items.length) return
 
-    for (const item of items) {
-      try {
+    for (const item of items) {      try {
         const record = normalizeQueueRecord(item.tableName, item.payload, userId)
 
         if (item.operation === 'upsert') {
@@ -352,14 +349,13 @@ export async function processSyncQueue(userId: string): Promise<void> {
         await db.sync_queue.delete(item.id!)
       } catch (err) {
         if (isPermanentSyncError(err)) {
-          console.warn('[sync] dropping poison queue item:', item.tableName, item.operation, err)
+          console.warn('[sync] dropping queue item (permanent error):', item.tableName, item.operation, (err as { message?: string })?.message)
           await db.sync_queue.delete(item.id!)
         } else {
-          console.warn('[sync] queue item failed, will retry later:', err)
+          console.warn('[sync] queue item failed, will retry later:', (err as { message?: string })?.message)
         }
       }
     }
-    console.log('[sync] processSyncQueue complete, processed', items.length, 'items')
   } finally {
     _queueRunning = false
   }
@@ -369,7 +365,6 @@ export async function processSyncQueue(userId: string): Promise<void> {
 
 export function setupOnlineListener(userId: string): () => void {
   async function handleOnline() {
-    console.log('[sync] device came online — processing queue')
     await processSyncQueue(userId)
   }
   window.addEventListener('online', handleOnline)

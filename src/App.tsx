@@ -28,9 +28,6 @@ const hasSupabase =
   import.meta.env.VITE_SUPABASE_URL !== 'https://placeholder.supabase.co' &&
   import.meta.env.VITE_SUPABASE_URL !== 'undefined'
 
-console.log('[Kasrat:App] hasSupabase:', hasSupabase)
-console.log('[Kasrat:App] VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ?? '(not set)')
-
 async function checkOnboarding(userId: string): Promise<boolean> {
   try {
     const { data } = await supabase.from('profiles').select('id').eq('id', userId).maybeSingle()
@@ -49,7 +46,6 @@ export default function App() {
   const pathnameRef = useRef(location.pathname)
   useEffect(() => {
     pathnameRef.current = location.pathname
-    console.log('[Kasrat:App] route changed →', location.pathname)
   }, [location.pathname])
 
   useEffect(() => {
@@ -59,17 +55,14 @@ export default function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[Kasrat:auth] event:', event, '| user:', session?.user?.email ?? 'none', '| path:', pathnameRef.current)
         setSession(session)
 
         if (event === 'INITIAL_SESSION') {
           if (!session) {
             setLoading(false)
-            console.log('[Kasrat:auth] INITIAL_SESSION — no session')
             if (hasSupabase) {
               const isPublic = PUBLIC_PATHS.some(p => pathnameRef.current.startsWith(p))
               if (!isPublic) {
-                console.log('[Kasrat:auth] → redirecting to /login')
                 navigate('/login', { replace: true })
               }
             }
@@ -84,11 +77,8 @@ export default function App() {
               currentPath === '' ||
               PUBLIC_PATHS.some(p => currentPath.startsWith(p))
 
-            console.log('[Kasrat:auth] INITIAL_SESSION — session found | path:', currentPath, '| onEntryPoint:', onEntryPoint)
-
             if (onEntryPoint) {
               const done = await checkOnboarding(session.user.id)
-              console.log('[Kasrat:auth] onboarding done:', done)
               if (!done) navigate('/onboarding', { replace: true })
             }
 
@@ -115,11 +105,8 @@ export default function App() {
             currentPath !== '/' &&
             currentPath !== ''
 
-          console.log('[Kasrat:auth] SIGNED_IN — alreadyInApp:', alreadyInApp, '| currentPath:', currentPath)
-
           if (!alreadyInApp) {
             const done = await checkOnboarding(session.user.id)
-            console.log('[Kasrat:auth] onboarding done:', done, '→ navigating to', done ? '/' : '/onboarding')
             navigate(done ? '/' : '/onboarding', { replace: true })
           }
 
@@ -130,7 +117,6 @@ export default function App() {
         }
 
         if (event === 'SIGNED_OUT') {
-          console.log('[Kasrat:auth] SIGNED_OUT — hasSupabase:', hasSupabase)
           useSyncStore.getState().resetSync()
           clearLocalUserData().catch(console.warn)
           if (hasSupabase) navigate('/login', { replace: true })

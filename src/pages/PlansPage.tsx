@@ -22,7 +22,6 @@ export default function PlansPage() {
 
   const loadPlans = useCallback(async () => {
     const p = await db.plans.orderBy('sequence').toArray()
-    console.log('[Plans] loaded', p.length, 'plan(s)')
     setPlans(p)
   }, [])
 
