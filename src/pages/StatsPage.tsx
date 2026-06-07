@@ -47,6 +47,7 @@ export default function StatsPage() {
     const allSets = await db.gym_sets.toArray()
     const inWeek = allSets.filter(s => {
       const d = new Date(s.created)
+      // Include both strength and cardio sets; exclude hidden placeholder rows
       return d >= start && d <= end && !s.hidden
     })
 
@@ -69,7 +70,11 @@ export default function StatsPage() {
     }))
 
     setData(points)
-    setHasData(points.some(p => p.sets > 0))
+    // hasData is true when there are ANY non-hidden sets in the week,
+    // regardless of whether their primaryMuscle maps to a radar axis.
+    // This prevents "No workouts this week" when exercises like "Other"
+    // or unmapped muscle groups exist but don't appear on the radar axes.
+    setHasData(inWeek.length > 0)
   }, [])
 
   const { start, end } = weekBounds(weekOffset)

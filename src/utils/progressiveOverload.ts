@@ -1,6 +1,3 @@
-/** Rep increase above previous session that counts as progressive overload */
-export const REP_OVERLOAD_DELTA = 3
-
 export type OverloadTrend = 'up' | 'down' | 'neutral'
 
 export interface SessionSet {
@@ -10,8 +7,9 @@ export interface SessionSet {
 
 /**
  * Compares current input against the last logged set for an exercise.
- * Progressive overload (up): weight increased OR reps increased by more than 3.
- * Down: weight decreased (reps-only changes do not mark a regression).
+ * Progressive overload (up): weight increased by any amount OR reps increased
+ * by any amount compared to the previous session.
+ * Down: weight decreased (reps-only decreases do not mark a regression).
  */
 export function getOverloadTrend(
   prev: SessionSet | null,
@@ -21,10 +19,9 @@ export function getOverloadTrend(
   if (!prev || curWeight <= 0 || curReps <= 0) return null
 
   const weightIncreased = curWeight > prev.weight
-  // More than 3 extra reps vs last session (e.g. 8 → 12)
-  const repsOverload = curReps > prev.reps + REP_OVERLOAD_DELTA
+  const repsIncreased = curReps > prev.reps
 
-  if (weightIncreased || repsOverload) return 'up'
+  if (weightIncreased || repsIncreased) return 'up'
   if (curWeight < prev.weight) return 'down'
   return 'neutral'
 }
