@@ -40,6 +40,15 @@ export default function PlansPage() {
       <main className="px-4 pt-6 max-w-md mx-auto flex flex-col gap-4">
         <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white">Plans</h1>
 
+        {/* Feature 12: AI plan generator entry point */}
+        <button
+          onClick={() => navigate('/generate-plan')}
+          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] h-11 flex items-center justify-center gap-2 text-[#93032E] font-medium text-[15px] hover:border-[#93032E]/60 transition-colors"
+          style={{ borderRadius: '2px' }}
+        >
+          Generate Plan
+        </button>
+
         {plans.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-[#A1A1A6] text-[15px]">No plans yet. Create your first plan!</p>

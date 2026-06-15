@@ -5,6 +5,8 @@ import {
   Camera, FileText, Flag, Trash2, ChevronDown,
   TrendingUp, TrendingDown, Minus, Info
 } from 'lucide-react'
+// ── New feature toolbar (Features 2, 6, 7, 11, 13, 14) ────────────────────
+import WorkoutFeatureToolbar from '../features/workoutToolbar/WorkoutFeatureToolbar'
 import { db, type PlanExercise, type GymSet } from '../db/database'
 import { useTimerStore } from '../store/timerStore'
 import { useSettingsStore } from '../store/settingsStore'
@@ -591,7 +593,15 @@ export default function QuickWorkoutPage() {
         </div>
       </header>
 
-      <main className="flex-1 px-3 pt-28 pb-8 flex flex-col gap-4">
+      {/* ── New feature toolbar: Precision / 1RM Calc / Custom Ex / AI / Feedback ── */}
+      <div className="fixed top-[calc(3.5rem+2.5rem)] w-full z-30">
+        <WorkoutFeatureToolbar
+          sessionDate={new Date().toISOString().slice(0, 10)}
+          showAI
+        />
+      </div>
+
+      <main className="flex-1 px-3 pt-44 pb-8 flex flex-col gap-4">
         {exercises.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-4">
             <p className="text-[#A1A1A6] text-[15px]">No exercises yet. Add one to get started.</p>

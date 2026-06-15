@@ -9,6 +9,8 @@ import { supabase } from '../supabase/client'
 import { useOnSyncComplete } from '../hooks/useOnSyncComplete'
 import { refreshStreak } from '../services/streakService'
 import StreakCard from '../components/StreakCard'
+// ── New feature widgets (Features 3, 6) ───────────────────────────────────
+import WeightEntryWidget from '../features/weightMonitoring/WeightEntryWidget'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -258,6 +260,9 @@ export default function HomePage() {
 
         <StreakCard />
 
+        {/* Feature 3: Daily weight entry widget */}
+        <WeightEntryWidget />
+
         {/* Resume banner */}
         {activePlanId && (
           <section className="bg-[#93032E]/10 border border-[#93032E]/40 p-3 flex items-center justify-between" style={{ borderRadius: '4px' }}>
@@ -407,6 +412,22 @@ export default function HomePage() {
             style={{ borderRadius: '4px' }}
           >
             <span className="text-[15px] font-medium text-white">Nutrition</span>
+          </button>
+          {/* Feature 8 & 15: Progress Dashboard entry point */}
+          <button
+            onClick={() => navigate('/progress')}
+            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#93032E]/40 transition-colors"
+            style={{ borderRadius: '4px' }}
+          >
+            <span className="text-[15px] font-medium text-white">Progress</span>
+          </button>
+          {/* Feature 12: Individualised program generator entry point */}
+          <button
+            onClick={() => navigate('/generate-plan')}
+            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#93032E]/40 transition-colors"
+            style={{ borderRadius: '4px' }}
+          >
+            <span className="text-[15px] font-medium text-white">Generate Plan</span>
           </button>
         </section>
       </main>

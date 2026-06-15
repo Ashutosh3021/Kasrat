@@ -29,6 +29,9 @@ import QuickWorkoutPage from './pages/QuickWorkoutPage'
 import LoginPage from './pages/LoginPage'
 import OnboardingPage from './pages/OnboardingPage'
 import SecuritySettingsPage from './pages/settings/SecuritySettingsPage'
+// ── New Feature Routes (additive only — no existing routes modified) ──────────
+import ProgressDashboard from './features/progressVisualization/ProgressDashboard'
+import ProgramGeneratorPage from './features/individualisedProgram/ProgramGeneratorPage'
 
 export const router = createHashRouter([
   // Public routes (no App shell / nav)
@@ -67,6 +70,11 @@ export const router = createHashRouter([
       { path: 'nutrition', element: <NutritionPage /> },
       { path: 'swap/:planId/:exerciseName', element: <SwapWorkoutPage /> },
       { path: 'quick-workout', element: <QuickWorkoutPage /> },
+      // ── New Feature Pages ─────────────────────────────────────────────────
+      // Feature 8 & 15: Progress visualisation + per-session volume
+      { path: 'progress', element: <ProgressDashboard /> },
+      // Feature 12: Individualised program generator
+      { path: 'generate-plan', element: <ProgramGeneratorPage /> },
       // FIX 5: Catch-all — any unknown child route redirects to home
       // instead of crashing with React Router's default error boundary.
       { path: '*', element: <Navigate to="/" replace /> },

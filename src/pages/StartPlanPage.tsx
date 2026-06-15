@@ -5,6 +5,8 @@ import {
   Camera, FileText, Flag, Trash2, Info, ChevronDown,
   TrendingUp, TrendingDown, Minus, Repeat, AlertTriangle,
 } from 'lucide-react'
+// ── New feature toolbar (Features 2, 6, 7, 11, 13, 14) ────────────────────
+import WorkoutFeatureToolbar from '../features/workoutToolbar/WorkoutFeatureToolbar'
 import { db, type Plan, type PlanExercise, type GymSet } from '../db/database'
 import { useTimerStore } from '../store/timerStore'
 import { useSettingsStore } from '../store/settingsStore'
@@ -880,7 +882,15 @@ export default function StartPlanPage() {
         </div>
       </header>
 
-      <main className="flex-1 px-3 pt-28 pb-8 flex flex-col gap-4">
+      {/* ── New feature toolbar: Precision / 1RM Calc / Custom Ex / AI / Feedback ── */}
+      <div className="fixed top-[calc(3.5rem+1.5rem+2.5rem)] w-full z-30">
+        <WorkoutFeatureToolbar
+          sessionDate={new Date().toISOString().slice(0, 10)}
+          showAI
+        />
+      </div>
+
+      <main className="flex-1 px-3 pt-52 pb-8 flex flex-col gap-4">
         {/* Scrollable exercise list */}
         <div
           ref={exerciseScrollRef}

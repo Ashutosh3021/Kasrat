@@ -13,12 +13,17 @@ import SyncLoadingScreen from './components/SyncLoadingScreen'
 import StreakToast from './components/StreakToast'
 import { refreshStreak } from './services/streakService'
 import { toLocalDayKey } from './utils/calendarDay'
+// ── New feature: PWA install prompt (Feature 10) ──────────────────────────
+import PWAInstallBanner from './features/smartphoneCompat/PWAInstallBanner'
+import { registerInstallPromptListener, incrementSessionCount } from './features/smartphoneCompat/pwaUtils'
 
 const NO_NAV_PATHS = [
   '/edit-plan/', '/start-plan/', '/add-exercise', '/edit-set/',
   '/settings/appearance', '/settings/timer', '/settings/tabs',
   '/settings/data', '/settings/format', '/about', '/edit-graph/',
   '/body-measurements', '/stats', '/login', '/onboarding', '/quick-workout',
+  // New feature pages (Features 8, 12)
+  '/progress', '/generate-plan',
 ]
 
 const PUBLIC_PATHS = ['/login', '/onboarding']
@@ -52,6 +57,7 @@ export default function App() {
     seedDatabase()
     loadSettings()
     clearStaleSession() // SESSION-005: clear persisted session if > 12h old
+    registerInstallPromptListener() // Feature 10: capture PWA install prompt
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -113,6 +119,7 @@ export default function App() {
           if (navigator.onLine) {
             syncToSupabase(session.user.id).catch(console.warn)
           }
+          incrementSessionCount() // Feature 10: track sessions for PWA install prompt
           return
         }
 
@@ -178,6 +185,8 @@ export default function App() {
       <Outlet />
       {!hideNav && <BottomNav />}
       <WorkoutBubble />
+      {/* Feature 10: PWA install prompt banner */}
+      <PWAInstallBanner />
     </div>
   )
 }

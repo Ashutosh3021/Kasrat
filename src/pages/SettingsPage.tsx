@@ -12,6 +12,9 @@ import { supabase } from '../supabase/client'
 import { clearLocalUserData } from '../supabase/sync'
 import { useAuthStore } from '../store/authStore'
 import { processSyncQueue, pullRemoteData } from '../hooks/useSync'
+// ── New feature widgets (Features 1, 9) ────────────────────────────────────
+import GoalSelectorWidget from '../features/goalTargeting/GoalSelectorWidget'
+import SyncStatusBadge from '../features/crossPlatformSync/SyncStatusBadge'
 
 export default function SettingsPage() {
   const navigate = useNavigate()
@@ -189,6 +192,25 @@ export default function SettingsPage() {
             </div>
           </div>
         </section>
+
+        {/* Feature 1: Training Goal — Goal-Specific Targeting */}
+        <section className="flex flex-col gap-2">
+          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Training Goal</h3>
+          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3" style={{ borderRadius: '4px' }}>
+            <GoalSelectorWidget compact />
+          </div>
+        </section>
+
+        {/* Feature 9: Sync Status */}
+        {user && (
+          <section className="flex flex-col gap-2">
+            <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Sync Status</h3>
+            <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center justify-between" style={{ borderRadius: '4px' }}>
+              <span className="text-[15px] font-medium text-white">Cloud Sync</span>
+              <SyncStatusBadge />
+            </div>
+          </section>
+        )}
 
         {/* Tabs */}
         <section className="flex flex-col gap-2">
