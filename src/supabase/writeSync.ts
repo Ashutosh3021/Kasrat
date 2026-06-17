@@ -11,7 +11,7 @@
  */
 
 import { supabase } from './client'
-import { db, type Plan, type PlanExercise, type GymSet, type BodyMeasurement, type DailyNutrition, type SupplementLog, type ExerciseMeta } from '../db/database'
+import { db, type Plan, type PlanExercise, type GymSet, type BodyMeasurement, type DailyNutrition, type SupplementLog, type ExerciseMeta, type ReadinessScore } from '../db/database'
 import { enqueue, bodyWeightForSupabase } from '../hooks/useSync'
 import { onActivityLogged, refreshStreak } from '../services/streakService'
 import { isCountableGymSet } from '../utils/streak'
@@ -366,4 +366,48 @@ export async function upsertExerciseMeta(meta: ExerciseMeta): Promise<void> {
       cues: meta.cues ?? null,
     }, userId)
   }
+}
+
+// ─── Readiness scores ─────────────────────────────────────────────────────────
+
+export async function upsertReadinessScore(score: Omit<ReadinessScore, 'id'>): Promise<number> {
+  // Dexie: put by unique date key (overwrites same-day entry)
+  const existing = await db.readiness_scores.where('date').equals(score.date).first()
+  let id: number
+  if (existing?.id != null) {
+    await db.readiness_scores.update(existing.id, score)
+    id = existing.id
+  } else {
+    id = await db.readiness_scores.add(score) as number
+  }
+
+  const userId = await getUserId()
+  if (userId) {
+    const record = {
+      id,
+      date: score.date,
+      sleep: score.sleep,
+      soreness: score.soreness,
+      energy: score.energy,
+      stress: score.stress,
+      motivation: score.motivation,
+      total: score.total,
+      label: score.label,
+      created_at: score.createdAt,
+    }
+
+    if (!navigator.onLine) {
+      await enqueue('readiness_scores', 'upsert', record as Record<string, unknown>)
+    } else {
+      const { error } = await supabase
+        .from('readiness_scores')
+        .upsert({ ...record, user_id: userId }, { onConflict: 'user_id,date' })
+      if (error) {
+        console.warn('[writeSync] readiness_scores upsert failed, queuing:', error.message)
+        await enqueue('readiness_scores', 'upsert', record as Record<string, unknown>)
+      }
+    }
+  }
+
+  return id
 }

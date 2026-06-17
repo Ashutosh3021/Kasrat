@@ -95,6 +95,21 @@ export interface DayStatus {
   note?: string
 }
 
+export type ReadinessLabel = 'green' | 'yellow' | 'red'
+
+export interface ReadinessScore {
+  id?: number
+  date: string          // YYYY-MM-DD, unique per day
+  sleep: number         // 1–5
+  soreness: number      // 1–5
+  energy: number        // 1–5
+  stress: number        // 1–5
+  motivation: number    // 1–5
+  total: number         // 5–25
+  label: ReadinessLabel
+  createdAt: string     // ISO
+}
+
 export interface StreakMeta {
   id: 'meta'
   currentStreak: number
@@ -175,6 +190,7 @@ export class KasratDB extends Dexie {
   sync_queue!: Table<SyncQueueItem>
   streak_meta!: Table<StreakMeta>
   day_status!: Table<DayStatus>
+  readiness_scores!: Table<ReadinessScore>
 
   constructor() {
     super('KasratDB')
@@ -331,6 +347,23 @@ export class KasratDB extends Dexie {
           if (row.totalSessions === undefined) row.totalSessions = 0
         }),
       )
+
+    // v13 – readiness_scores: daily traffic-light recovery assessment
+    this.version(13).stores({
+      gym_sets: '++id, name, created, cardio, planId, sessionId',
+      plans: '++id, sequence, title',
+      plan_exercises: '++id, planId, exercise',
+      settings: '++id',
+      body_measurements: '++id, created',
+      exercise_meta: '&name',
+      daily_nutrition: '&date',
+      exercise_presets: '&name',
+      supplement_logs: '++id, [date+name], date',
+      sync_queue: '++id, tableName, timestamp',
+      streak_meta: '&id',
+      day_status: '&date',
+      readiness_scores: '++id, &date',
+    })
   }
 }
 

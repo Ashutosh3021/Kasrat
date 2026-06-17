@@ -42,6 +42,7 @@ const QUEUE_TABLE_ORDER = [
   'daily_nutrition',
   'supplement_logs',
   'exercise_meta',
+  'readiness_scores',
 ] as const
 
 // 42501 = RLS violation — NOT permanent for child tables (e.g. plan_exercises)
@@ -100,6 +101,7 @@ async function executePull(userId: string): Promise<void> {
       { data: nutrition,    error: nutrErr },
       { data: supps,        error: suppsErr },
       { data: meta,         error: metaErr },
+      { data: readiness,    error: readinessErr },
     ] = await withTimeout(
       Promise.all([
         supabase.from('gym_sets').select('*').eq('user_id', userId),
@@ -108,13 +110,14 @@ async function executePull(userId: string): Promise<void> {
         supabase.from('daily_nutrition').select('*').eq('user_id', userId),
         supabase.from('supplement_logs').select('*').eq('user_id', userId),
         supabase.from('exercise_meta').select('*').eq('user_id', userId),
+        supabase.from('readiness_scores').select('*').eq('user_id', userId),
       ]),
       PULL_TIMEOUT_MS,
       'pullRemoteData fetch',
     )
 
-    if (setsErr || plansErr || measErr || nutrErr || suppsErr || metaErr) {
-      console.error('[sync] pullRemoteData: fetch failed — local data preserved', { setsErr, plansErr, measErr, nutrErr, suppsErr, metaErr })
+    if (setsErr || plansErr || measErr || nutrErr || suppsErr || metaErr || readinessErr) {
+      console.error('[sync] pullRemoteData: fetch failed — local data preserved', { setsErr, plansErr, measErr, nutrErr, suppsErr, metaErr, readinessErr })
       throw new Error('One or more tables failed to fetch')
     }
 
@@ -136,7 +139,7 @@ async function executePull(userId: string): Promise<void> {
 
     // ── REPLACE ATOMICALLY — only runs if ALL fetches succeeded ──────────
     await db.transaction('rw',
-      [db.gym_sets, db.plans, db.plan_exercises, db.body_measurements, db.daily_nutrition, db.supplement_logs, db.exercise_meta],
+      [db.gym_sets, db.plans, db.plan_exercises, db.body_measurements, db.daily_nutrition, db.supplement_logs, db.exercise_meta, db.readiness_scores],
       async () => {
         // gym_sets
         await db.gym_sets.clear()
@@ -240,6 +243,23 @@ async function executePull(userId: string): Promise<void> {
           await db.exercise_meta.bulkPut(meta.map(r => ({
             name: r.name,
             cues: r.cues ?? '',
+          })))
+        }
+
+        // readiness_scores
+        await db.readiness_scores.clear()
+        if (readiness?.length) {
+          await db.readiness_scores.bulkPut(readiness.map(r => ({
+            id: r.id,
+            date: r.date,
+            sleep: r.sleep,
+            soreness: r.soreness,
+            energy: r.energy,
+            stress: r.stress,
+            motivation: r.motivation,
+            total: r.total,
+            label: r.label as import('../db/database').ReadinessLabel,
+            createdAt: r.created_at,
           })))
         }
       }

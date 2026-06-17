@@ -32,6 +32,7 @@ import SecuritySettingsPage from './pages/settings/SecuritySettingsPage'
 // ── New Feature Routes (additive only — no existing routes modified) ──────────
 import ProgressDashboard from './features/progressVisualization/ProgressDashboard'
 import ProgramGeneratorPage from './features/individualisedProgram/ProgramGeneratorPage'
+import ReadinessPage from './pages/ReadinessPage'
 
 export const router = createHashRouter([
   // Public routes (no App shell / nav)
@@ -75,6 +76,8 @@ export const router = createHashRouter([
       { path: 'progress', element: <ProgressDashboard /> },
       // Feature 12: Individualised program generator
       { path: 'generate-plan', element: <ProgramGeneratorPage /> },
+      // Daily Readiness Assessment
+      { path: 'readiness', element: <ReadinessPage /> },
       // FIX 5: Catch-all — any unknown child route redirects to home
       // instead of crashing with React Router's default error boundary.
       { path: '*', element: <Navigate to="/" replace /> },

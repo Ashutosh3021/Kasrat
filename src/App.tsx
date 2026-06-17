@@ -23,7 +23,7 @@ const NO_NAV_PATHS = [
   '/settings/data', '/settings/format', '/about', '/edit-graph/',
   '/body-measurements', '/stats', '/login', '/onboarding', '/quick-workout',
   // New feature pages (Features 8, 12)
-  '/progress', '/generate-plan',
+  '/progress', '/generate-plan', '/readiness',
 ]
 
 const PUBLIC_PATHS = ['/login', '/onboarding']

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Play, ChevronRight, Dumbbell, Zap } from 'lucide-react'
 import TopBar from '../components/TopBar'
-import { db, type Plan, type GymSet } from '../db/database'
+import { db, type Plan, type GymSet, type ReadinessLabel } from '../db/database'
 import { format } from '../utils/dateUtils'
 import { useWorkoutStore } from '../store/workoutStore'
 import { supabase } from '../supabase/client'
@@ -158,6 +158,58 @@ function SessionCard({ session, onTap }: SessionCardProps) {
   )
 }
 
+// ─── Readiness Chip ───────────────────────────────────────────────────────────
+
+const READINESS_META: Record<ReadinessLabel, { emoji: string; text: string; color: string }> = {
+  green:  { emoji: '🟢', text: 'Primed to Perform', color: '#22c55e' },
+  yellow: { emoji: '🟡', text: 'Baseline',           color: '#eab308' },
+  red:    { emoji: '🔴', text: 'Recovery Day',       color: '#FF453A' },
+}
+
+function ReadinessCard({
+  todayLabel,
+  todayScore,
+  onNavigate,
+}: {
+  todayLabel: ReadinessLabel | null
+  todayScore: number | null
+  onNavigate: () => void
+}) {
+  if (todayLabel !== null && todayScore !== null) {
+    // Already done today — show compact chip
+    const meta = READINESS_META[todayLabel]
+    return (
+      <button
+        onClick={onNavigate}
+        className="w-full flex items-center justify-between bg-[#1C1C1E] border border-[#2C2C2E] px-3 h-11 rounded-[4px] hover:border-[#93032E]/40 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[15px]">{meta.emoji}</span>
+          <span className="text-[15px] font-semibold text-white">{meta.text}</span>
+          <span className="text-[12px] font-medium px-1.5 py-0.5 rounded-[2px]" style={{ background: `${meta.color}20`, color: meta.color }}>
+            {todayScore}/25
+          </span>
+        </div>
+        <ChevronRight size={16} strokeWidth={1.5} className="text-[#A1A1A6]" />
+      </button>
+    )
+  }
+
+  // Not done yet — prompt card
+  return (
+    <button
+      onClick={onNavigate}
+      className="w-full flex items-center justify-between bg-[#1C1C1E] border border-[#2C2C2E] px-3 h-11 rounded-[4px] hover:border-[#93032E]/40 transition-colors"
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-[15px]">⚡</span>
+        <span className="text-[15px] text-[#A1A1A6]">How are you feeling today?</span>
+      </div>
+      <span className="text-[13px] font-medium text-[#93032E]">Check →</span>
+    </button>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
@@ -173,6 +225,8 @@ export default function HomePage() {
   const [showConflictDialog, setShowConflictDialog] = useState(false)
   const [conflictTargetId, setConflictTargetId] = useState<number | null>(null)
   const [userName, setUserName] = useState('')
+  const [todayReadinessLabel, setTodayReadinessLabel] = useState<ReadinessLabel | null>(null)
+  const [todayReadinessScore, setTodayReadinessScore] = useState<number | null>(null)
 
   const today = new Date()
   const dayOfWeek = today.getDay()
@@ -218,6 +272,17 @@ export default function HomePage() {
     }
 
     await refreshStreak({ announce: true })
+
+    // Readiness check for today
+    const todayStr = new Date().toLocaleDateString('en-CA')
+    const readiness = await db.readiness_scores.where('date').equals(todayStr).first()
+    if (readiness) {
+      setTodayReadinessLabel(readiness.label)
+      setTodayReadinessScore(readiness.total)
+    } else {
+      setTodayReadinessLabel(null)
+      setTodayReadinessScore(null)
+    }
   }, [dayOfWeek])
 
   useEffect(() => { loadHomeData() }, [loadHomeData])
@@ -262,6 +327,13 @@ export default function HomePage() {
 
         {/* Feature 3: Daily weight entry widget */}
         <WeightEntryWidget />
+
+        {/* Daily Readiness Check */}
+        <ReadinessCard
+          todayLabel={todayReadinessLabel}
+          todayScore={todayReadinessScore}
+          onNavigate={() => navigate('/readiness')}
+        />
 
         {/* Resume banner */}
         {activePlanId && (

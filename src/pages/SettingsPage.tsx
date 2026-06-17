@@ -232,6 +232,11 @@ export default function SettingsPage() {
         <section className="flex flex-col gap-2">
           <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Workout</h3>
           <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
+            <button onClick={() => navigate('/readiness')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
+              <span className="text-[17px] font-normal text-white">Readiness Check</span>
+              <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
+            </button>
+            <hr className="border-t border-[#2C2C2E]" />
             <div className="flex items-center justify-between h-12 px-3">
               <span className="text-[17px] font-normal text-white">Rest Timers</span>
               <Toggle checked={settings.restTimers} onChange={v => updateSetting('restTimers', v)} />
