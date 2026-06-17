@@ -33,8 +33,8 @@ interface Props {
 export default function AISuggestionsPanel({ focusExercise }: Props) {
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([])
   const [dismissed, setDismissed] = useState<string[]>(getDismissed)
-  const [loading, setLoading] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)

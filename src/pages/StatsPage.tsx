@@ -129,9 +129,9 @@ export default function StatsPage() {
             <section className="bg-[#1C1C1E] rounded-[4px] border border-[#2C2C2E] p-3 flex flex-col gap-2">
               <p className="text-[15px] font-semibold text-white">Sets per Muscle Group</p>
               <p className="text-[13px] text-[#A1A1A6]">Total sets performed this week</p>
-              {/* min-h ensures Recharts never receives a 0/−1 height during first paint */}
-              <div className="h-64" style={{ minHeight: 256, minWidth: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
+              {/* Fixed pixel height avoids Recharts -1 width/height error */}
+              <div style={{ width: '100%', height: 256 }}>
+                <ResponsiveContainer width="100%" height={256}>
                   <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
                     <PolarGrid stroke="#2C2C2E" />
                     <PolarAngleAxis
@@ -160,9 +160,9 @@ export default function StatsPage() {
             <section className="bg-[#1C1C1E] rounded-[4px] border border-[#2C2C2E] p-3 flex flex-col gap-2">
               <p className="text-[15px] font-semibold text-white">Volume per Muscle Group</p>
               <p className="text-[13px] text-[#A1A1A6]">Total kg lifted (reps × weight)</p>
-              {/* min-h ensures Recharts never receives a 0/−1 height during first paint */}
-              <div className="h-64" style={{ minHeight: 256, minWidth: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
+              {/* Fixed pixel height avoids Recharts -1 width/height error */}
+              <div style={{ width: '100%', height: 256 }}>
+                <ResponsiveContainer width="100%" height={256}>
                   <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
                     <PolarGrid stroke="#2C2C2E" />
                     <PolarAngleAxis

@@ -2,20 +2,17 @@
  * Feature 8 & 15: Progress Visualization — Dashboard Component
  *
  * Tabbed interface showing:
- * - Volume (per-routine multi-line chart)
+ * - Volume (per-routine individual charts — one card per routine)
  * - Weight trend (links to WeightTrendChart)
  * - Per-session volume comparison
- *
- * This is a standalone page/component — wire it up via a new route.
- * It does NOT modify any existing page.
  */
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer,
 } from 'recharts'
 import {
   computeRoutineVolumeSeries,
@@ -27,61 +24,90 @@ import WeightTrendChart from '../weightAveraging/WeightTrendChart'
 
 type Tab = 'volume' | 'weight' | 'comparison'
 
-// ─── Volume Chart ─────────────────────────────────────────────────────────────
+// ─── Individual Routine Volume Card ──────────────────────────────────────────
 
-function VolumeChart({ series }: { series: RoutineVolumeSeries[] }) {
+function RoutineVolumeCard({ series }: { series: RoutineVolumeSeries }) {
+  const tooltipStyle = {
+    background: '#1C1C1E',
+    border: '1px solid #2C2C2E',
+    borderRadius: 4,
+    color: '#e4e2e4',
+  }
+
+  const gradId = `grad-${series.routineName.replace(/\s+/g, '-')}`
+
+  return (
+    <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[15px] font-semibold text-white">{series.routineName}</p>
+        <span
+          className="text-[11px] font-medium px-2 py-0.5 rounded-[2px]"
+          style={{ background: `${series.color}20`, color: series.color }}
+        >
+          {series.points.length} sessions
+        </span>
+      </div>
+      <div style={{ height: 140, minHeight: 140 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={series.points} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={series.color} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={series.color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" vertical={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: '#A1A1A6', fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v: string) => v.slice(5)}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              tick={{ fill: '#A1A1A6', fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+              width={40}
+              tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v)}
+            />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              formatter={(v) => [`${Number(v ?? 0).toLocaleString()} kg`, 'Volume']}
+            />
+            <Area
+              type="monotone"
+              dataKey="volume"
+              stroke={series.color}
+              strokeWidth={2}
+              fill={`url(#${gradId})`}
+              dot={series.points.length <= 10 ? { fill: series.color, r: 3, strokeWidth: 0 } : false}
+              activeDot={{ r: 5, fill: series.color }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
+
+// ─── Volume Tab ───────────────────────────────────────────────────────────────
+
+function VolumeTab({ series }: { series: RoutineVolumeSeries[] }) {
   if (series.length === 0) {
     return (
-      <div className="h-48 flex items-center justify-center text-[#A1A1A6] text-[15px]">
+      <div className="flex items-center justify-center py-16 text-[#A1A1A6] text-[15px]">
         Log your first workout to see volume trends.
       </div>
     )
   }
 
-  // Merge all dates into one dataset for recharts
-  const allDates = Array.from(
-    new Set(series.flatMap(s => s.points.map(p => p.date))),
-  ).sort()
-
-  const chartData = allDates.map(date => {
-    const row: Record<string, unknown> = { date: date.slice(5) }
-    series.forEach(s => {
-      const pt = s.points.find(p => p.date === date)
-      if (pt) row[s.routineName] = pt.volume
-    })
-    return row
-  })
-
   return (
-    <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3">
-      <p className="text-[13px] font-medium text-[#A1A1A6] mb-3">
-        Volume per Session (kg lifted)
-      </p>
-      <div className="h-52">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" />
-            <XAxis dataKey="date" tick={{ fill: '#A1A1A6', fontSize: 10 }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fill: '#A1A1A6', fontSize: 10 }} tickLine={false} axisLine={false} />
-            <Tooltip
-              contentStyle={{ background: '#1C1C1E', border: '1px solid #2C2C2E', borderRadius: 4, color: '#e4e2e4' }}
-            />
-            <Legend wrapperStyle={{ fontSize: 12, color: '#A1A1A6' }} />
-            {series.map(s => (
-              <Line
-                key={s.routineName}
-                type="monotone"
-                dataKey={s.routineName}
-                stroke={s.color}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4 }}
-                connectNulls
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="flex flex-col gap-4">
+      {series.map(s => (
+        <RoutineVolumeCard key={s.routineName} series={s} />
+      ))}
     </div>
   )
 }
@@ -186,7 +212,7 @@ export default function ProgressDashboard() {
           ))}
         </div>
 
-        {tab === 'volume' && <VolumeChart series={series} />}
+        {tab === 'volume' && <VolumeTab series={series} />}
         {tab === 'weight' && <WeightTrendChart />}
         {tab === 'comparison' && <ComparisonCards comparisons={comparisons} />}
       </main>
