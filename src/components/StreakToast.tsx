@@ -19,34 +19,29 @@ export default function StreakToast() {
 
   return (
     <div
-      className="fixed left-4 right-4 z-[90] mx-auto max-w-2xl"
-      style={{ top: '4.5rem' }}
+      className="fixed left-4 right-4 z-[90] mx-auto max-w-md animate-rise"
+      style={{ top: '4.75rem' }}
       role="status"
       aria-live="polite"
     >
       <div
-        className={`flex items-start gap-3 border px-3 py-3 shadow-lg ${
-          isUp
-            ? 'bg-[#93032E]/15 border-[#93032E]/50'
-            : 'bg-[#1C1C1E] border-[#2C2C2E]'
+        className={`flex items-start gap-3 rounded-2xl border bg-surface/95 p-3.5 shadow-[0_24px_50px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl ${
+          isUp ? 'border-accent/45' : 'border-line'
         }`}
-        style={{ borderRadius: '4px' }}
       >
-        <Flame
-          size={20}
-          className={isUp ? 'text-[#93032E] shrink-0 mt-0.5' : 'text-[#A1A1A6] shrink-0 mt-0.5'}
-          strokeWidth={1.5}
-        />
-        <p className={`text-[15px] font-medium flex-1 ${isUp ? 'text-white' : 'text-[#A1A1A6]'}`}>
+        <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isUp ? 'bg-accent/10 text-accent-soft' : 'bg-surface-high text-muted'}`}>
+          <Flame size={17} strokeWidth={1.8} />
+        </span>
+        <p className={`flex-1 text-[13px] font-medium leading-snug ${isUp ? 'text-ink' : 'text-muted'}`}>
           {toast.message}
         </p>
         <button
           type="button"
           onClick={dismissToast}
-          className="text-[#A1A1A6] hover:text-white p-1 -mr-1"
-          aria-label="Dismiss"
+          className="-mr-1 rounded-lg p-1.5 text-muted transition-colors hover:bg-ink/5 hover:text-ink"
+          aria-label="Dismiss notification"
         >
-          <X size={16} />
+          <X size={15} />
         </button>
       </div>
     </div>

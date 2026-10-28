@@ -50,10 +50,10 @@ export default function GoalSelectorWidget({ compact = false }: GoalSelectorWidg
           <button
             key={o.value}
             onClick={() => user && setGoal(user.id, o.value)}
-            className={`px-3 py-1.5 text-[13px] font-semibold rounded-[2px] transition-colors border ${
+            className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg transition-colors border ${
               goal === o.value
-                ? 'bg-[#93032E]/20 border-[#93032E] text-[#93032E]'
-                : 'border-[#2C2C2E] text-[#A1A1A6] bg-[#1C1C1E]'
+                ? 'bg-accent/20 border-accent-hover text-accent-soft'
+                : 'border-line text-muted bg-surface'
             }`}
           >
             {o.label}
@@ -66,8 +66,8 @@ export default function GoalSelectorWidget({ compact = false }: GoalSelectorWidg
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <Target size={16} strokeWidth={1.5} className="text-[#93032E]" />
-        <h3 className="text-[17px] font-semibold text-white">Training Goal</h3>
+        <Target size={16} strokeWidth={1.5} className="text-accent-soft" />
+        <h3 className="text-[16px] font-semibold text-ink">Training Goal</h3>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -75,27 +75,27 @@ export default function GoalSelectorWidget({ compact = false }: GoalSelectorWidg
           <button
             key={o.value}
             onClick={() => user && setGoal(user.id, o.value)}
-            className={`w-full text-left p-3 border rounded-[4px] transition-colors ${
+            className={`w-full text-left p-3 border rounded-2xl transition-colors ${
               goal === o.value
-                ? 'border-[#93032E] bg-[#93032E]/10'
-                : 'border-[#2C2C2E] bg-[#1C1C1E] hover:border-[#93032E]/30'
+                ? 'border-accent-hover bg-accent/10'
+                : 'border-line bg-surface hover:border-accent-hover/30'
             }`}
           >
             <div className="flex items-center justify-between">
               <span
                 className={`text-[15px] font-semibold ${
-                  goal === o.value ? 'text-[#93032E]' : 'text-white'
+                  goal === o.value ? 'text-accent-soft' : 'text-ink'
                 }`}
               >
                 {o.label}
               </span>
               {goal === o.value && (
-                <span className="text-[11px] font-medium text-[#93032E] bg-[#93032E]/20 px-2 py-0.5 rounded-[2px]">
+                <span className="text-[11px] font-medium text-accent-soft bg-accent/20 px-2 py-0.5 rounded-lg">
                   ACTIVE
                 </span>
               )}
             </div>
-            <p className="text-[13px] text-[#A1A1A6] mt-0.5">{o.desc}</p>
+            <p className="text-[13px] text-muted mt-0.5">{o.desc}</p>
           </button>
         ))}
       </div>

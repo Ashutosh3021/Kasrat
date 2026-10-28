@@ -27,26 +27,29 @@ export default function SyncLoadingScreen() {
   if (!isInitialPulling) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#151515] transition-opacity duration-300">
-      <div className="flex flex-col items-center gap-6 px-6 text-center">
-        {/* App Logo */}
-        <div className="w-16 h-16 bg-[#93032E] flex items-center justify-center shadow-lg" style={{ borderRadius: '8px' }}>
-          <span className="text-[36px] font-black text-white italic leading-none">K</span>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-ground px-6" aria-live="polite">
+      <div className="flex w-full max-w-xs flex-col items-center text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-accent shadow-[0_24px_60px_-24px_rgba(198,58,25,0.9)]">
+          <span className="text-[34px] font-black leading-none tracking-[-0.08em] text-on-accent">K</span>
         </div>
 
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-8 h-8 border-3 border-[#93032E] border-t-transparent rounded-full animate-spin mb-2" />
-          <h2 className="text-xl font-bold text-white tracking-tight">Syncing your data…</h2>
+        <p className="mono mt-5 text-[9px] uppercase tracking-[0.26em] text-accent-soft">Kasrat</p>
+        <h2 className="mt-2 text-[22px] font-bold tracking-[-0.04em] text-ink">Bringing your log back</h2>
+        <p className="mt-1.5 text-[13px] text-muted">Syncing the sets you have already put in.</p>
+
+        <div className="mt-7 h-1 w-40 overflow-hidden rounded-full bg-line" aria-hidden="true">
+          <div className="h-full w-1/2 animate-pulse rounded-full bg-accent" />
         </div>
 
         {showSubMessage && (
-          <div className="flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <p className="text-sm text-gray-400 max-w-[240px]">
+          <div className="mt-6 animate-fadeIn">
+            <p className="max-w-[250px] text-[12px] leading-relaxed text-muted">
               This only happens once. Taking longer than usual?
             </p>
             <button
+              type="button"
               onClick={() => setIsInitialPulling(false)}
-              className="text-[#93032E] text-sm font-semibold hover:underline underline-offset-4"
+              className="btn btn-secondary btn-sm mt-3"
             >
               Continue offline
             </button>

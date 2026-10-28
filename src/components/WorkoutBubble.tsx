@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
+import { Activity, ChevronRight } from 'lucide-react'
 import { useWorkoutStore } from '../store/workoutStore'
 
 /**
@@ -18,23 +19,28 @@ export default function WorkoutBubble() {
 
   return (
     <button
+      type="button"
       onClick={() => navigate(activePlanId === -1 ? '/quick-workout' : `/start-plan/${activePlanId}`)}
-      className="fixed bottom-20 right-4 z-[200] flex items-center gap-2 bg-[#93032E] text-white px-3 py-2 border border-[#93032E] active:opacity-80 transition-opacity"
-      style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)', borderRadius: '2px' }}
+      className="fixed right-4 z-[200] flex max-w-[calc(100vw-2rem)] items-center gap-3 rounded-2xl border border-accent/35 bg-surface/95 p-2 pr-3.5 text-left shadow-[0_20px_50px_-20px_rgba(0,0,0,0.95)] backdrop-blur-xl transition-all hover:border-accent/60 active:scale-[0.98]"
+      style={{ bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
+      aria-label={`Resume ${activePlanTitle}`}
     >
-      {/* Pulsing dot */}
-      <span className="relative flex h-2 w-2 shrink-0">
-        <span className="animate-ping absolute inline-flex h-full w-full bg-white opacity-60" style={{ borderRadius: '50%' }} />
-        <span className="relative inline-flex h-2 w-2 bg-white" style={{ borderRadius: '50%' }} />
+      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-on-accent">
+        <Activity size={18} strokeWidth={1.9} />
+        <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-soft opacity-60" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full border border-ground bg-accent-soft" />
+        </span>
       </span>
 
-      <div className="flex flex-col items-start leading-none">
-        <span className="text-[13px] font-medium truncate max-w-[120px]">{activePlanTitle}</span>
-        <span className="text-[11px] opacity-80 mt-0.5">
+      <span className="min-w-0 flex flex-col leading-none">
+        <span className="max-w-[9rem] truncate text-[13px] font-semibold text-ink">{activePlanTitle}</span>
+        <span className="mono mt-1 text-[9px] uppercase tracking-[0.1em] text-muted">
           {doneCount} done · {totalSets} sets
         </span>
-      </div>
+      </span>
+
+      <ChevronRight size={15} className="shrink-0 text-muted-dim" />
     </button>
   )
 }
-

@@ -72,10 +72,10 @@ export default function AISuggestionsPanel({ focusExercise }: Props) {
         className="flex items-center justify-between w-full"
       >
         <div className="flex items-center gap-2">
-          <Sparkles size={16} strokeWidth={1.5} className="text-[#BF5AF2]" />
-          <span className="text-[15px] font-semibold text-white">AI Suggestions</span>
+          <Sparkles size={16} strokeWidth={1.5} className="text-violet" />
+          <span className="text-[15px] font-semibold text-ink">AI Suggestions</span>
           {visible.length > 0 && (
-            <span className="text-[11px] font-medium text-white bg-[#BF5AF2] px-1.5 py-0.5 rounded-full">
+            <span className="text-[11px] font-medium text-ink bg-violet px-1.5 py-0.5 rounded-full">
               {visible.length}
             </span>
           )}
@@ -83,11 +83,11 @@ export default function AISuggestionsPanel({ focusExercise }: Props) {
         <div className="flex items-center gap-2">
           <button
             onClick={e => { e.stopPropagation(); load() }}
-            className="p-1 text-[#A1A1A6] hover:text-white"
+            className="p-1 text-muted hover:text-ink"
           >
             <RefreshCw size={14} strokeWidth={1.5} className={loading ? 'animate-spin' : ''} />
           </button>
-          <span className="text-[13px] text-[#A1A1A6]">{expanded ? '▲' : '▼'}</span>
+          <span className="text-[13px] text-muted">{expanded ? '▲' : '▼'}</span>
         </div>
       </button>
 
@@ -95,11 +95,11 @@ export default function AISuggestionsPanel({ focusExercise }: Props) {
         <div className="flex flex-col gap-2">
           {loading ? (
             <div className="flex items-center gap-2 py-3 justify-center">
-              <RefreshCw size={14} strokeWidth={1.5} className="text-[#BF5AF2] animate-spin" />
-              <span className="text-[13px] text-[#A1A1A6]">Analysing your performance…</span>
+              <RefreshCw size={14} strokeWidth={1.5} className="text-violet animate-spin" />
+              <span className="text-[13px] text-muted">Analysing your performance…</span>
             </div>
           ) : visible.length === 0 ? (
-            <p className="text-[13px] text-[#A1A1A6] py-2 text-center">
+            <p className="text-[13px] text-muted py-2 text-center">
               No suggestions right now. Keep training!
             </p>
           ) : (
@@ -127,39 +127,39 @@ function SuggestionCard({
   const [applied, setApplied] = useState(false)
 
   const typeColors: Record<AISuggestion['type'], string> = {
-    substitution: '#0A84FF',
-    load_adjustment: '#FF9F0A',
-    volume_change: '#30D158',
+    substitution: 'var(--color-info)',
+    load_adjustment: 'var(--color-warning)',
+    volume_change: 'var(--color-success)',
   }
   const color = typeColors[suggestion.type]
 
   return (
     <div
-      className="flex items-start justify-between gap-3 p-3 rounded-[4px] border bg-[#1C1C1E]"
+      className="flex items-start justify-between gap-3 p-3 rounded-2xl border bg-surface"
       style={{ borderColor: `${color}60` }}
     >
       <div className="flex flex-col gap-1 flex-1">
         <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color }}>
           {suggestion.type.replace(/_/g, ' ')}
         </span>
-        <p className="text-[14px] text-[#e4e2e4]">{suggestion.message}</p>
+        <p className="text-[14px] text-ink-soft">{suggestion.message}</p>
       </div>
       <div className="flex flex-col gap-1 shrink-0">
         {!applied ? (
           <button
             onClick={() => setApplied(true)}
-            className="flex items-center gap-1 px-2 py-1 rounded-[2px] text-[12px] font-semibold"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[12px] font-semibold"
             style={{ background: `${color}20`, color }}
           >
             <Check size={12} strokeWidth={2} />
             Apply
           </button>
         ) : (
-          <span className="text-[12px] text-[#30D158] font-medium px-2 py-1">✓ Noted</span>
+          <span className="text-[12px] text-success font-medium px-2 py-1">✓ Noted</span>
         )}
         <button
           onClick={onDismiss}
-          className="p-1 text-[#A1A1A6] hover:text-white self-center"
+          className="p-1 text-muted hover:text-ink self-center"
         >
           <X size={13} strokeWidth={1.5} />
         </button>

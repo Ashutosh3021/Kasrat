@@ -89,17 +89,17 @@ export default function WeightEntryWidget() {
 
   if (saved && !warnOutlier) {
     return (
-      <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 rounded-[4px] flex items-center justify-between">
+      <div className="bg-surface border border-line p-3 rounded-2xl flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Scale size={16} strokeWidth={1.5} className="text-[#93032E]" />
-          <span className="text-[15px] font-medium text-white">Today's Weight</span>
+          <Scale size={16} strokeWidth={1.5} className="text-accent-soft" />
+          <span className="text-[15px] font-medium text-ink">Today's Weight</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[15px] font-semibold text-white">{input} kg</span>
-          <Check size={14} strokeWidth={2} className="text-[#30D158]" />
+          <span className="text-[15px] font-semibold text-ink">{input} kg</span>
+          <Check size={14} strokeWidth={2} className="text-success" />
           <button
             onClick={() => setSaved(false)}
-            className="text-[13px] text-[#93032E] font-medium ml-1"
+            className="text-[13px] text-accent-soft font-medium ml-1"
           >
             Edit
           </button>
@@ -109,30 +109,30 @@ export default function WeightEntryWidget() {
   }
 
   return (
-    <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 rounded-[4px] flex flex-col gap-3">
+    <div className="bg-surface border border-line p-3 rounded-2xl flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <Scale size={16} strokeWidth={1.5} className="text-[#93032E]" />
-        <span className="text-[15px] font-semibold text-white">Log Today's Weight</span>
+        <Scale size={16} strokeWidth={1.5} className="text-accent-soft" />
+        <span className="text-[15px] font-semibold text-ink">Log Today's Weight</span>
       </div>
 
       {/* Outlier warning */}
       {warnOutlier && pendingWeight !== null && (
-        <div className="flex items-start gap-2 p-2 bg-[#FF9F0A]/10 border border-[#FF9F0A]/40 rounded-[4px]">
-          <AlertTriangle size={14} strokeWidth={1.5} className="text-[#FF9F0A] mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2 p-2 bg-warning/10 border border-warning/40 rounded-2xl">
+          <AlertTriangle size={14} strokeWidth={1.5} className="text-warning mt-0.5 shrink-0" />
           <div className="flex flex-col gap-1 flex-1">
-            <span className="text-[13px] text-[#FF9F0A] font-medium">
+            <span className="text-[13px] text-warning font-medium">
               {pendingWeight} kg differs by more than 3 kg from your recent trend.
             </span>
             <div className="flex gap-2">
               <button
                 onClick={() => handleSave(pendingWeight)}
-                className="text-[13px] text-[#30D158] font-semibold"
+                className="text-[13px] text-success font-semibold"
               >
                 Save anyway
               </button>
               <button
                 onClick={() => { setWarnOutlier(false); setPendingWeight(null) }}
-                className="text-[13px] text-[#A1A1A6] font-medium"
+                className="text-[13px] text-muted font-medium"
               >
                 Re-enter
               </button>
@@ -149,20 +149,20 @@ export default function WeightEntryWidget() {
             value={input}
             onChange={e => { setInput(e.target.value); setError('') }}
             placeholder="e.g. 82.5"
-            className="w-full bg-[#2C2C2E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 text-[17px] text-white focus:border-[#93032E] focus:outline-none pr-10"
+            className="w-full bg-line border border-line rounded-2xl px-3 py-2 text-[16px] text-ink focus:border-accent-hover focus:outline-none pr-10"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[#A1A1A6]">kg</span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-muted">kg</span>
         </div>
         <button
           onClick={handleSubmit}
-          className="px-4 h-10 bg-[#93032E] text-white font-semibold text-[15px] rounded-[2px] shrink-0"
+          className="px-4 h-10 bg-accent text-ink font-semibold text-[15px] rounded-lg shrink-0"
         >
           Save
         </button>
       </div>
 
       {error && (
-        <span className="text-[13px] text-[#FF453A]">{error}</span>
+        <span className="text-[13px] text-danger">{error}</span>
       )}
     </div>
   )

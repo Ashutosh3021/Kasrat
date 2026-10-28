@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Minus, Plus, LogOut, RefreshCw } from 'lucide-react'
+import { Minus, Plus, LogOut, RefreshCw, Sparkles } from 'lucide-react'
 import TopBar from '../components/TopBar'
+import { SettingsGroup, SettingsRow } from '../components/SettingsList'
 import Toggle from '../components/Toggle'
 import { useSettingsStore } from '../store/settingsStore'
 import { useUIStore } from '../store/uiStore'
@@ -12,7 +13,6 @@ import { supabase } from '../supabase/client'
 import { clearLocalUserData } from '../supabase/sync'
 import { useAuthStore } from '../store/authStore'
 import { processSyncQueue, pullRemoteData } from '../hooks/useSync'
-// ── New feature widgets (Features 1, 9) ────────────────────────────────────
 import GoalSelectorWidget from '../features/goalTargeting/GoalSelectorWidget'
 import SyncStatusBadge from '../features/crossPlatformSync/SyncStatusBadge'
 
@@ -44,8 +44,8 @@ export default function SettingsPage() {
     setIsSyncing(true)
     setSyncMessage('')
     try {
-      setHasPulled(false) // Unlock the pull gate
-      await processSyncQueue(user.id) // Push before pull
+      setHasPulled(false)
+      await processSyncQueue(user.id)
       await pullRemoteData(user.id)
       setSyncMessage('Data synced successfully')
     } catch (err) {
@@ -57,265 +57,192 @@ export default function SettingsPage() {
     }
   }
 
-  // Format "Last synced" time
   const lastSyncedText = lastSyncedAt
-    ? `Last synced: ${new Date(lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    ? `Last synced ${new Date(lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
     : 'Never synced'
 
+  const themeLabel =
+    settings.themeMode === 'light' ? 'Light' : settings.themeMode === 'pure_black' ? 'Pure black' : 'Dark'
+
+  const supplementCount = (() => {
+    try {
+      return JSON.parse(settings.supplementsList ?? '[]').length
+    } catch {
+      return 0
+    }
+  })()
+
   return (
-    <div className="min-h-screen bg-[#151515] pb-8 pt-14">
+    <div className="page pt-14">
       <TopBar showSettings={false} />
-      <main className="pt-10 pb-8 px-4 max-w-2xl mx-auto flex flex-col gap-8">
-        <div className="px-2">
-          <h2 className="text-[32px] font-medium leading-10 text-white mb-2">Settings</h2>
-        </div>
-
-        {/* Appearance */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Appearance</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-            <button onClick={() => navigate('/settings/appearance')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Theme</span>
-              <div className="flex items-center gap-1 text-[#A1A1A6]">
-                <span className="text-[15px]">Dark</span>
-                <ChevronRight size={18} strokeWidth={1.5} />
-              </div>
-            </button>
-            <hr className="border-t border-[#2C2C2E]" />
-            <div className="flex items-center justify-between h-12 px-3">
-              <span className="text-[17px] font-normal text-white">System Colors</span>
-              <Toggle checked={settings.systemColors} onChange={v => updateSetting('systemColors', v)} />
-            </div>
-            <hr className="border-t border-[#2C2C2E]" />
-            <div className="flex items-center justify-between h-12 px-3">
-              <span className="text-[17px] font-normal text-white">Curve Lines</span>
-              <Toggle checked={settings.curveLines} onChange={v => updateSetting('curveLines', v)} />
-            </div>
-            <hr className="border-t border-[#2C2C2E]" />
-            <div className="flex items-center justify-between h-12 px-3">
-              <span className="text-[17px] font-normal text-white">Hide Categories</span>
-              <Toggle checked={settings.hideCategories} onChange={v => updateSetting('hideCategories', v)} />
-            </div>
+      <main className="page-main space-y-7 pb-8">
+        <header className="flex items-end justify-between gap-4 pt-2">
+          <div>
+            <p className="kicker">Account & preferences</p>
+            <h1 className="display-hero mt-2 text-ink">Settings</h1>
           </div>
-        </section>
+          <span className="chip">v1.2.36</span>
+        </header>
 
-        {/* Data & Format */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Data & Format</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-            <button onClick={() => navigate('/settings/data')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Units</span>
-              <div className="flex items-center gap-1 text-[#A1A1A6]">
-                <span className="text-[15px]">{settings.strengthUnit} / {settings.cardioUnit}</span>
-                <ChevronRight size={18} strokeWidth={1.5} />
-              </div>
-            </button>
-            <hr className="border-t border-[#2C2C2E]" />
-            <button onClick={() => navigate('/settings/format')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Date & Time Format</span>
-              <div className="flex items-center gap-1 text-[#A1A1A6]">
-                <span className="text-[13px] truncate max-w-[140px]">{settings.longDateFormat}</span>
-                <ChevronRight size={18} strokeWidth={1.5} />
-              </div>
-            </button>
-            <hr className="border-t border-[#2C2C2E]" />
-            <button onClick={() => navigate('/body-measurements')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Body Measurements</span>
-              <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
-            </button>
-            <hr className="border-t border-[#2C2C2E]" />
-            <div className="flex items-center justify-between h-12 px-3">
-              <span className="text-[17px] font-normal text-white">Max Sets Default</span>
-              <div className="flex items-center gap-3 bg-[#2C2C2E] border border-[#2C2C2E] px-2 py-1" style={{ borderRadius: '2px' }}>
-                <button onClick={() => updateSetting('maxSets', Math.max(1, settings.maxSets - 1))} className="text-[#93032E]">
-                  <Minus size={16} strokeWidth={1.5} />
-                </button>
-                <span className="text-[15px] font-medium text-white w-4 text-center">{settings.maxSets}</span>
-                <button onClick={() => updateSetting('maxSets', settings.maxSets + 1)} className="text-[#93032E]">
-                  <Plus size={16} strokeWidth={1.5} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+        <SettingsGroup title="Appearance">
+          <SettingsRow label="Theme" value={themeLabel} onClick={() => navigate('/settings/appearance')} />
+          <SettingsRow
+            label="System colors"
+            hint="Use platform-tuned chart colors"
+            trailing={<Toggle checked={settings.systemColors} onChange={v => updateSetting('systemColors', v)} label="System colors" />}
+          />
+          <SettingsRow
+            label="Curve lines"
+            hint="Smooth chart strokes"
+            trailing={<Toggle checked={settings.curveLines} onChange={v => updateSetting('curveLines', v)} label="Curve lines" />}
+          />
+          <SettingsRow
+            label="Hide categories"
+            hint="Remove category labels from exercises"
+            trailing={<Toggle checked={settings.hideCategories} onChange={v => updateSetting('hideCategories', v)} label="Hide categories" />}
+          />
+        </SettingsGroup>
 
-        {/* Nutrition */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Nutrition</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-            <button onClick={() => navigate('/settings/data')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Macro Targets</span>
-              <div className="flex items-center gap-1 text-[#A1A1A6]">
-                <span className="text-[13px]">{settings.nutritionCaloriesGoal ?? 2000} kcal</span>
-                <ChevronRight size={18} strokeWidth={1.5} />
-              </div>
-            </button>
-            <hr className="border-t border-[#2C2C2E]" />
-            <button onClick={() => navigate('/settings/data')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Supplements</span>
-              <div className="flex items-center gap-1 text-[#A1A1A6]">
-                <span className="text-[13px]">
-                  {JSON.parse(settings.supplementsList ?? '[]').length} added
-                </span>
-                <ChevronRight size={18} strokeWidth={1.5} />
-              </div>
-            </button>
-          </div>
-        </section>
-
-        {/* Exercise Library */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Exercise Library</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-            <button onClick={handleRestoreExercises} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Restore Default Exercises</span>
-              <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
-            </button>
-          </div>
-          {restoreMessage && (
-            <p className="text-[13px] text-[#93032E] px-2">{restoreMessage}</p>
-          )}
-        </section>
-
-        {/* Plans */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Plans</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-            <div className="flex items-center justify-between h-12 px-3">
-              <span className="text-[17px] font-normal text-white">Show Reorder Handles</span>
-              <Toggle checked={settings.showReorderHandles} onChange={v => updateSetting('showReorderHandles', v)} />
-            </div>
-            <hr className="border-t border-[#2C2C2E]" />
-            <div className="flex items-center justify-between h-12 px-3">
-              <span className="text-[17px] font-normal text-white">Show Plan Counts</span>
-              <Toggle checked={settings.showPlanCounts} onChange={v => updateSetting('showPlanCounts', v)} />
-            </div>
-          </div>
-        </section>
-
-        {/* Feature 1: Training Goal — Goal-Specific Targeting */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Training Goal</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3" style={{ borderRadius: '4px' }}>
+        <SettingsGroup title="Training">
+          <div className="p-4">
             <GoalSelectorWidget compact />
           </div>
-        </section>
+        </SettingsGroup>
 
-        {/* Feature 9: Sync Status */}
-        {user && (
-          <section className="flex flex-col gap-2">
-            <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Sync Status</h3>
-            <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center justify-between" style={{ borderRadius: '4px' }}>
-              <span className="text-[15px] font-medium text-white">Cloud Sync</span>
-              <SyncStatusBadge />
-            </div>
-          </section>
+        <SettingsGroup title="Workout">
+          <SettingsRow label="Readiness check" onClick={() => navigate('/readiness')} />
+          <SettingsRow
+            label="Rest timers"
+            hint="Start the timer after a set"
+            trailing={<Toggle checked={settings.restTimers} onChange={v => updateSetting('restTimers', v)} label="Rest timers" />}
+          />
+          <SettingsRow
+            label="Vibrate on alarm"
+            hint="Haptic alert when the timer ends"
+            trailing={<Toggle checked={settings.vibrate} onChange={v => updateSetting('vibrate', v)} label="Vibrate on alarm" />}
+          />
+          <SettingsRow label="Timer settings" value={`${Math.floor(settings.timerDuration / 60)} min default`} onClick={() => navigate('/settings/timer')} />
+        </SettingsGroup>
+
+        <SettingsGroup title="Data & format">
+          <SettingsRow label="Units" value={`${settings.strengthUnit} / ${settings.cardioUnit}`} onClick={() => navigate('/settings/data')} />
+          <SettingsRow label="Date & time" value={settings.longDateFormat} onClick={() => navigate('/settings/format')} />
+          <SettingsRow label="Body measurements" onClick={() => navigate('/body-measurements')} />
+          <SettingsRow
+            label="Default max sets"
+            trailing={
+              <span className="flex items-center gap-3 rounded-[10px] border border-line bg-surface-high px-2 py-1.5">
+                <button
+                  type="button"
+                  onClick={() => updateSetting('maxSets', Math.max(1, settings.maxSets - 1))}
+                  className="text-accent-soft transition-opacity hover:opacity-70"
+                  aria-label="Decrease default max sets"
+                >
+                  <Minus size={14} strokeWidth={2} />
+                </button>
+                <span className="w-4 text-center text-[13px] font-semibold text-ink tnum">{settings.maxSets}</span>
+                <button
+                  type="button"
+                  onClick={() => updateSetting('maxSets', settings.maxSets + 1)}
+                  className="text-accent-soft transition-opacity hover:opacity-70"
+                  aria-label="Increase default max sets"
+                >
+                  <Plus size={14} strokeWidth={2} />
+                </button>
+              </span>
+            }
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title="Nutrition">
+          <SettingsRow
+            label="Macro targets"
+            value={`${settings.nutritionCaloriesGoal ?? 2000} kcal`}
+            onClick={() => navigate('/settings/data')}
+          />
+          <SettingsRow
+            label="Supplements"
+            value={`${supplementCount} added`}
+            onClick={() => navigate('/settings/data')}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title="Plans & navigation">
+          <SettingsRow
+            label="Show reorder handles"
+            trailing={<Toggle checked={settings.showReorderHandles} onChange={v => updateSetting('showReorderHandles', v)} label="Show reorder handles" />}
+          />
+          <SettingsRow
+            label="Show plan counts"
+            trailing={<Toggle checked={settings.showPlanCounts} onChange={v => updateSetting('showPlanCounts', v)} label="Show plan counts" />}
+          />
+          <SettingsRow
+            label="Hidden tabs"
+            value={
+              settings.hiddenTabs.split(',').filter(Boolean).length > 0 ? (
+                <span className="flex flex-wrap justify-end gap-1">
+                  {settings.hiddenTabs.split(',').filter(Boolean).map(t => (
+                    <span key={t} className="chip">{t}</span>
+                  ))}
+                </span>
+              ) : (
+                'None'
+              )
+            }
+            onClick={() => navigate('/settings/tabs')}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title="Exercise library">
+          <SettingsRow label="Restore default exercises" onClick={handleRestoreExercises} />
+        </SettingsGroup>
+        {restoreMessage && (
+          <p className="chip chip-success ml-1 w-fit">{restoreMessage}</p>
         )}
 
-        {/* Tabs */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Tabs</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-            <button onClick={() => navigate('/settings/tabs')} className="flex items-center justify-between py-3 px-3 hover:bg-[#2a2a2c] transition-colors min-h-[48px]">
-              <span className="text-[17px] font-normal text-white shrink-0 mr-4">Hidden Tabs</span>
-              <div className="flex items-center justify-end gap-2 flex-wrap">
-                {settings.hiddenTabs.split(',').filter(Boolean).map(t => (
-                  <span key={t} className="bg-[#2C2C2E] text-[#A1A1A6] text-[11px] uppercase font-medium px-2 py-1" style={{ borderRadius: '2px' }}>{t}</span>
-                ))}
-                <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6] ml-1" />
-              </div>
-            </button>
-          </div>
-        </section>
-
-        {/* Workout */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Workout</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-            <button onClick={() => navigate('/readiness')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Readiness Check</span>
-              <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
-            </button>
-            <hr className="border-t border-[#2C2C2E]" />
-            <div className="flex items-center justify-between h-12 px-3">
-              <span className="text-[17px] font-normal text-white">Rest Timers</span>
-              <Toggle checked={settings.restTimers} onChange={v => updateSetting('restTimers', v)} />
-            </div>
-            <hr className="border-t border-[#2C2C2E]" />
-            <div className="flex items-center justify-between h-12 px-3">
-              <span className="text-[17px] font-normal text-white">Vibrate on Alarm</span>
-              <Toggle checked={settings.vibrate} onChange={v => updateSetting('vibrate', v)} />
-            </div>
-            <hr className="border-t border-[#2C2C2E]" />
-            <button onClick={() => navigate('/settings/timer')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">Timer Settings</span>
-              <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
-            </button>
-          </div>
-        </section>
-
-        {/* About */}
-        <section className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">About</h3>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-            <button onClick={openWhatsNew} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">What's New</span>
-              <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
-            </button>
-            <hr className="border-t border-[#2C2C2E]" />
-            <button onClick={() => navigate('/about')} className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors">
-              <span className="text-[17px] font-normal text-white">About KASRAT</span>
-              <span className="text-[15px] text-[#A1A1A6]">1.2.36</span>
-            </button>
-          </div>
-        </section>
-
-        {/* Account */}
         {user && (
-          <section className="flex flex-col gap-2">
-            <h3 className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest px-2">Account</h3>
-            <div className="bg-[#1C1C1E] border border-[#2C2C2E] flex flex-col overflow-hidden" style={{ borderRadius: '4px' }}>
-              <div className="flex items-center justify-between h-12 px-3">
-                <span className="text-[15px] text-[#A1A1A6] truncate max-w-[220px]">{user.email}</span>
-              </div>
-              <hr className="border-t border-[#2C2C2E]" />
-              <button
-                onClick={() => navigate('/settings/security')}
-                className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors"
-              >
-                <span className="text-[17px] font-normal text-white">Security</span>
-                <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
-              </button>
-              <hr className="border-t border-[#2C2C2E]" />
-              <button
-                onClick={handleSyncNow}
-                disabled={isSyncing}
-                className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors disabled:opacity-50"
-              >
-                <div className="flex flex-col items-start">
-                  <span className="text-[17px] font-normal text-white">Sync Now</span>
-                  <span className="text-[11px] text-[#A1A1A6]">{lastSyncedText}</span>
-                </div>
-                <RefreshCw size={18} strokeWidth={1.5} className={`${isSyncing ? 'animate-spin' : ''} text-[#A1A1A6]`} />
-              </button>
-              <hr className="border-t border-[#2C2C2E]" />
-              <button
-                onClick={handleLogout}
-                className="flex items-center justify-between h-12 px-3 hover:bg-[#2a2a2c] transition-colors text-[#FF453A]"
-              >
-                <span className="text-[17px] font-normal">Log Out</span>
-                <LogOut size={18} strokeWidth={1.5} />
-              </button>
-            </div>
-            {syncMessage && (
-              <p className="text-[13px] text-[#93032E] px-2 mt-2">{syncMessage}</p>
-            )}
-          </section>
+          <SettingsGroup title="Cloud & account">
+            <SettingsRow label="Cloud sync" hint={lastSyncedText} trailing={<SyncStatusBadge />} />
+            <SettingsRow
+              label="Sync now"
+              hint="Push local changes, then pull remote"
+              onClick={handleSyncNow}
+              disabled={isSyncing}
+              trailing={
+                <RefreshCw size={16} strokeWidth={1.7} className={`text-muted ${isSyncing ? 'animate-spin' : ''}`} />
+              }
+            />
+            <SettingsRow label="Security" onClick={() => navigate('/settings/security')} />
+            <SettingsRow label={user.email ?? 'Signed in'} hint="Signed in" />
+            <SettingsRow
+              label="Log out"
+              onClick={handleLogout}
+              danger
+              trailing={<LogOut size={16} strokeWidth={1.7} className="text-danger" />}
+            />
+          </SettingsGroup>
         )}
+
+        {syncMessage && (
+          <p className="chip chip-accent ml-1 w-fit">{syncMessage}</p>
+        )}
+
+        <SettingsGroup title="About">
+          <SettingsRow
+            label="What's new"
+            hint="Release notes and recent updates"
+            onClick={openWhatsNew}
+            trailing={<Sparkles size={15} strokeWidth={1.7} className="text-accent-soft" />}
+          />
+          <SettingsRow label="About Kasrat" value="1.2.36" onClick={() => navigate('/about')} />
+        </SettingsGroup>
+
+        <p className="mono pb-4 text-center text-[9px] uppercase tracking-[0.18em] text-muted-dim">
+          Built for showing up
+        </p>
       </main>
 
       {whatsNewDialogOpen && <WhatsNewDialog onClose={closeWhatsNew} />}
     </div>
   )
 }
-

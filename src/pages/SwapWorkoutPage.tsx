@@ -61,43 +61,43 @@ export default function SwapWorkoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-8">
-      <header className="sticky top-0 w-full z-50 bg-[#151515]/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-[#2C2C2E]">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 flex items-center justify-center text-white hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
+    <div className="min-h-screen bg-ground pb-8">
+      <header className="sticky top-0 w-full z-50 bg-ground/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-line">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 flex items-center justify-center text-ink hover:bg-surface" style={{ borderRadius: '10px' }}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
-        <h1 className="text-[22px] font-medium text-white absolute left-1/2 -translate-x-1/2">Swap Exercise</h1>
+        <h1 className="text-[24px] font-medium text-ink absolute left-1/2 -translate-x-1/2">Swap Exercise</h1>
         <div className="w-10" />
       </header>
 
       <main className="flex-1 flex flex-col px-3 py-3 gap-4">
-        <div className="bg-[#1C1C1E] p-3 border border-[#2C2C2E]" style={{ borderRadius: '4px' }}>
-          <p className="text-[13px] text-[#A1A1A6] mb-2">Replacing:</p>
-          <p className="text-[17px] text-white font-medium">{decodeURIComponent(exerciseName || '')}</p>
+        <div className="bg-surface p-3 border border-line" style={{ borderRadius: '16px' }}>
+          <p className="text-[13px] text-muted mb-2">Replacing:</p>
+          <p className="text-[16px] text-ink font-medium">{decodeURIComponent(exerciseName || '')}</p>
         </div>
 
         <div className="relative">
-          <Search size={18} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A1A1A6]" />
+          <Search size={18} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search exercises..."
-            className="w-full bg-[#1C1C1E] text-white text-[17px] pl-10 pr-3 py-3 border border-[#2C2C2E] focus:border-[#93032E] focus:outline-none placeholder-[#A1A1A6]"
-            style={{ borderRadius: '2px' }}
+            className="w-full bg-surface text-ink text-[16px] pl-10 pr-3 py-3 border border-line focus:border-accent-hover focus:outline-none placeholder-muted"
+            style={{ borderRadius: '10px' }}
           />
         </div>
 
         <div className="flex flex-col gap-2 max-h-[calc(100vh-250px)] overflow-y-auto">
           {allOptions.length === 0 && (
-            <p className="text-[15px] text-[#A1A1A6] text-center py-8">No exercises found</p>
+            <p className="text-[15px] text-muted text-center py-8">No exercises found</p>
           )}
           {allOptions.map(name => (
             <button
               key={name}
               onClick={() => handleSwap(name)}
-              className="bg-[#1C1C1E] p-3 text-left text-white text-[17px] border border-[#2C2C2E] hover:border-[#93032E] transition-colors"
-              style={{ borderRadius: '4px' }}
+              className="bg-surface p-3 text-left text-ink text-[16px] border border-line hover:border-accent-hover transition-colors"
+              style={{ borderRadius: '16px' }}
             >
               {name}
             </button>

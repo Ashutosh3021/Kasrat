@@ -1,19 +1,31 @@
 interface ToggleProps {
   checked: boolean
   onChange: (v: boolean) => void
+  label?: string
 }
 
-export default function Toggle({ checked, onChange }: ToggleProps) {
+export default function Toggle({ checked, onChange, label }: ToggleProps) {
   return (
     <button
+      type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`w-12 h-6 relative flex items-center p-1 transition-colors duration-200 border ${checked ? 'bg-[#93032E] border-[#93032E]' : 'bg-[#353437] border-[#353437]'}`}
-      style={{ borderRadius: '2px' }}
+      className={`relative h-7 w-12 shrink-0 rounded-full border transition-colors duration-200 ${
+        checked
+          ? 'border-accent bg-accent'
+          : 'border-line-strong bg-surface-high'
+      }`}
     >
-      <span className={`w-4 h-4 bg-white transition-transform duration-200 ${checked ? 'translate-x-6' : 'translate-x-0'}`} style={{ borderRadius: '1px' }} />
+      <span
+        className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full shadow-sm transition-all duration-200 ${
+          checked
+            ? 'left-[25px] bg-on-accent'
+            : 'left-[3px] bg-ink-soft'
+        }`}
+        aria-hidden="true"
+      />
     </button>
   )
 }
-

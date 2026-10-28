@@ -35,31 +35,31 @@ export default function AdaptiveBanner() {
   if (!rec || dismissed) return null
 
   const icons = {
-    increase_load: <TrendingUp size={16} strokeWidth={1.5} className="text-[#30D158]" />,
-    decrease_volume: <TrendingDown size={16} strokeWidth={1.5} className="text-[#FF9F0A]" />,
-    deload: <Minus size={16} strokeWidth={1.5} className="text-[#0A84FF]" />,
+    increase_load: <TrendingUp size={16} strokeWidth={1.5} className="text-success" />,
+    decrease_volume: <TrendingDown size={16} strokeWidth={1.5} className="text-warning" />,
+    deload: <Minus size={16} strokeWidth={1.5} className="text-info" />,
     none: null,
   }
 
   const borderColor = {
-    increase_load: '#30D158',
-    decrease_volume: '#FF9F0A',
-    deload: '#0A84FF',
-    none: '#2C2C2E',
+    increase_load: 'var(--color-success)',
+    decrease_volume: 'var(--color-warning)',
+    deload: 'var(--color-info)',
+    none: 'var(--color-line)',
   }[rec.type]
 
   return (
     <div
-      className="flex items-start justify-between gap-3 p-3 rounded-[4px] border bg-[#1C1C1E]"
+      className="flex items-start justify-between gap-3 p-3 rounded-2xl border bg-surface"
       style={{ borderColor }}
     >
       <div className="flex items-start gap-2 flex-1">
         <div className="mt-0.5 shrink-0">{icons[rec.type]}</div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[13px] font-semibold text-white">Adaptive Suggestion</span>
-          <span className="text-[13px] text-[#A1A1A6]">{rec.reason}</span>
+          <span className="text-[13px] font-semibold text-ink">Adaptive Suggestion</span>
+          <span className="text-[13px] text-muted">{rec.reason}</span>
           {rec.loadDelta !== 0 && (
-            <span className="text-[11px] text-[#A1A1A6]">
+            <span className="text-[11px] text-muted">
               Load change: {rec.loadDelta > 0 ? '+' : ''}
               {Math.round(rec.loadDelta * 100)}%
             </span>
@@ -68,7 +68,7 @@ export default function AdaptiveBanner() {
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="shrink-0 p-1 text-[#A1A1A6] hover:text-white transition-colors"
+        className="shrink-0 p-1 text-muted hover:text-ink transition-colors"
         aria-label="Dismiss suggestion"
       >
         <X size={16} strokeWidth={1.5} />

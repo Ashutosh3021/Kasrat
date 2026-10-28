@@ -40,8 +40,8 @@ export default function SessionVolumeCard({ routineName, sessionDate }: Props) {
 
   if (!current) {
     return (
-      <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3">
-        <p className="text-[13px] text-[#A1A1A6]">No volume data for this session yet.</p>
+      <div className="bg-surface border border-line rounded-2xl p-3">
+        <p className="text-[13px] text-muted">No volume data for this session yet.</p>
       </div>
     )
   }
@@ -53,20 +53,20 @@ export default function SessionVolumeCard({ routineName, sessionDate }: Props) {
       : null
 
   const DeltaIcon = delta === null || delta === 0 ? Minus : delta > 0 ? TrendingUp : TrendingDown
-  const deltaColor = delta === null || delta === 0 ? '#A1A1A6' : delta > 0 ? '#30D158' : '#FF453A'
+  const deltaColor = delta === null || delta === 0 ? 'var(--color-muted)' : delta > 0 ? 'var(--color-success)' : 'var(--color-danger)'
 
   return (
-    <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3 flex flex-col gap-2">
+    <div className="bg-surface border border-line rounded-2xl p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-[15px] font-semibold text-white">{routineName}</span>
-        <span className="text-[11px] text-[#A1A1A6]">{sessionDate}</span>
+        <span className="text-[15px] font-semibold text-ink">{routineName}</span>
+        <span className="text-[11px] text-muted">{sessionDate}</span>
       </div>
 
       <div className="flex items-end gap-2">
-        <span className="text-[28px] font-semibold text-white leading-none">
+        <span className="text-[28px] font-semibold text-ink leading-none">
           {Math.round(current.totalVolume).toLocaleString()}
         </span>
-        <span className="text-[13px] text-[#A1A1A6] mb-0.5">kg lifted · {current.setCount} sets</span>
+        <span className="text-[13px] text-muted mb-0.5">kg lifted · {current.setCount} sets</span>
       </div>
 
       {delta !== null && (
@@ -76,12 +76,12 @@ export default function SessionVolumeCard({ routineName, sessionDate }: Props) {
             {delta > 0 ? '+' : ''}{Math.round(delta).toLocaleString()} kg
             {deltaPercent !== null && ` (${deltaPercent > 0 ? '+' : ''}${deltaPercent}%)`}
           </span>
-          <span className="text-[11px] text-[#A1A1A6]">vs last {routineName}</span>
+          <span className="text-[11px] text-muted">vs last {routineName}</span>
         </div>
       )}
 
       {!previous && (
-        <p className="text-[13px] text-[#A1A1A6]">First {routineName} session logged!</p>
+        <p className="text-[13px] text-muted">First {routineName} session logged!</p>
       )}
     </div>
   )

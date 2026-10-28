@@ -35,8 +35,8 @@ export interface PersonalBestPoint {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const ROUTINE_COLORS = [
-  '#93032E', '#0A84FF', '#30D158', '#FF9F0A',
-  '#BF5AF2', '#FF375F', '#5AC8FA', '#FFD60A',
+  'var(--color-accent-soft)', 'var(--color-info)', 'var(--color-success)', 'var(--color-warning)',
+  'var(--color-violet)', '#C98A9A', '#8FB2CF', '#E3C878',
 ]
 
 function colorForRoutine(name: string, index: number): string {

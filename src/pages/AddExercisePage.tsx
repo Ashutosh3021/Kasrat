@@ -21,24 +21,24 @@ interface MuscleSelectProps {
 export function MuscleSelect({ label, value, onChange, required, error, includeNone }: MuscleSelectProps) {
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-[13px] font-medium text-[#A1A1A6]">
-        {label}{required && <span className="text-[#FF453A] ml-0.5">*</span>}
+      <label className="text-[13px] font-medium text-muted">
+        {label}{required && <span className="text-danger ml-0.5">*</span>}
       </label>
       <div className="relative">
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[17px] text-white appearance-none focus:border-[#93032E] focus:outline-none"
-          style={{ borderRadius: '2px' }}
+          className="w-full bg-surface border border-line p-3 text-[16px] text-ink appearance-none focus:border-accent-hover focus:outline-none"
+          style={{ borderRadius: '10px' }}
         >
           {includeNone && <option value="">— None —</option>}
           {MUSCLE_GROUPS.map(m => (
             <option key={m} value={m}>{m}</option>
           ))}
         </select>
-        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1A6] pointer-events-none" strokeWidth={1.5} />
+        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" strokeWidth={1.5} />
       </div>
-      {error && <p className="text-[#FF453A] text-[13px]">{error}</p>}
+      {error && <p className="text-danger text-[13px]">{error}</p>}
     </div>
   )
 }
@@ -138,25 +138,25 @@ export default function AddExercisePage() {
   })
 
   return (
-    <div className="h-screen bg-[#151515] flex flex-col overflow-hidden">
-      <header className="flex items-center justify-between px-3 h-14 shrink-0 bg-[#151515]/80 backdrop-blur-md z-20 border-b border-[#2C2C2E]">
-        <button onClick={() => navigate(-1)} className="text-white p-2 -ml-2 hover:opacity-80">
+    <div className="h-screen bg-ground flex flex-col overflow-hidden">
+      <header className="flex items-center justify-between px-3 h-14 shrink-0 bg-ground/80 backdrop-blur-md z-20 border-b border-line">
+        <button onClick={() => navigate(-1)} className="text-ink p-2 -ml-2 hover:opacity-80">
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
-        <h1 className="text-[22px] font-medium text-white absolute left-1/2 -translate-x-1/2">New Exercise</h1>
+        <h1 className="text-[24px] font-medium text-ink absolute left-1/2 -translate-x-1/2">New Exercise</h1>
         <div className="w-10" />
       </header>
 
       {/* Mode toggle */}
-      <div className="px-3 py-3 flex gap-2 border-b border-[#2C2C2E]">
+      <div className="px-3 py-3 flex gap-2 border-b border-line">
         <button
           onClick={() => setMode('presets')}
           className={`flex-1 h-10 font-medium text-[15px] transition-colors ${
             mode === 'presets'
-              ? 'bg-[#93032E] text-white'
-              : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
+              ? 'bg-accent text-ink'
+              : 'bg-surface border border-line text-muted'
           }`}
-          style={{ borderRadius: '2px' }}
+          style={{ borderRadius: '10px' }}
         >
           Presets
         </button>
@@ -164,10 +164,10 @@ export default function AddExercisePage() {
           onClick={() => setMode('custom')}
           className={`flex-1 h-10 font-medium text-[15px] transition-colors ${
             mode === 'custom'
-              ? 'bg-[#93032E] text-white'
-              : 'bg-[#1C1C1E] border border-[#2C2C2E] text-[#A1A1A6]'
+              ? 'bg-accent text-ink'
+              : 'bg-surface border border-line text-muted'
           }`}
-          style={{ borderRadius: '2px' }}
+          style={{ borderRadius: '10px' }}
         >
           Custom
         </button>
@@ -185,16 +185,16 @@ export default function AddExercisePage() {
                 <div key={group}>
                   <button
                     onClick={() => toggleGroup(group)}
-                    className="w-full flex items-center justify-between bg-[#1C1C1E] border border-[#2C2C2E] px-3 py-2 hover:bg-[#2a2a2c] transition-colors"
-                    style={{ borderRadius: '4px' }}
+                    className="w-full flex items-center justify-between bg-surface border border-line px-3 py-2 hover:bg-surface-high transition-colors"
+                    style={{ borderRadius: '16px' }}
                   >
-                    <span className="text-[15px] font-medium text-white">{group}</span>
+                    <span className="text-[15px] font-medium text-ink">{group}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px] text-[#A1A1A6]">{exercises.length}</span>
+                      <span className="text-[13px] text-muted">{exercises.length}</span>
                       {isExpanded ? (
-                        <ChevronDown size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
+                        <ChevronDown size={18} strokeWidth={1.5} className="text-muted" />
                       ) : (
-                        <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
+                        <ChevronRight size={18} strokeWidth={1.5} className="text-muted" />
                       )}
                     </div>
                   </button>
@@ -205,10 +205,10 @@ export default function AddExercisePage() {
                         <button
                           key={ex.name}
                           onClick={() => selectPreset(ex)}
-                          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-2 flex items-center justify-between hover:border-[#93032E] transition-colors text-left"
-                          style={{ borderRadius: '4px' }}
+                          className="w-full bg-surface border border-line p-2 flex items-center justify-between hover:border-accent-hover transition-colors text-left"
+                          style={{ borderRadius: '16px' }}
                         >
-                          <span className="text-[15px] font-normal text-white">{ex.name}</span>
+                          <span className="text-[15px] font-normal text-ink">{ex.name}</span>
                         </button>
                       ))}
                     </div>
@@ -218,26 +218,26 @@ export default function AddExercisePage() {
             })}
           </div>
         ) : (
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
+          <div className="bg-surface border border-line p-3 flex flex-col gap-4" style={{ borderRadius: '16px' }}>
 
             {/* Name */}
             <div className="flex flex-col gap-2">
-              <label className="text-[13px] font-medium text-[#A1A1A6]">
-                Exercise Name<span className="text-[#FF453A] ml-0.5">*</span>
+              <label className="text-[13px] font-medium text-muted">
+                Exercise Name<span className="text-danger ml-0.5">*</span>
               </label>
               <input
                 value={name}
                 onChange={e => { setName(e.target.value); setNameError('') }}
-                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[17px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none"
-                style={{ borderRadius: '2px' }}
+                className="w-full bg-surface border border-line p-3 text-[16px] text-ink placeholder-muted focus:border-accent-hover focus:outline-none"
+                style={{ borderRadius: '10px' }}
                 placeholder="e.g., Barbell Bench Press"
               />
-              {nameError && <p className="text-[#FF453A] text-[13px]">{nameError}</p>}
+              {nameError && <p className="text-danger text-[13px]">{nameError}</p>}
             </div>
 
             {/* Type */}
             <div className="flex flex-col gap-2">
-              <label className="text-[13px] font-medium text-[#A1A1A6]">Type</label>
+              <label className="text-[13px] font-medium text-muted">Type</label>
               <div className="flex gap-2">
                 {EXERCISE_TYPES.map(t => (
                   <button
@@ -245,10 +245,10 @@ export default function AddExercisePage() {
                     onClick={() => setType(t.toLowerCase() as 'strength' | 'cardio')}
                     className={`flex-1 h-10 font-medium text-[15px] transition-all ${
                       type === t.toLowerCase()
-                        ? 'bg-[#93032E] text-white'
-                        : 'border border-[#2C2C2E] text-white'
+                        ? 'bg-accent text-ink'
+                        : 'border border-line text-ink'
                     }`}
-                    style={{ borderRadius: '2px' }}
+                    style={{ borderRadius: '10px' }}
                   >
                     {t}
                   </button>
@@ -266,7 +266,7 @@ export default function AddExercisePage() {
             <div className="flex flex-col gap-0">
               <button
                 onClick={() => setAdvancedOpen(o => !o)}
-                className="flex items-center justify-between py-2 text-[13px] font-medium text-[#A1A1A6] hover:text-white transition-colors"
+                className="flex items-center justify-between py-2 text-[13px] font-medium text-muted hover:text-ink transition-colors"
               >
                 <span>Advanced</span>
                 <ChevronDown
@@ -280,14 +280,14 @@ export default function AddExercisePage() {
                 style={{ maxHeight: advancedOpen ? '200px' : '0px' }}
               >
                 <div className="flex flex-col gap-2 pt-1 pb-2">
-                  <label className="text-[13px] font-medium text-[#A1A1A6]">Coach's Cues</label>
+                  <label className="text-[13px] font-medium text-muted">Coach's Cues</label>
                   <textarea
                     value={cues}
                     onChange={e => setCues(e.target.value)}
                     rows={3}
                     placeholder="e.g., Keep elbows tucked, drive through heels…"
-                    className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-[15px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none resize-none"
-                    style={{ borderRadius: '2px' }}
+                    className="w-full bg-surface border border-line p-3 text-[15px] text-ink placeholder-muted focus:border-accent-hover focus:outline-none resize-none"
+                    style={{ borderRadius: '10px' }}
                   />
                 </div>
               </div>
@@ -298,8 +298,8 @@ export default function AddExercisePage() {
 
       {mode === 'custom' && (
         <div className="fixed bottom-0 w-full flex flex-col z-50">
-          <div className="bg-[#151515]/95 backdrop-blur-md px-3 py-3 border-t border-[#2C2C2E]">
-            <button onClick={save} className="w-full h-12 bg-[#93032E] text-white font-medium text-[15px]" style={{ borderRadius: '2px' }}>
+          <div className="bg-ground/95 backdrop-blur-md px-3 py-3 border-t border-line">
+            <button onClick={save} className="w-full h-12 bg-accent text-ink font-medium text-[15px]" style={{ borderRadius: '10px' }}>
               Save
             </button>
           </div>

@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, ChevronRight, Dumbbell, Zap } from 'lucide-react'
+import { Play, ChevronRight, Dumbbell, Zap, Activity, BarChart3, CalendarDays, Apple, TrendingUp, Sparkles } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import { db, type Plan, type GymSet, type ReadinessLabel } from '../db/database'
-import { format } from '../utils/dateUtils'
 import { useWorkoutStore } from '../store/workoutStore'
 import { supabase } from '../supabase/client'
 import { useOnSyncComplete } from '../hooks/useOnSyncComplete'
@@ -29,6 +28,15 @@ interface WorkoutSession {
   latestCreated: string // ISO — used for "2h ago" label and sort
   exercises: ExerciseInSession[]
 }
+
+const QUICK_LINKS = [
+  { label: 'Body stats', detail: 'Weight & measures', path: '/body-measurements', icon: Activity },
+  { label: 'Weekly stats', detail: 'Volume & trends', path: '/stats', icon: BarChart3 },
+  { label: 'Calendar', detail: 'Your training month', path: '/calendar', icon: CalendarDays },
+  { label: 'Nutrition', detail: 'Fuel and macros', path: '/nutrition', icon: Apple },
+  { label: 'Progress', detail: 'The long view', path: '/progress', icon: TrendingUp },
+  { label: 'Generate plan', detail: 'Built around you', path: '/generate-plan', icon: Sparkles },
+]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -118,52 +126,44 @@ function SessionCard({ session, onTap }: SessionCardProps) {
   // Show at most 4 exercises, then "+N more"
   const visible = session.exercises.slice(0, 4)
   const extra = session.exercises.length - visible.length
+  const exerciseNames = visible.map(ex => ex.name).join(' · ')
 
   return (
     <button
+      type="button"
       onClick={onTap}
-      className="w-full bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-3 text-left active:scale-[0.98] transition-transform hover:border-[#93032E]/40"
-      style={{ borderRadius: '4px' }}
+      className="card card-hover group flex w-full items-center gap-3.5 p-4 text-left"
     >
-      {/* Header row */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[17px] font-semibold text-white leading-tight">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface-high text-accent-soft transition-colors group-hover:border-accent/40">
+        <Dumbbell size={18} strokeWidth={1.7} />
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline justify-between gap-3">
+          <span className="truncate text-[15px] font-semibold tracking-[-0.02em] text-ink">
             {session.planTitle}
           </span>
-          <span className="text-[13px] font-medium text-[#A1A1A6]">
+          <span className="mono shrink-0 text-[10px] uppercase tracking-[0.08em] text-muted-dim">
             {formatSessionDate(session.latestCreated)}
           </span>
-        </div>
-        <ChevronRight size={18} className="text-[#424754] shrink-0" />
-      </div>
+        </span>
+        <span className="mt-1 block truncate text-[12px] text-muted">
+          {exerciseNames}
+          {extra > 0 ? ` · +${extra} more` : ''}
+        </span>
+      </span>
 
-      {/* Exercise list */}
-      <div className="flex flex-col gap-1.5">
-        {visible.map(ex => (
-          <div key={ex.name} className="flex items-center justify-between">
-            <span className="text-[15px] text-[#e4e2e4]">{ex.name}</span>
-            <span className="text-[13px] font-medium text-[#A1A1A6]">
-              {ex.sets} {ex.sets === 1 ? 'set' : 'sets'}
-            </span>
-          </div>
-        ))}
-        {extra > 0 && (
-          <span className="text-[13px] font-medium text-[#A1A1A6]">
-            +{extra} more exercise{extra > 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
+      <ChevronRight size={16} className="shrink-0 text-muted-dim transition-transform group-hover:translate-x-0.5 group-hover:text-ink" />
     </button>
   )
 }
 
 // ─── Readiness Chip ───────────────────────────────────────────────────────────
 
-const READINESS_META: Record<ReadinessLabel, { emoji: string; text: string; color: string }> = {
-  green:  { emoji: '🟢', text: 'Primed to Perform', color: '#22c55e' },
-  yellow: { emoji: '🟡', text: 'Baseline',           color: '#eab308' },
-  red:    { emoji: '🔴', text: 'Recovery Day',       color: '#FF453A' },
+const READINESS_META: Record<ReadinessLabel, { text: string; color: string }> = {
+  green:  { text: 'Primed to perform', color: 'var(--color-success)' },
+  yellow: { text: 'Baseline',          color: 'var(--color-warning)' },
+  red:    { text: 'Recovery day',      color: 'var(--color-danger)' },
 }
 
 function ReadinessCard({
@@ -176,36 +176,50 @@ function ReadinessCard({
   onNavigate: () => void
 }) {
   if (todayLabel !== null && todayScore !== null) {
-    // Already done today — show compact chip
     const meta = READINESS_META[todayLabel]
     return (
       <button
+        type="button"
         onClick={onNavigate}
-        className="w-full flex items-center justify-between bg-[#1C1C1E] border border-[#2C2C2E] px-3 h-11 rounded-[4px] hover:border-[#93032E]/40 transition-colors"
+        className="card card-hover flex w-full items-center gap-3.5 p-4 text-left"
       >
-        <div className="flex items-center gap-2">
-          <span className="text-[15px]">{meta.emoji}</span>
-          <span className="text-[15px] font-semibold text-white">{meta.text}</span>
-          <span className="text-[12px] font-medium px-1.5 py-0.5 rounded-[2px]" style={{ background: `${meta.color}20`, color: meta.color }}>
-            {todayScore}/25
-          </span>
-        </div>
-        <ChevronRight size={16} strokeWidth={1.5} className="text-[#A1A1A6]" />
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
+          style={{
+            borderColor: `color-mix(in srgb, ${meta.color} 40%, transparent)`,
+            background: `color-mix(in srgb, ${meta.color} 12%, transparent)`,
+            color: meta.color,
+          }}
+        >
+          <Activity size={17} strokeWidth={1.8} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="kicker">Readiness</span>
+          <span className="mt-0.5 block truncate text-[15px] font-semibold text-ink">{meta.text}</span>
+        </span>
+        <span className="flex items-baseline gap-0.5" style={{ color: meta.color }}>
+          <span className="stat-value text-[26px]">{todayScore}</span>
+          <span className="mono text-[10px] text-muted">/25</span>
+        </span>
+        <ChevronRight size={16} className="shrink-0 text-muted-dim" />
       </button>
     )
   }
 
-  // Not done yet — prompt card
   return (
     <button
+      type="button"
       onClick={onNavigate}
-      className="w-full flex items-center justify-between bg-[#1C1C1E] border border-[#2C2C2E] px-3 h-11 rounded-[4px] hover:border-[#93032E]/40 transition-colors"
+      className="card card-hover flex w-full items-center gap-3.5 p-4 text-left"
     >
-      <div className="flex items-center gap-2">
-        <span className="text-[15px]">⚡</span>
-        <span className="text-[15px] text-[#A1A1A6]">How are you feeling today?</span>
-      </div>
-      <span className="text-[13px] font-medium text-[#93032E]">Check →</span>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent/30 bg-accent/10 text-accent-soft">
+        <Zap size={17} strokeWidth={1.8} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="kicker">Daily check-in</span>
+        <span className="mt-0.5 block text-[15px] font-semibold text-ink">How are you feeling today?</span>
+      </span>
+      <span className="chip chip-accent">Check</span>
     </button>
   )
 }
@@ -223,7 +237,6 @@ export default function HomePage() {
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
   const [expanded, setExpanded] = useState(false)
   const [showConflictDialog, setShowConflictDialog] = useState(false)
-  const [conflictTargetId, setConflictTargetId] = useState<number | null>(null)
   const [userName, setUserName] = useState('')
   const [todayReadinessLabel, setTodayReadinessLabel] = useState<ReadinessLabel | null>(null)
   const [todayReadinessScore, setTodayReadinessScore] = useState<number | null>(null)
@@ -294,7 +307,6 @@ export default function HomePage() {
 
   function handleStartPlan(plan: Plan) {
     if (activePlanId && activePlanId !== plan.id) {
-      setConflictTargetId(plan.id!)
       setShowConflictDialog(true)
     } else {
       navigate(`/start-plan/${plan.id}`)
@@ -303,7 +315,6 @@ export default function HomePage() {
 
   function handleEmptyWorkout() {
     if (activePlanId) {
-      setConflictTargetId(null)
       setShowConflictDialog(true)
     } else {
       navigate('/quick-workout')
@@ -311,128 +322,168 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-24 pt-14">
+    <div className="page pt-14">
       <TopBar />
-      <main className="px-4 space-y-8 max-w-2xl mx-auto">
-        <div className="pt-4">
-          <p className="text-[13px] font-medium text-[#A1A1A6]">{dateStr}</p>
-          <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white mt-1">
-            {userName
-              ? <>Ready to lift, <span className="text-[#93032E]">{userName}</span>?</>
-              : 'Ready to lift?'}
-          </h1>
-        </div>
+      <main className="page-main space-y-7">
+        <header className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <p className="kicker">{dateStr}</p>
+            <h1 className="display-hero mt-3">
+              {userName ? (
+                <>Ready to<br /> lift, <span className="text-accent-soft">{userName}</span>?</>
+              ) : (
+                <>Ready to<br /> lift?</>
+              )}
+            </h1>
+          </div>
+          <div className="mb-1 flex shrink-0 flex-col items-end rounded-2xl border border-line bg-surface/80 p-3 backdrop-blur">
+            <span className="kicker">Week</span>
+            <span className="stat-value mt-1.5">{weekSets}</span>
+            <span className="stat-label mt-1">sets</span>
+          </div>
+        </header>
 
-        <StreakCard />
-
-        {/* Feature 3: Daily weight entry widget */}
-        <WeightEntryWidget />
-
-        {/* Daily Readiness Check */}
-        <ReadinessCard
-          todayLabel={todayReadinessLabel}
-          todayScore={todayReadinessScore}
-          onNavigate={() => navigate('/readiness')}
-        />
-
-        {/* Resume banner */}
         {activePlanId && (
-          <section className="bg-[#93032E]/10 border border-[#93032E]/40 p-3 flex items-center justify-between" style={{ borderRadius: '4px' }}>
-            <div className="flex items-center gap-3">
-              <Dumbbell size={20} strokeWidth={1.5} className="text-[#93032E] shrink-0" />
-              <div>
-                <p className="text-[15px] font-medium text-white">Unfinished workout</p>
-                <p className="text-[13px] text-[#A1A1A6]">{activePlanTitle}</p>
-              </div>
+          <section className="flex items-center gap-3 rounded-[18px] border border-accent/35 bg-accent/10 p-3.5">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-on-accent">
+              <Dumbbell size={18} strokeWidth={1.8} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="kicker text-accent-soft">Session paused</p>
+              <p className="mt-0.5 truncate text-[14px] font-semibold text-ink">{activePlanTitle}</p>
             </div>
             <button
+              type="button"
               onClick={() => navigate(`/start-plan/${activePlanId}`)}
-              className="text-[#93032E] font-medium text-[13px] shrink-0"
+              className="btn btn-sm btn-primary shrink-0"
             >
               Resume
             </button>
           </section>
         )}
 
-        {/* Today's plan cards */}
-        {todayPlans.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            {todayPlans.map(plan => (
-              <section key={plan.id} className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-3" style={{ borderRadius: '4px' }}>
-                <div className="flex justify-between items-start">
-                  <div className="flex flex-col gap-0.5">
-                    <h2 className="text-[22px] font-semibold text-white leading-tight">{plan.title}</h2>
-                    <span className="text-[13px] font-medium text-[#A1A1A6]">
-                      {planExerciseCounts[plan.id!] ?? 0} exercise{(planExerciseCounts[plan.id!] ?? 0) !== 1 ? 's' : ''} scheduled
-                    </span>
-                  </div>
-                  <div className="bg-[#2C2C2E] px-2 py-1 shrink-0" style={{ borderRadius: '2px' }}>
-                    <span className="text-[11px] font-medium text-[#A1A1A6]">TODAY</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleStartPlan(plan)}
-                  className="w-full bg-[#93032E] text-white font-medium h-11 flex items-center justify-center gap-2"
-                  style={{ borderRadius: '2px' }}
-                >
-                  <Play size={16} strokeWidth={1.5} fill="white" />
-                  Start Workout
-                </button>
-              </section>
-            ))}
+        <section className="space-y-3">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="kicker">On deck</p>
+              <h2 className="section-title mt-1">Today’s training</h2>
+            </div>
+            <span className="chip">{todayPlans.length > 0 ? `${todayPlans.length} ready` : 'Rest day'}</span>
           </div>
-        ) : (
-          <section className="bg-[#1C1C1E] border border-[#2C2C2E] text-center py-8" style={{ borderRadius: '4px' }}>
-            <p className="text-[#A1A1A6] text-[15px]">No plan scheduled for today</p>
-            <button onClick={() => navigate('/plans')} className="mt-3 text-[#93032E] font-medium text-[15px]">View Plans</button>
-          </section>
-        )}
 
-        {/* Empty / Quick workout */}
-        <button
-          onClick={handleEmptyWorkout}
-          className="w-full bg-[#1C1C1E] border border-[#2C2C2E] h-11 flex items-center justify-center gap-2 text-[#A1A1A6] font-medium text-[15px] hover:border-[#93032E]/40 transition-colors"
-          style={{ borderRadius: '2px' }}
-        >
-          <Zap size={16} strokeWidth={1.5} />
-          Empty Workout
-        </button>
+          {todayPlans.length > 0 ? (
+            <div className="stagger space-y-3">
+              {todayPlans.map(plan => (
+                <article key={plan.id} className="hero-panel card overflow-hidden">
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="chip chip-accent">Today</span>
+                      <span className="mono text-[10px] uppercase tracking-[0.1em] text-muted">
+                        {planExerciseCounts[plan.id!] ?? 0} exercises
+                      </span>
+                    </div>
+                    <h3 className="display mt-7 text-[32px] text-ink">{plan.title}</h3>
+                    <p className="mt-2 max-w-[34ch] text-[13px] leading-relaxed text-muted">
+                      The work is already planned. All that is left is to show up.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleStartPlan(plan)}
+                      className="btn btn-primary mt-5 w-full"
+                    >
+                      <Play size={16} strokeWidth={1.7} fill="currentColor" />
+                      Start workout
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="card flex flex-col items-center px-6 py-8 text-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-line bg-surface-high text-muted">
+                <Dumbbell size={19} strokeWidth={1.7} />
+              </span>
+              <h3 className="mt-4 text-[18px] font-bold tracking-[-0.03em] text-ink">Rest day. Recover well.</h3>
+              <p className="mt-1 max-w-[30ch] text-[13px] leading-relaxed text-muted">
+                No plan is scheduled today. Take the recovery, or pick something for later.
+              </p>
+              <button type="button" onClick={() => navigate('/plans')} className="btn btn-secondary btn-sm mt-4">
+                Browse plans
+              </button>
+            </div>
+          )}
 
-        {/* Weekly stats */}
-        <section className="grid grid-cols-2 gap-3">
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col justify-between min-h-[100px]" style={{ borderRadius: '4px' }}>
-            <span className="text-[13px] font-medium text-[#A1A1A6]">This Week</span>
-            <div className="flex items-end gap-2">
-              <span className="text-[32px] font-semibold leading-none text-white">{weekExercises}</span>
-              <span className="text-[13px] font-medium text-[#A1A1A6] mb-1">Exercises</span>
+          <button
+            type="button"
+            onClick={handleEmptyWorkout}
+            className="card card-hover group flex w-full items-center gap-3.5 p-4 text-left"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface-high text-accent-soft">
+              <Zap size={17} strokeWidth={1.8} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14px] font-semibold text-ink">Empty workout</span>
+              <span className="mt-0.5 block text-[12px] text-muted">Start from a blank slate</span>
+            </span>
+            <ChevronRight size={16} className="shrink-0 text-muted-dim transition-transform group-hover:translate-x-0.5 group-hover:text-ink" />
+          </button>
+        </section>
+
+        <StreakCard />
+
+        <section className="space-y-3">
+          <div>
+            <p className="kicker">Daily check-in</p>
+            <h2 className="section-title mt-1">Read the body</h2>
+          </div>
+          <ReadinessCard
+            todayLabel={todayReadinessLabel}
+            todayScore={todayReadinessScore}
+            onNavigate={() => navigate('/readiness')}
+          />
+          <WeightEntryWidget />
+        </section>
+
+        <section className="card p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="kicker">Week load</p>
+              <h2 className="section-title mt-1">Consistency</h2>
+            </div>
+            <span className="chip">{weekExercises} exercises</span>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-6">
+            <div>
+              <span className="stat-value block">{weekSets}</span>
+              <span className="stat-label mt-2 block">Sets logged</span>
+            </div>
+            <div>
+              <span className="stat-value block">{weekExercises}</span>
+              <span className="stat-label mt-2 block">Exercises</span>
             </div>
           </div>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col justify-between min-h-[100px]" style={{ borderRadius: '4px' }}>
-            <span className="text-[13px] font-medium text-[#A1A1A6]">This Week</span>
-            <div className="flex items-end gap-2">
-              <span className="text-[32px] font-semibold leading-none text-white">{weekSets}</span>
-              <span className="text-[13px] font-medium text-[#A1A1A6] mb-1">Sets</span>
-            </div>
-          </div>
-          <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col justify-between col-span-2 relative overflow-hidden min-h-[80px]" style={{ borderRadius: '4px' }}>
-            <span className="text-[13px] font-medium text-[#A1A1A6] z-10">Most Used</span>
-            <span className="text-[22px] font-medium text-white mt-1 z-10">{mostUsed}</span>
+          <div className="mt-5 flex items-center justify-between gap-4 border-t border-line pt-4">
+            <span className="kicker">Most trained</span>
+            <span className="max-w-[60%] truncate text-right text-[13px] font-semibold text-ink-soft">{mostUsed}</span>
           </div>
         </section>
 
-        {/* Recent Activity — grouped by session */}
         {sessions.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[22px] font-medium text-white">Recent Activity</h3>
+          <section className="space-y-3">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="kicker">The log</p>
+                <h2 className="section-title mt-1">Recent sessions</h2>
+              </div>
               <button
+                type="button"
                 onClick={() => navigate('/history')}
-                className="text-[13px] font-medium text-[#93032E]"
+                className="mono text-[10px] uppercase tracking-[0.12em] text-accent-soft transition-opacity hover:opacity-70"
               >
                 See all
               </button>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="space-y-2.5">
               {(expanded ? sessions : sessions.slice(0, 3)).map(session => (
                 <SessionCard
                   key={session.key}
@@ -442,94 +493,75 @@ export default function HomePage() {
               ))}
             </div>
             {sessions.length > 3 && (
-              <div className="flex justify-end mt-2">
+              <div className="flex justify-center pt-1">
                 <button
+                  type="button"
                   onClick={() => setExpanded(!expanded)}
-                  className="text-[13px] font-medium transition-colors focus:outline-none bg-transparent border-0 p-1 cursor-pointer"
-                  style={{ color: '#DC143C' }}
+                  className="btn btn-ghost btn-sm"
                 >
-                  {expanded ? 'View less' : 'View more'}
+                  {expanded ? 'Show less' : 'Show more'}
                 </button>
               </div>
             )}
           </section>
         )}
 
-        {/* Quick links */}
-        <section className="grid grid-cols-2 gap-3 pb-4">
-          <button
-            onClick={() => navigate('/body-measurements')}
-            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#93032E]/40 transition-colors"
-            style={{ borderRadius: '4px' }}
-          >
-            <span className="text-[15px] font-medium text-white">Body Stats</span>
-          </button>
-          <button
-            onClick={() => navigate('/stats')}
-            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#93032E]/40 transition-colors"
-            style={{ borderRadius: '4px' }}
-          >
-            <span className="text-[15px] font-medium text-white">Weekly Stats</span>
-          </button>
-          <button
-            onClick={() => navigate('/calendar')}
-            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#93032E]/40 transition-colors"
-            style={{ borderRadius: '4px' }}
-          >
-            <span className="text-[15px] font-medium text-white">Calendar</span>
-          </button>
-          <button
-            onClick={() => navigate('/nutrition')}
-            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#93032E]/40 transition-colors"
-            style={{ borderRadius: '4px' }}
-          >
-            <span className="text-[15px] font-medium text-white">Nutrition</span>
-          </button>
-          {/* Feature 8 & 15: Progress Dashboard entry point */}
-          <button
-            onClick={() => navigate('/progress')}
-            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#93032E]/40 transition-colors"
-            style={{ borderRadius: '4px' }}
-          >
-            <span className="text-[15px] font-medium text-white">Progress</span>
-          </button>
-          {/* Feature 12: Individualised program generator entry point */}
-          <button
-            onClick={() => navigate('/generate-plan')}
-            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex items-center gap-3 hover:border-[#93032E]/40 transition-colors"
-            style={{ borderRadius: '4px' }}
-          >
-            <span className="text-[15px] font-medium text-white">Generate Plan</span>
-          </button>
+        <section className="space-y-3 pb-4">
+          <div>
+            <p className="kicker">Tools</p>
+            <h2 className="section-title mt-1">Beyond the bar</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {QUICK_LINKS.map(item => {
+              const Icon = item.icon
+              return (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => navigate(item.path)}
+                  className="card card-hover flex min-h-[104px] flex-col items-start justify-between p-4 text-left"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface-high text-accent-soft">
+                    <Icon size={15} strokeWidth={1.8} />
+                  </span>
+                  <span className="mt-4 block">
+                    <span className="block text-[13px] font-semibold leading-tight text-ink">{item.label}</span>
+                    <span className="mt-0.5 block text-[11px] leading-tight text-muted">{item.detail}</span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </section>
       </main>
 
-      {/* Concurrent session conflict dialog */}
       {showConflictDialog && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#151515]/80 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
-            <h3 className="text-[22px] font-medium text-white">Workout in Progress</h3>
-            <p className="text-[15px] text-[#A1A1A6]">
-              <span className="text-white font-medium">{activePlanTitle}</span> is still active.
-              Finish it before starting a new one.
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ground/80 p-4 backdrop-blur-md">
+          <div className="card w-full max-w-sm p-6">
+            <p className="kicker text-accent-soft">Heads up</p>
+            <h3 className="mt-2 text-[24px] font-bold tracking-[-0.04em] text-ink">Workout in progress</h3>
+            <p className="mt-2 text-[14px] leading-relaxed text-muted">
+              <span className="font-semibold text-ink">{activePlanTitle}</span> is still active. Finish it before starting another session.
             </p>
-            <button
-              onClick={() => {
-                setShowConflictDialog(false)
-                navigate(activePlanId === -1 ? '/quick-workout' : `/start-plan/${activePlanId}`)
-              }}
-              className="w-full h-12 bg-[#93032E] text-white font-medium text-[15px]"
-              style={{ borderRadius: '2px' }}
-            >
-              Go to Current Session
-            </button>
-            <button
-              onClick={() => { setShowConflictDialog(false); setConflictTargetId(null) }}
-              className="w-full h-12 border border-[#2C2C2E] text-white font-medium text-[15px]"
-              style={{ borderRadius: '2px' }}
-            >
-              Cancel
-            </button>
+            <div className="mt-6 space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConflictDialog(false)
+                  navigate(activePlanId === -1 ? '/quick-workout' : `/start-plan/${activePlanId}`)
+                }}
+                className="btn btn-primary w-full"
+              >
+                Go to current session
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowConflictDialog(false) }}
+                className="btn btn-secondary w-full"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

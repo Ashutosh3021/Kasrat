@@ -98,14 +98,14 @@ export default function DayResolutionSheet({
   const isSunday = activeDate ? weekdayFromDayKey(activeDate) === 0 : false
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#151515]/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-ground/80 backdrop-blur-sm">
       <div
-        className="w-full max-w-lg bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex flex-col gap-4 max-h-[85vh] overflow-y-auto"
-        style={{ borderRadius: '4px 4px 0 0' }}
+        className="w-full max-w-lg bg-surface border border-line p-4 flex flex-col gap-4 max-h-[85vh] overflow-y-auto"
+        style={{ borderRadius: '20px 20px 0 0' }}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-[22px] font-medium text-white">Review day</h3>
-          <button type="button" onClick={onClose} className="p-2 text-[#A1A1A6] hover:text-white">
+          <h3 className="text-[24px] font-medium text-ink">Review day</h3>
+          <button type="button" onClick={onClose} className="p-2 text-muted hover:text-ink">
             <X size={20} />
           </button>
         </div>
@@ -117,10 +117,10 @@ export default function DayResolutionSheet({
                 key={p.date}
                 type="button"
                 onClick={() => setActiveDate(p.date)}
-                className={`shrink-0 px-3 py-1.5 text-[13px] font-medium rounded-[2px] ${
+                className={`shrink-0 px-3 py-1.5 text-[13px] font-medium rounded-lg ${
                   activeDate === p.date
-                    ? 'bg-[#93032E] text-white'
-                    : 'bg-[#2C2C2E] text-[#A1A1A6]'
+                    ? 'bg-accent text-ink'
+                    : 'bg-line text-muted'
                 }`}
               >
                 {p.date.slice(5)}
@@ -132,21 +132,21 @@ export default function DayResolutionSheet({
         {detail ? (
           <>
             <div>
-              <p className="text-[17px] font-semibold text-white">{formatDayHeading(detail.date)}</p>
+              <p className="text-[16px] font-semibold text-ink">{formatDayHeading(detail.date)}</p>
               {detail.hadSession ? (
                 <p className="text-[15px] text-emerald-400 mt-1">Session logged — counted as complete.</p>
               ) : detail.scheduled ? (
-                <p className="text-[15px] text-[#A1A1A6] mt-1">
+                <p className="text-[15px] text-muted mt-1">
                   {detail.scheduledPlanTitles.length > 0
                     ? `${detail.scheduledPlanTitles.join(', ')} was scheduled · No session`
                     : 'Workout scheduled · No session'}
                 </p>
               ) : isSunday ? (
-                <p className="text-[15px] text-[#A1A1A6] mt-1">
+                <p className="text-[15px] text-muted mt-1">
                   Sunday wasn&apos;t on your schedule — usually counts as rest automatically.
                 </p>
               ) : (
-                <p className="text-[15px] text-[#A1A1A6] mt-1">
+                <p className="text-[15px] text-muted mt-1">
                   No workout scheduled. Mark as rest if you recovered, or missed if you skipped optional work.
                 </p>
               )}
@@ -158,21 +158,21 @@ export default function DayResolutionSheet({
                   type="button"
                   disabled={saving}
                   onClick={() => handleResolve('rest')}
-                  className="w-full text-left px-3 py-3 border border-[#2C2C2E] hover:border-[#93032E]/50 disabled:opacity-50"
-                  style={{ borderRadius: '2px' }}
+                  className="w-full text-left px-3 py-3 border border-line hover:border-accent-hover/50 disabled:opacity-50"
+                  style={{ borderRadius: '10px' }}
                 >
-                  <span className="text-[15px] font-medium text-white">Rest day</span>
-                  <p className="text-[13px] text-[#A1A1A6] mt-0.5">I planned to recover — keep my streak</p>
+                  <span className="text-[15px] font-medium text-ink">Rest day</span>
+                  <p className="text-[13px] text-muted mt-0.5">I planned to recover — keep my streak</p>
                 </button>
                 <button
                   type="button"
                   disabled={saving}
                   onClick={() => handleResolve('missed')}
-                  className="w-full text-left px-3 py-3 border border-[#2C2C2E] hover:border-red-500/40 disabled:opacity-50"
-                  style={{ borderRadius: '2px' }}
+                  className="w-full text-left px-3 py-3 border border-line hover:border-red-500/40 disabled:opacity-50"
+                  style={{ borderRadius: '10px' }}
                 >
-                  <span className="text-[15px] font-medium text-white">Missed workout</span>
-                  <p className="text-[13px] text-[#A1A1A6] mt-0.5">I skipped this — break streak from this day</p>
+                  <span className="text-[15px] font-medium text-ink">Missed workout</span>
+                  <p className="text-[13px] text-muted mt-0.5">I skipped this — break streak from this day</p>
                 </button>
               </div>
             )}
@@ -180,14 +180,14 @@ export default function DayResolutionSheet({
             {error && <p className="text-[13px] text-red-400">{error}</p>}
           </>
         ) : (
-          <p className="text-[15px] text-[#A1A1A6]">No days need review right now.</p>
+          <p className="text-[15px] text-muted">No days need review right now.</p>
         )}
 
         <button
           type="button"
           onClick={onClose}
-          className="w-full h-11 border border-[#2C2C2E] text-white font-medium text-[15px]"
-          style={{ borderRadius: '2px' }}
+          className="w-full h-11 border border-line text-ink font-medium text-[15px]"
+          style={{ borderRadius: '10px' }}
         >
           Close
         </button>

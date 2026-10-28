@@ -72,20 +72,20 @@ export default function TemplatePicker({ onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-[#151515]/80 z-[70] flex flex-col justify-end animate-fadeIn">
-      <div className="bg-[#1C1C1E] w-full max-h-[90dvh] rounded-t-[4px] border-t border-[#2C2C2E] flex flex-col overflow-hidden animate-slideUp">
+    <div className="fixed inset-0 bg-ground/80 z-[70] flex flex-col justify-end animate-fadeIn">
+      <div className="bg-surface w-full max-h-[90dvh] rounded-t-[4px] border-t border-line flex flex-col overflow-hidden animate-slideUp">
         {/* Handle */}
-        <div className="w-12 h-1 bg-[#353437] rounded-full mx-auto mt-3 shrink-0" />
+        <div className="w-12 h-1 bg-line-strong rounded-full mx-auto mt-3 shrink-0" />
 
         {/* Header */}
         <div className="px-3 flex items-center justify-between py-3 shrink-0">
-          <h2 className="text-[22px] font-semibold text-white">Program Templates</h2>
-          <button onClick={onClose} className="p-2 hover:bg-[#2C2C2E] rounded-[2px]">
-            <X size={20} strokeWidth={1.5} className="text-white" />
+          <h2 className="text-[24px] font-semibold text-ink">Program Templates</h2>
+          <button onClick={onClose} className="p-2 hover:bg-line rounded-lg">
+            <X size={20} strokeWidth={1.5} className="text-ink" />
           </button>
         </div>
 
-        <p className="px-3 text-[13px] text-[#A1A1A6] pb-3 shrink-0">
+        <p className="px-3 text-[13px] text-muted pb-3 shrink-0">
           Choose a template to create a ready-made plan. You can edit it after.
         </p>
 
@@ -94,22 +94,22 @@ export default function TemplatePicker({ onClose }: Props) {
           {PROGRAM_TEMPLATES.map(t => (
             <div
               key={t.id}
-              className="bg-[#131315] border border-[#2C2C2E] rounded-[4px] overflow-hidden"
+              className="bg-ground-deep border border-line rounded-2xl overflow-hidden"
             >
               {/* Card header */}
               <div className="p-3 flex flex-col gap-2">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-[17px] font-semibold text-white">{t.name}</h3>
+                    <h3 className="text-[16px] font-semibold text-ink">{t.name}</h3>
                     {t.description && (
-                      <p className="text-[13px] text-[#A1A1A6] mt-0.5">{t.description}</p>
+                      <p className="text-[13px] text-muted mt-0.5">{t.description}</p>
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="text-[12px] font-semibold bg-[#93032E]/15 text-[#93032E] px-2 py-0.5 rounded-[2px]">
+                    <span className="text-[12px] font-semibold bg-accent/15 text-accent-soft px-2 py-0.5 rounded-lg">
                       {t.days.length} days
                     </span>
-                    <span className="text-[12px] text-[#A1A1A6]">{totalExercises(t)} exercises</span>
+                    <span className="text-[12px] text-muted">{totalExercises(t)} exercises</span>
                   </div>
                 </div>
 
@@ -117,9 +117,9 @@ export default function TemplatePicker({ onClose }: Props) {
                 <div className="flex flex-col gap-1.5 mt-1">
                   {t.days.map(day => (
                     <div key={day.dayLabel} className="flex items-center gap-2">
-                      <ChevronRight size={12} strokeWidth={1.5} className="text-[#424754] shrink-0" />
-                      <span className="text-[13px] text-[#A1A1A6]">
-                        <span className="font-medium text-white">{day.dayLabel}</span>
+                      <ChevronRight size={12} strokeWidth={1.5} className="text-muted-dim shrink-0" />
+                      <span className="text-[13px] text-muted">
+                        <span className="font-medium text-ink">{day.dayLabel}</span>
                         {' — '}{day.exercises.length} exercises
                       </span>
                     </div>
@@ -132,7 +132,7 @@ export default function TemplatePicker({ onClose }: Props) {
                 <button
                   onClick={() => useTemplate(t)}
                   disabled={creating}
-                  className="w-full h-11 bg-[#93032E] text-white rounded-[2px] font-semibold text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
+                  className="w-full h-11 bg-accent text-ink rounded-lg font-semibold text-[15px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
                 >
                   Use this template
                 </button>
@@ -144,8 +144,8 @@ export default function TemplatePicker({ onClose }: Props) {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] bg-[#1C1C1E] border border-[#93032E]/40 text-white text-[15px] font-medium px-3 py-2 rounded-[4px] flex items-center gap-2 animate-fadeIn">
-          <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E]" />
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] bg-surface border border-accent-hover/40 text-ink text-[15px] font-medium px-3 py-2 rounded-2xl flex items-center gap-2 animate-fadeIn">
+          <CheckCircle size={18} strokeWidth={1.5} className="text-accent-soft" />
           {toast}
         </div>
       )}

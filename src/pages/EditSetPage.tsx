@@ -26,9 +26,9 @@ function TinyInput({ label, value, onChange, min, max, placeholder }: TinyInputP
   return (
     <div className="flex flex-col items-center gap-1">
       {!focused && (
-        <span className="text-[11px] font-medium text-[#A1A1A6] leading-none">{label}</span>
+        <span className="text-[11px] font-medium text-muted leading-none">{label}</span>
       )}
-      {focused && <span className="text-[11px] font-medium text-[#A1A1A6] leading-none opacity-0 select-none">{label}</span>}
+      {focused && <span className="text-[11px] font-medium text-muted leading-none opacity-0 select-none">{label}</span>}
       <input
         type="number"
         inputMode="numeric"
@@ -39,8 +39,8 @@ function TinyInput({ label, value, onChange, min, max, placeholder }: TinyInputP
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onChange={e => onChange(e.target.value)}
-        className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E] tabular-nums"
-        style={{ borderRadius: '2px' }}
+        className="w-12 h-10 bg-surface border border-line text-[15px] text-ink text-center focus:outline-none focus:border-accent-hover tabular-nums"
+        style={{ borderRadius: '10px' }}
       />
     </div>
   )
@@ -106,49 +106,49 @@ export default function EditSetPage() {
   const orm = !set?.cardio ? brzycki(w, r) : null
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-safe">
-      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-3 h-14 bg-[#151515] border-b border-[#2C2C2E]">
-        <button onClick={handleBack} className="text-white flex items-center justify-center p-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
+    <div className="min-h-screen bg-ground pb-safe">
+      <header className="fixed top-0 w-full z-50 flex justify-between items-center px-3 h-14 bg-ground border-b border-line">
+        <button onClick={handleBack} className="text-ink flex items-center justify-center p-2 hover:bg-surface" style={{ borderRadius: '10px' }}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
-        <h1 className="text-[22px] font-medium text-white">Edit Set</h1>
-        <button onClick={deleteSet} className="text-[#FF453A] flex items-center justify-center p-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
+        <h1 className="text-[24px] font-medium text-ink">Edit Set</h1>
+        <button onClick={deleteSet} className="text-danger flex items-center justify-center p-2 hover:bg-surface" style={{ borderRadius: '10px' }}>
           <Trash2 size={20} strokeWidth={1.5} />
         </button>
       </header>
 
-      <main className="pt-16 px-3 pb-24">
-        <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
+      <main className="pt-16 px-3 pb-32">
+        <div className="bg-surface border border-line p-3 flex flex-col gap-4" style={{ borderRadius: '16px' }}>
 
           {/* Exercise name */}
           <div>
-            <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Exercise</label>
-            <div className="text-[17px] text-white py-2">{set?.name}</div>
+            <label className="text-[13px] font-medium text-muted block mb-1">Exercise</label>
+            <div className="text-[16px] text-ink py-2">{set?.name}</div>
           </div>
-          <div className="h-px bg-[#2C2C2E] w-full" />
+          <div className="h-px bg-line w-full" />
 
           {/* Weight + Reps */}
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Weight ({settings.strengthUnit})</label>
+              <label className="text-[13px] font-medium text-muted block mb-1">Weight ({settings.strengthUnit})</label>
               <input
                 type="number"
                 inputMode="decimal"
                 value={weight}
                 onChange={e => { setWeight(e.target.value); setHasChanges(true) }}
-                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E]"
-                style={{ borderRadius: '2px' }}
+                className="w-full bg-surface border border-line text-[16px] text-ink px-3 py-3 focus:outline-none focus:border-accent-hover"
+                style={{ borderRadius: '10px' }}
               />
             </div>
             <div className="flex-1">
-              <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Reps</label>
+              <label className="text-[13px] font-medium text-muted block mb-1">Reps</label>
               <input
                 type="number"
                 inputMode="numeric"
                 value={reps}
                 onChange={e => { setReps(e.target.value); setHasChanges(true) }}
-                className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E]"
-                style={{ borderRadius: '2px' }}
+                className="w-full bg-surface border border-line text-[16px] text-ink px-3 py-3 focus:outline-none focus:border-accent-hover"
+                style={{ borderRadius: '10px' }}
               />
             </div>
           </div>
@@ -163,10 +163,10 @@ export default function EditSetPage() {
                 <span
                   className={`text-[12px] font-medium px-2 py-0.5 transition-opacity duration-200 ${
                     orm != null
-                      ? 'bg-[#1C1C1E] text-[#93032E] border border-[#93032E]/30 opacity-100'
+                      ? 'bg-surface text-accent-soft border border-accent-hover/30 opacity-100'
                       : 'opacity-0'
                   }`}
-                  style={{ borderRadius: '2px' }}
+                  style={{ borderRadius: '10px' }}
                 >
                   ≈ 1RM: {orm ?? '—'} {settings.strengthUnit}
                 </span>
@@ -174,27 +174,27 @@ export default function EditSetPage() {
             </div>
           )}
 
-          <div className="h-px bg-[#2C2C2E] w-full" />
+          <div className="h-px bg-line w-full" />
 
           {/* Warmup toggle */}
           <div className="flex justify-between items-center py-2">
             <div>
-              <div className="text-[17px] text-white">Warmup Set</div>
-              <div className="text-[13px] font-medium text-[#A1A1A6]">Does not count towards volume</div>
+              <div className="text-[16px] text-ink">Warmup Set</div>
+              <div className="text-[13px] font-medium text-muted">Does not count towards volume</div>
             </div>
             <Toggle checked={warmup} onChange={v => { setWarmup(v); setHasChanges(true) }} />
           </div>
 
-          <div className="h-px bg-[#2C2C2E] w-full" />
+          <div className="h-px bg-line w-full" />
 
           {/* Notes */}
           <div>
-            <label className="text-[13px] font-medium text-[#A1A1A6] block mb-1">Notes</label>
+            <label className="text-[13px] font-medium text-muted block mb-1">Notes</label>
             <textarea
               value={notes}
               onChange={e => { setNotes(e.target.value); setHasChanges(true) }}
-              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-[17px] text-white px-3 py-3 focus:outline-none focus:border-[#93032E] resize-none"
-              style={{ borderRadius: '2px' }}
+              className="w-full bg-surface border border-line text-[16px] text-ink px-3 py-3 focus:outline-none focus:border-accent-hover resize-none"
+              style={{ borderRadius: '10px' }}
               rows={3}
               placeholder="Add notes..."
             />
@@ -202,8 +202,8 @@ export default function EditSetPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 w-full p-3 bg-[#151515]/90 backdrop-blur-md border-t border-[#2C2C2E] z-40 pb-safe">
-        <button onClick={save} className="w-full bg-[#93032E] text-white font-medium text-[15px] h-12 flex items-center justify-center" style={{ borderRadius: '2px' }}>
+      <div className="fixed bottom-0 left-0 w-full p-3 bg-ground/90 backdrop-blur-md border-t border-line z-40 pb-safe">
+        <button onClick={save} className="w-full bg-accent text-ink font-medium text-[15px] h-12 flex items-center justify-center" style={{ borderRadius: '10px' }}>
           Save Changes
         </button>
       </div>

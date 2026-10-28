@@ -36,32 +36,32 @@ export default function PWAInstallBanner() {
   }
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 bg-[#1C1C1E] border border-[#93032E]/40 rounded-[4px] p-3 flex items-start gap-3 shadow-lg">
-      <div className="w-10 h-10 bg-[#93032E] rounded-[4px] flex items-center justify-center shrink-0">
-        <span className="text-[22px] font-black text-white italic leading-none">K</span>
+    <div className="fixed bottom-20 left-4 right-4 z-50 bg-surface border border-accent-hover/40 rounded-2xl p-3 flex items-start gap-3 shadow-lg">
+      <div className="w-10 h-10 bg-accent rounded-2xl flex items-center justify-center shrink-0">
+        <span className="text-[24px] font-black text-ink italic leading-none">K</span>
       </div>
       <div className="flex-1">
-        <p className="text-[15px] font-semibold text-white">Install Kasrat</p>
-        <p className="text-[13px] text-[#A1A1A6] mt-0.5">
+        <p className="text-[15px] font-semibold text-ink">Install Kasrat</p>
+        <p className="text-[13px] text-muted mt-0.5">
           Add to your home screen for the best experience.
         </p>
         <div className="flex gap-3 mt-2">
           <button
             onClick={handleInstall}
-            className="flex items-center gap-1.5 bg-[#93032E] text-white text-[13px] font-semibold px-3 py-1.5 rounded-[2px]"
+            className="flex items-center gap-1.5 bg-accent text-ink text-[13px] font-semibold px-3 py-1.5 rounded-lg"
           >
             <Download size={14} strokeWidth={2} />
             Install
           </button>
           <button
             onClick={handleDismiss}
-            className="text-[13px] text-[#A1A1A6] font-medium px-2 py-1.5"
+            className="text-[13px] text-muted font-medium px-2 py-1.5"
           >
             Not now
           </button>
         </div>
       </div>
-      <button onClick={handleDismiss} className="text-[#A1A1A6] p-1 shrink-0">
+      <button onClick={handleDismiss} className="text-muted p-1 shrink-0">
         <X size={16} strokeWidth={1.5} />
       </button>
     </div>

@@ -19,15 +19,22 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   running: false,
   startTime: null,
 
-  setDuration: (d) => set({ duration: d, remaining: d }),
+  setDuration: (d) => set({ duration: d, remaining: d, running: false, startTime: null }),
 
   start: (d) => {
-    const dur = d ?? get().duration
-    set({ duration: dur, remaining: dur, running: true, startTime: Date.now() })
+    const { duration, remaining } = get()
+    const nextDuration = d ?? duration
+    const nextRemaining = d !== undefined ? d : remaining > 0 ? remaining : nextDuration
+    set({
+      duration: nextDuration,
+      remaining: nextRemaining,
+      running: true,
+      startTime: Date.now() - (nextDuration - nextRemaining) * 1000,
+    })
   },
 
   pause: () => {
-    set({ running: false })
+    set({ running: false, startTime: null })
   },
 
   stop: () => {
@@ -40,7 +47,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   },
 
   tick: () => {
-    const { remaining, running, startTime, duration } = get()
+    const { running, startTime, duration } = get()
     if (!running || startTime === null) return
     // TIMER-001: derive remaining from wall-clock elapsed time, not tick count
     const elapsed = Math.floor((Date.now() - startTime) / 1000)

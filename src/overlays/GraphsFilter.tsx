@@ -10,14 +10,14 @@ export default function GraphsFilter({ onClose }: Props) {
   const [includeCardio, setIncludeCardio] = useState(true)
 
   return (
-    <div className="fixed inset-0 bg-[#151515]/80 backdrop-blur-sm z-[60] animate-fadeIn" onClick={onClose}>
+    <div className="fixed inset-0 bg-ground/80 backdrop-blur-sm z-[60] animate-fadeIn" onClick={onClose}>
       <div
-        className="fixed bottom-0 left-0 w-full h-[45%] bg-[#1C1C1E] z-[70] rounded-t-xl border-t border-[#2C2C2E] flex flex-col animate-slideUp"
+        className="fixed bottom-0 left-0 w-full h-[45%] bg-surface z-[70] rounded-t-xl border-t border-line flex flex-col animate-slideUp"
         onClick={e => e.stopPropagation()}
       >
-        <div className="w-12 h-1 bg-[#2C2C2E] rounded-full mx-auto my-3" />
-        <div className="px-3 pb-3 flex justify-center border-b border-[#2C2C2E]">
-          <h2 className="text-[22px] font-semibold text-white">Filter Graphs</h2>
+        <div className="w-12 h-1 bg-line rounded-full mx-auto my-3" />
+        <div className="px-3 pb-3 flex justify-center border-b border-line">
+          <h2 className="text-[24px] font-semibold text-ink">Filter Graphs</h2>
         </div>
         <div className="flex-grow overflow-y-auto px-3 py-3 space-y-6">
           <section>
@@ -26,8 +26,8 @@ export default function GraphsFilter({ onClose }: Props) {
                 <button
                   key={c}
                   onClick={() => setSelected(c)}
-                  className={`shrink-0 px-3 py-2 rounded-[2px] font-semibold text-[15px] transition-colors ${
-                    selected === c ? 'bg-[#93032E] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'
+                  className={`shrink-0 px-3 py-2 rounded-lg font-semibold text-[15px] transition-colors ${
+                    selected === c ? 'bg-accent text-ink' : 'bg-line text-muted'
                   }`}
                 >
                   {c}
@@ -36,14 +36,14 @@ export default function GraphsFilter({ onClose }: Props) {
             </div>
           </section>
           <section className="flex justify-between items-center py-2">
-            <span className="text-[17px] text-white">Include Cardio</span>
+            <span className="text-[16px] text-ink">Include Cardio</span>
             <Toggle checked={includeCardio} onChange={setIncludeCardio} />
           </section>
         </div>
-        <div className="p-3 bg-[#1C1C1E] border-t border-[#2C2C2E]">
+        <div className="p-3 bg-surface border-t border-line">
           <button
             onClick={onClose}
-            className="w-full h-12 bg-[#93032E] text-white font-semibold text-[15px] rounded-[2px] active:scale-[0.98] transition-transform"
+            className="w-full h-12 bg-accent text-ink font-semibold text-[15px] rounded-lg active:scale-[0.98] transition-transform"
           >
             Apply
           </button>

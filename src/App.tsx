@@ -45,8 +45,17 @@ async function checkOnboarding(userId: string): Promise<boolean> {
 export default function App() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { loadSettings } = useSettingsStore()
+  const { loadSettings, settings } = useSettingsStore()
   const { setSession, setLoading, loading } = useAuthStore()
+
+  useEffect(() => {
+    const mode = settings.themeMode === 'light' || settings.themeMode === 'pure_black'
+      ? settings.themeMode
+      : 'dark'
+    document.documentElement.dataset.theme = mode
+    const meta = document.querySelector('meta[name="theme-color"]')
+    meta?.setAttribute('content', mode === 'light' ? '#F2EFE6' : mode === 'pure_black' ? '#000000' : '#0B100E')
+  }, [settings.themeMode])
 
   const pathnameRef = useRef(location.pathname)
   useEffect(() => {
@@ -167,19 +176,27 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#151515] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 bg-[#93032E] flex items-center justify-center" style={{ borderRadius: '4px' }}>
-            <span className="text-[28px] font-black text-white italic leading-none">K</span>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-7 bg-ground px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent shadow-[0_18px_40px_-22px_rgba(198,58,25,0.9)]">
+            <span className="text-[26px] font-black leading-none tracking-[-0.08em] text-on-accent">K</span>
           </div>
-          <div className="w-6 h-6 border-2 border-[#93032E] border-t-transparent rounded-full animate-spin" />
+          <div className="flex flex-col">
+            <span className="text-[18px] font-extrabold tracking-[-0.04em] text-ink">KASRAT</span>
+            <span className="mono text-[9px] uppercase tracking-[0.22em] text-muted">Training log</span>
+          </div>
+        </div>
+        <div className="flex w-36 items-center gap-1.5">
+          <span className="h-1 flex-1 rounded-full bg-accent" />
+          <span className="h-1 w-9 rounded-full bg-line" />
+          <span className="h-1 w-4 rounded-full bg-line" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] text-white">
+    <div className="min-h-screen bg-ground text-ink">
       <SyncLoadingScreen />
       <StreakToast />
       <Outlet />

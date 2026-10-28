@@ -137,31 +137,31 @@ export default function ExerciseModal({ planId, onClose }: Props) {
   })
 
   return (
-    <div className="fixed inset-0 bg-[#151515]/80 z-[60] flex flex-col justify-end animate-fadeIn">
-      <div className="bg-[#151515] w-full h-[90%] border-t border-[#2C2C2E] flex flex-col overflow-hidden animate-slideUp" style={{ borderRadius: '4px 4px 0 0' }}>
+    <div className="fixed inset-0 bg-ground/80 z-[60] flex flex-col justify-end animate-fadeIn">
+      <div className="bg-ground w-full h-[90%] border-t border-line flex flex-col overflow-hidden animate-slideUp" style={{ borderRadius: '20px 20px 0 0' }}>
 
         {/* Handle */}
         <div className="w-full flex justify-center py-3 shrink-0">
-          <div className="w-12 h-1 bg-[#2C2C2E]" style={{ borderRadius: '2px' }} />
+          <div className="w-12 h-1 bg-line" style={{ borderRadius: '10px' }} />
         </div>
 
         {/* Header */}
         <div className="px-3 flex justify-between items-center mb-3 shrink-0">
-          <h2 className="text-[22px] font-medium text-white">Add Exercise</h2>
-          <button onClick={onClose} className="p-2 hover:bg-[#1C1C1E] transition-colors" style={{ borderRadius: '2px' }}>
-            <X size={20} strokeWidth={1.5} className="text-white" />
+          <h2 className="text-[24px] font-medium text-ink">Add Exercise</h2>
+          <button onClick={onClose} className="p-2 hover:bg-surface transition-colors" style={{ borderRadius: '10px' }}>
+            <X size={20} strokeWidth={1.5} className="text-ink" />
           </button>
         </div>
 
         {/* Search bar */}
         <div className="px-3 mb-3 shrink-0">
           <div className="relative flex items-center">
-            <Search size={18} strokeWidth={1.5} className="absolute left-3 text-[#A1A1A6]" />
+            <Search size={18} strokeWidth={1.5} className="absolute left-3 text-muted" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] py-2 pl-10 pr-3 text-[17px] text-white focus:border-[#93032E] placeholder:text-[#A1A1A6] outline-none"
-              style={{ borderRadius: '2px' }}
+              className="w-full bg-surface border border-line py-2 pl-10 pr-3 text-[16px] text-ink focus:border-accent-hover placeholder:text-muted outline-none"
+              style={{ borderRadius: '10px' }}
               placeholder="Search exercises..."
             />
           </div>
@@ -182,16 +182,16 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                   {/* Group header */}
                   <button
                     onClick={() => toggleGroup(group)}
-                    className="w-full flex items-center justify-between bg-[#1C1C1E] border border-[#2C2C2E] px-3 py-2 hover:bg-[#2a2a2c] transition-colors"
-                    style={{ borderRadius: '4px' }}
+                    className="w-full flex items-center justify-between bg-surface border border-line px-3 py-2 hover:bg-surface-high transition-colors"
+                    style={{ borderRadius: '16px' }}
                   >
-                    <span className="text-[15px] font-medium text-white">{group}</span>
+                    <span className="text-[15px] font-medium text-ink">{group}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px] text-[#A1A1A6]">{exercises.length}</span>
+                      <span className="text-[13px] text-muted">{exercises.length}</span>
                       {isExpanded ? (
-                        <ChevronDown size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
+                        <ChevronDown size={18} strokeWidth={1.5} className="text-muted" />
                       ) : (
-                        <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
+                        <ChevronRight size={18} strokeWidth={1.5} className="text-muted" />
                       )}
                     </div>
                   </button>
@@ -204,27 +204,27 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                         return (
                           <div
                             key={ex.name}
-                            className={`bg-[#1C1C1E] border border-[#2C2C2E] p-2 flex items-center justify-between ${isAdded ? 'opacity-50' : ''}`}
-                            style={{ borderRadius: '4px' }}
+                            className={`bg-surface border border-line p-2 flex items-center justify-between ${isAdded ? 'opacity-50' : ''}`}
+                            style={{ borderRadius: '16px' }}
                           >
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-[15px] font-normal text-white truncate">{ex.name}</h4>
+                              <h4 className="text-[15px] font-normal text-ink truncate">{ex.name}</h4>
                             </div>
                             <div className="flex items-center gap-2 ml-2">
                               {/* Set count stepper */}
-                              <div className="flex items-center gap-1 bg-[#2C2C2E] border border-[#2C2C2E] px-1 py-0.5" style={{ borderRadius: '2px' }}>
+                              <div className="flex items-center gap-1 bg-line border border-line px-1 py-0.5" style={{ borderRadius: '10px' }}>
                                 <button
                                   onClick={e => { e.stopPropagation(); updateModalSets(ex.name, -1) }}
-                                  className="w-5 h-5 flex items-center justify-center text-[#93032E]"
+                                  className="w-5 h-5 flex items-center justify-center text-accent-soft"
                                 >
                                   <Minus size={12} strokeWidth={1.5} />
                                 </button>
-                                <span className="text-[13px] font-medium text-white w-4 text-center tabular-nums">
+                                <span className="text-[13px] font-medium text-ink w-4 text-center tabular-nums">
                                   {setCounts[ex.name] ?? 3}
                                 </span>
                                 <button
                                   onClick={e => { e.stopPropagation(); updateModalSets(ex.name, 1) }}
-                                  className="w-5 h-5 flex items-center justify-center text-[#93032E]"
+                                  className="w-5 h-5 flex items-center justify-center text-accent-soft"
                                 >
                                   <Plus size={12} strokeWidth={1.5} />
                                 </button>
@@ -233,11 +233,11 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                                 onClick={() => addExercise(ex.name, ex.primaryMuscle)}
                                 disabled={isAdded}
                                 className={`w-7 h-7 flex items-center justify-center transition-colors border ${
-                                  isAdded ? 'bg-[#93032E]/20 border-[#93032E]' : 'border-[#93032E] hover:bg-[#93032E] hover:text-white'
+                                  isAdded ? 'bg-accent/20 border-accent-hover' : 'border-accent-hover hover:bg-accent hover:text-ink'
                                 }`}
-                                style={{ borderRadius: '2px' }}
+                                style={{ borderRadius: '10px' }}
                               >
-                                {isAdded ? <Check size={14} strokeWidth={1.5} className="text-[#93032E]" /> : <Plus size={14} strokeWidth={1.5} className="text-[#93032E]" />}
+                                {isAdded ? <Check size={14} strokeWidth={1.5} className="text-accent-soft" /> : <Plus size={14} strokeWidth={1.5} className="text-accent-soft" />}
                               </button>
                             </div>
                           </div>
@@ -254,16 +254,16 @@ export default function ExerciseModal({ planId, onClose }: Props) {
               <div>
                 <button
                   onClick={() => toggleGroup('Custom' as any)}
-                  className="w-full flex items-center justify-between bg-[#1C1C1E] border border-[#2C2C2E] px-3 py-2 hover:bg-[#2a2a2c] transition-colors"
-                  style={{ borderRadius: '4px' }}
+                  className="w-full flex items-center justify-between bg-surface border border-line px-3 py-2 hover:bg-surface-high transition-colors"
+                  style={{ borderRadius: '16px' }}
                 >
-                  <span className="text-[15px] font-medium text-white">Custom Exercises</span>
+                  <span className="text-[15px] font-medium text-ink">Custom Exercises</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[13px] text-[#A1A1A6]">{filteredCustom.length}</span>
+                    <span className="text-[13px] text-muted">{filteredCustom.length}</span>
                     {expandedGroups.has('Custom' as any) ? (
-                      <ChevronDown size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
+                      <ChevronDown size={18} strokeWidth={1.5} className="text-muted" />
                     ) : (
-                      <ChevronRight size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
+                      <ChevronRight size={18} strokeWidth={1.5} className="text-muted" />
                     )}
                   </div>
                 </button>
@@ -275,27 +275,27 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                       return (
                         <div
                           key={ex.name}
-                          className={`bg-[#1C1C1E] border border-[#2C2C2E] p-2 flex items-center justify-between ${isAdded ? 'opacity-50' : ''}`}
-                          style={{ borderRadius: '4px' }}
+                          className={`bg-surface border border-line p-2 flex items-center justify-between ${isAdded ? 'opacity-50' : ''}`}
+                          style={{ borderRadius: '16px' }}
                         >
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-[15px] font-normal text-white truncate">{ex.name}</h4>
-                            <span className="text-[11px] text-[#A1A1A6]">{ex.muscle}</span>
+                            <h4 className="text-[15px] font-normal text-ink truncate">{ex.name}</h4>
+                            <span className="text-[11px] text-muted">{ex.muscle}</span>
                           </div>
                           <div className="flex items-center gap-2 ml-2">
-                            <div className="flex items-center gap-1 bg-[#2C2C2E] border border-[#2C2C2E] px-1 py-0.5" style={{ borderRadius: '2px' }}>
+                            <div className="flex items-center gap-1 bg-line border border-line px-1 py-0.5" style={{ borderRadius: '10px' }}>
                               <button
                                 onClick={e => { e.stopPropagation(); updateModalSets(ex.name, -1) }}
-                                className="w-5 h-5 flex items-center justify-center text-[#93032E]"
+                                className="w-5 h-5 flex items-center justify-center text-accent-soft"
                               >
                                 <Minus size={12} strokeWidth={1.5} />
                               </button>
-                              <span className="text-[13px] font-medium text-white w-4 text-center tabular-nums">
+                              <span className="text-[13px] font-medium text-ink w-4 text-center tabular-nums">
                                 {setCounts[ex.name] ?? 3}
                               </span>
                               <button
                                 onClick={e => { e.stopPropagation(); updateModalSets(ex.name, 1) }}
-                                className="w-5 h-5 flex items-center justify-center text-[#93032E]"
+                                className="w-5 h-5 flex items-center justify-center text-accent-soft"
                               >
                                 <Plus size={12} strokeWidth={1.5} />
                               </button>
@@ -304,11 +304,11 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                               onClick={() => addExercise(ex.name, ex.muscle)}
                               disabled={isAdded}
                               className={`w-7 h-7 flex items-center justify-center transition-colors border ${
-                                isAdded ? 'bg-[#93032E]/20 border-[#93032E]' : 'border-[#93032E] hover:bg-[#93032E] hover:text-white'
+                                isAdded ? 'bg-accent/20 border-accent-hover' : 'border-accent-hover hover:bg-accent hover:text-ink'
                               }`}
-                              style={{ borderRadius: '2px' }}
+                              style={{ borderRadius: '10px' }}
                             >
-                              {isAdded ? <Check size={14} strokeWidth={1.5} className="text-[#93032E]" /> : <Plus size={14} strokeWidth={1.5} className="text-[#93032E]" />}
+                              {isAdded ? <Check size={14} strokeWidth={1.5} className="text-accent-soft" /> : <Plus size={14} strokeWidth={1.5} className="text-accent-soft" />}
                             </button>
                           </div>
                         </div>
@@ -322,68 +322,68 @@ export default function ExerciseModal({ planId, onClose }: Props) {
             {filteredPresets.length === 0 && filteredCustom.length === 0 && search && (
               <div className="flex flex-col gap-3">
                 <div className="text-center py-4">
-                  <p className="text-[#A1A1A6] text-[15px]">No exercises found for "{search}"</p>
+                  <p className="text-muted text-[15px]">No exercises found for "{search}"</p>
                 </div>
 
                 {!showCreateForm ? (
                   <button
                     onClick={openCreateForm}
-                    className="w-full flex items-center justify-center gap-2 border border-dashed border-[#93032E] text-[#93032E] font-medium text-[15px] py-3"
-                    style={{ borderRadius: '4px' }}
+                    className="w-full flex items-center justify-center gap-2 border border-dashed border-accent-hover text-accent-soft font-medium text-[15px] py-3"
+                    style={{ borderRadius: '16px' }}
                   >
                     <Plus size={18} strokeWidth={1.5} />
                     Create custom exercise
                   </button>
                 ) : (
-                  <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 flex flex-col gap-3" style={{ borderRadius: '4px' }}>
-                    <span className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest">New Exercise</span>
+                  <div className="bg-surface border border-line p-3 flex flex-col gap-3" style={{ borderRadius: '16px' }}>
+                    <span className="text-[13px] font-medium text-muted uppercase tracking-widest">New Exercise</span>
 
                     {/* Name */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#A1A1A6]">
-                        Name<span className="text-[#FF453A] ml-0.5">*</span>
+                      <label className="text-[13px] font-medium text-muted">
+                        Name<span className="text-danger ml-0.5">*</span>
                       </label>
                       <input
                         value={createName}
                         onChange={e => { setCreateName(e.target.value); setCreateNameError('') }}
-                        className="w-full bg-[#151515] border border-[#2C2C2E] p-2.5 text-[15px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none"
-                        style={{ borderRadius: '2px' }}
+                        className="w-full bg-ground border border-line p-2.5 text-[15px] text-ink placeholder-muted focus:border-accent-hover focus:outline-none"
+                        style={{ borderRadius: '10px' }}
                         placeholder="Exercise name"
                       />
-                      {createNameError && <p className="text-[#FF453A] text-[13px]">{createNameError}</p>}
+                      {createNameError && <p className="text-danger text-[13px]">{createNameError}</p>}
                     </div>
 
                     {/* Muscle group */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#A1A1A6]">
-                        Muscle Group<span className="text-[#FF453A] ml-0.5">*</span>
+                      <label className="text-[13px] font-medium text-muted">
+                        Muscle Group<span className="text-danger ml-0.5">*</span>
                       </label>
                       <div className="relative">
                         <select
                           value={createMuscle}
                           onChange={e => setCreateMuscle(e.target.value)}
-                          className="w-full bg-[#151515] border border-[#2C2C2E] p-2.5 text-[15px] text-white appearance-none focus:border-[#93032E] focus:outline-none"
-                          style={{ borderRadius: '2px' }}
+                          className="w-full bg-ground border border-line p-2.5 text-[15px] text-ink appearance-none focus:border-accent-hover focus:outline-none"
+                          style={{ borderRadius: '10px' }}
                         >
                           {MUSCLE_GROUPS.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
-                        <ChevronDown size={14} strokeWidth={1.5} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1A6] pointer-events-none" />
+                        <ChevronDown size={14} strokeWidth={1.5} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
                       </div>
                     </div>
 
                     {/* Equipment */}
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[13px] font-medium text-[#A1A1A6]">Equipment</label>
+                      <label className="text-[13px] font-medium text-muted">Equipment</label>
                       <div className="relative">
                         <select
                           value={createEquipment}
                           onChange={e => setCreateEquipment(e.target.value)}
-                          className="w-full bg-[#151515] border border-[#2C2C2E] p-2.5 text-[15px] text-white appearance-none focus:border-[#93032E] focus:outline-none"
-                          style={{ borderRadius: '2px' }}
+                          className="w-full bg-ground border border-line p-2.5 text-[15px] text-ink appearance-none focus:border-accent-hover focus:outline-none"
+                          style={{ borderRadius: '10px' }}
                         >
                           {EQUIPMENT_OPTIONS.map(eq => <option key={eq} value={eq}>{eq}</option>)}
                         </select>
-                        <ChevronDown size={14} strokeWidth={1.5} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1A6] pointer-events-none" />
+                        <ChevronDown size={14} strokeWidth={1.5} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
                       </div>
                     </div>
 
@@ -391,15 +391,15 @@ export default function ExerciseModal({ planId, onClose }: Props) {
                     <div className="flex gap-2 pt-1">
                       <button
                         onClick={() => setShowCreateForm(false)}
-                        className="flex-1 h-10 border border-[#2C2C2E] text-[#A1A1A6] font-medium text-[15px]"
-                        style={{ borderRadius: '2px' }}
+                        className="flex-1 h-10 border border-line text-muted font-medium text-[15px]"
+                        style={{ borderRadius: '10px' }}
                       >
                         Cancel
                       </button>
                       <button
                         onClick={saveCustomExercise}
-                        className="flex-1 h-10 bg-[#93032E] text-white font-medium text-[15px]"
-                        style={{ borderRadius: '2px' }}
+                        className="flex-1 h-10 bg-accent text-ink font-medium text-[15px]"
+                        style={{ borderRadius: '10px' }}
                       >
                         Save
                       </button>
@@ -412,8 +412,8 @@ export default function ExerciseModal({ planId, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="p-3 bg-[#151515] border-t border-[#2C2C2E] shrink-0">
-          <button onClick={onClose} className="w-full bg-[#93032E] text-white h-12 font-medium text-[15px]" style={{ borderRadius: '2px' }}>
+        <div className="p-3 bg-ground border-t border-line shrink-0">
+          <button onClick={onClose} className="w-full bg-accent text-ink h-12 font-medium text-[15px]" style={{ borderRadius: '10px' }}>
             Done
           </button>
         </div>

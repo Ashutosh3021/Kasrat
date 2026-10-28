@@ -13,23 +13,23 @@ import { updatePlan, deletePlan as deletePlanSync, updatePlanExercise, deletePla
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 const SET_TYPE_OPTIONS: { value: SetType; label: string; color: string }[] = [
-  { value: 'normal',    label: 'Normal',    color: 'text-[#A1A1A6]' },
+  { value: 'normal',    label: 'Normal',    color: 'text-muted' },
   { value: 'warmup',    label: 'Warm-up',   color: 'text-amber-400' },
-  { value: 'superset',  label: 'Superset',  color: 'text-[#BE1755]' },
+  { value: 'superset',  label: 'Superset',  color: 'text-warning' },
   { value: 'giant',     label: 'Giant Set', color: 'text-purple-400' },
   { value: 'circuit',   label: 'Circuit',   color: 'text-emerald-400' },
 ]
 
 const SUPERSET_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-  '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+  '#E07A5F', '#8FAE8B', 'var(--color-info)', '#A3B58A', '#E8CB8B',
+  '#C4A0C0', '#93B8AE', '#E3C878', '#B79AC9', '#8FB2CF'
 ]
 
 function SetTypeBadge({ type }: { type: SetType }) {
   const opt = SET_TYPE_OPTIONS.find(o => o.value === type)
   if (!opt || type === 'normal') return null
   return (
-    <span className={`text-[11px] font-medium px-1.5 py-0.5 bg-[#2C2C2E] ${opt.color}`} style={{ borderRadius: '2px' }}>
+    <span className={`text-[11px] font-medium px-1.5 py-0.5 bg-line ${opt.color}`} style={{ borderRadius: '10px' }}>
       {opt.label}
     </span>
   )
@@ -46,19 +46,19 @@ function SetTypePicker({ value, onChange }: SetTypePickerProps) {
     <div className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 bg-[#2C2C2E] px-2 py-1 text-[11px] font-medium text-[#A1A1A6]"
-        style={{ borderRadius: '2px' }}
+        className="flex items-center gap-1 bg-line px-2 py-1 text-[11px] font-medium text-muted"
+        style={{ borderRadius: '10px' }}
       >
         <span className={current.color}>{current.label}</span>
         <ChevronDown size={10} strokeWidth={1.5} />
       </button>
       {open && (
-        <div className="absolute right-0 top-8 z-50 bg-[#1C1C1E] border border-[#2C2C2E] overflow-hidden min-w-[120px]" style={{ borderRadius: '4px' }}>
+        <div className="absolute right-0 top-8 z-50 bg-surface border border-line overflow-hidden min-w-[120px]" style={{ borderRadius: '16px' }}>
           {SET_TYPE_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false) }}
-              className={`w-full text-left px-3 py-2 text-[13px] font-medium hover:bg-[#2C2C2E] transition-colors ${opt.color} ${value === opt.value ? 'bg-[#2C2C2E]' : ''}`}
+              className={`w-full text-left px-3 py-2 text-[13px] font-medium hover:bg-line transition-colors ${opt.color} ${value === opt.value ? 'bg-line' : ''}`}
             >
               {opt.label}
             </button>
@@ -82,17 +82,17 @@ function PartnerPicker({ currentExercise, allExercises, onLink }: PartnerPickerP
     <div className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 bg-[#2C2C2E] px-2 py-1 text-[11px] font-medium text-[#A1A1A6]"
-        style={{ borderRadius: '2px' }}
+        className="flex items-center gap-1 bg-line px-2 py-1 text-[11px] font-medium text-muted"
+        style={{ borderRadius: '10px' }}
       >
         <span>Link to...</span>
         <ChevronDown size={10} strokeWidth={1.5} />
       </button>
       {open && (
-        <div className="absolute right-0 top-8 z-50 bg-[#1C1C1E] border border-[#2C2C2E] overflow-hidden min-w-[160px] max-h-[200px] overflow-y-auto" style={{ borderRadius: '4px' }}>
+        <div className="absolute right-0 top-8 z-50 bg-surface border border-line overflow-hidden min-w-[160px] max-h-[200px] overflow-y-auto" style={{ borderRadius: '16px' }}>
           <button
             onClick={() => { onLink(-1); setOpen(false) }}
-            className="w-full text-left px-3 py-2 text-[13px] font-medium hover:bg-[#2C2C2E] transition-colors text-[#A1A1A6]"
+            className="w-full text-left px-3 py-2 text-[13px] font-medium hover:bg-line transition-colors text-muted"
           >
             None
           </button>
@@ -100,7 +100,7 @@ function PartnerPicker({ currentExercise, allExercises, onLink }: PartnerPickerP
             <button
               key={ex.id}
               onClick={() => { onLink(ex.id!); setOpen(false) }}
-              className="w-full text-left px-3 py-2 text-[13px] font-medium hover:bg-[#2C2C2E] transition-colors text-white flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-[13px] font-medium hover:bg-line transition-colors text-ink flex items-center gap-2"
             >
               {ex.supersetGroup && ex.supersetColor && (
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ex.supersetColor }} />
@@ -300,19 +300,19 @@ export default function EditPlanPage() {
     const isSuperset = ex.setType === 'superset'
     
     return (
-      <div key={ex.id} className="bg-[#1C1C1E] p-3 flex flex-col gap-3" {...getItemProps(idx)} style={{ borderRadius: '4px' }}>
+      <div key={ex.id} className="bg-surface p-3 flex flex-col gap-3" {...getItemProps(idx)} style={{ borderRadius: '16px' }}>
         {/* Top row: drag handle, exercise name, remove button */}
         <div className="flex items-center gap-3">
           <span {...getHandleProps(idx)}>
-            <GripVertical size={20} strokeWidth={1.5} className="text-[#A1A1A6]" />
+            <GripVertical size={20} strokeWidth={1.5} className="text-muted" />
           </span>
           <div className="flex-1 min-w-0 flex items-center gap-2">
-            <span className="text-[17px] text-white truncate">{ex.exercise}</span>
+            <span className="text-[16px] text-ink truncate">{ex.exercise}</span>
             <SetTypeBadge type={ex.setType ?? 'normal'} />
           </div>
           <button
             onClick={() => setDeleteExConfirm(ex)}
-            className="p-1 text-[#A1A1A6] hover:text-[#FF453A] transition-colors"
+            className="p-1 text-muted hover:text-danger transition-colors"
             aria-label="Delete exercise"
           >
             <Trash2 size={16} strokeWidth={1.5} />
@@ -322,13 +322,13 @@ export default function EditPlanPage() {
 
         {/* Second row: set count stepper */}
         <div className="flex items-center justify-between pl-8">
-          <span className="text-[13px] font-medium text-[#A1A1A6]">Sets</span>
-          <div className="flex items-center gap-1.5 bg-[#2C2C2E] px-2 py-1" style={{ borderRadius: '2px' }}>
-            <button onClick={() => updateSets(ex, -1)} className="w-6 h-6 flex items-center justify-center text-[#93032E] active:opacity-60">
+          <span className="text-[13px] font-medium text-muted">Sets</span>
+          <div className="flex items-center gap-1.5 bg-line px-2 py-1" style={{ borderRadius: '10px' }}>
+            <button onClick={() => updateSets(ex, -1)} className="w-6 h-6 flex items-center justify-center text-accent-soft active:opacity-60">
               <Minus size={14} strokeWidth={1.5} />
             </button>
-            <span className="text-[15px] font-medium text-white w-4 text-center tabular-nums">{ex.maxSets}</span>
-            <button onClick={() => updateSets(ex, 1)} className="w-6 h-6 flex items-center justify-center text-[#93032E] active:opacity-60">
+            <span className="text-[15px] font-medium text-ink w-4 text-center tabular-nums">{ex.maxSets}</span>
+            <button onClick={() => updateSets(ex, 1)} className="w-6 h-6 flex items-center justify-center text-accent-soft active:opacity-60">
               <Plus size={14} strokeWidth={1.5} />
             </button>
           </div>
@@ -336,7 +336,7 @@ export default function EditPlanPage() {
 
         {/* Third row: set type picker and partner picker */}
         <div className="flex items-center gap-2 pl-8">
-          <span className="text-[13px] font-medium text-[#A1A1A6]">Type</span>
+          <span className="text-[13px] font-medium text-muted">Type</span>
           <SetTypePicker value={ex.setType ?? 'normal'} onChange={v => updateSetType(ex, v)} />
           {isSuperset && (
             <PartnerPicker currentExercise={ex} allExercises={exercises} onLink={partnerId => linkSuperset(ex, partnerId)} />
@@ -347,37 +347,37 @@ export default function EditPlanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-8">
-      <header className="sticky top-0 w-full z-50 bg-[#151515]/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-[#2C2C2E]">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 flex items-center justify-center text-white hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
+    <div className="min-h-screen bg-ground pb-8">
+      <header className="sticky top-0 w-full z-50 bg-ground/90 backdrop-blur-md flex justify-between items-center px-3 h-14 border-b border-line">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 -ml-2 flex items-center justify-center text-ink hover:bg-surface" style={{ borderRadius: '10px' }}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
-        <h1 className="text-[22px] font-medium text-white absolute left-1/2 -translate-x-1/2">Edit Plan</h1>
+        <h1 className="text-[24px] font-medium text-ink absolute left-1/2 -translate-x-1/2">Edit Plan</h1>
         <div className="w-10" />
       </header>
 
       <main className="flex-1 flex flex-col px-3 py-3 gap-8">
         <section className="flex flex-col gap-2">
-          <label className="text-[13px] font-medium text-[#A1A1A6] px-1">Plan Title</label>
+          <label className="text-[13px] font-medium text-muted px-1">Plan Title</label>
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className="bg-[#1C1C1E] text-white text-[17px] p-3 w-full border border-transparent focus:border-[#93032E] focus:outline-none placeholder-[#A1A1A6]"
-            style={{ borderRadius: '2px' }}
+            className="bg-surface text-ink text-[16px] p-3 w-full border border-transparent focus:border-accent-hover focus:outline-none placeholder-muted"
+            style={{ borderRadius: '10px' }}
           />
         </section>
 
         <section className="flex flex-col gap-2">
-          <span className="text-[13px] font-medium text-[#A1A1A6] px-1">Active Days</span>
-          <div className="flex justify-between items-center bg-[#1C1C1E] p-3" style={{ borderRadius: '4px' }}>
+          <span className="text-[13px] font-medium text-muted px-1">Active Days</span>
+          <div className="flex justify-between items-center bg-surface p-3" style={{ borderRadius: '16px' }}>
             {[0, 1, 2, 3, 4, 5, 6].map((d, idx) => (
               <button
                 key={d}
                 onClick={() => toggleDay(d)}
                 className={`w-9 h-9 flex items-center justify-center font-medium text-[15px] transition-all ${
-                  activeDays.includes(d) ? 'bg-[#93032E] text-white' : 'bg-[#2C2C2E] text-[#A1A1A6]'
+                  activeDays.includes(d) ? 'bg-accent text-ink' : 'bg-line text-muted'
                 }`}
-                style={{ borderRadius: '2px' }}
+                style={{ borderRadius: '10px' }}
               >
                 {DAYS[idx]}
               </button>
@@ -386,14 +386,14 @@ export default function EditPlanPage() {
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-[22px] font-medium text-white">Exercises</h2>
+          <h2 className="text-[24px] font-medium text-ink">Exercises</h2>
           {/* Scrollable exercise list */}
           <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto" data-drag-list>
             {visualGroups.map((g, gi) => {
               if (g.type === 'single') return renderExRow(g.ex, g.idx)
               // Superset group with colored border
               return (
-                <div key={`group-${gi}`} className="border-l-[3px] pl-2 flex flex-col gap-2" style={{ borderColor: g.color, borderRadius: '0 4px 4px 0' }}>
+                <div key={`group-${gi}`} className="border-l-[3px] pl-2 flex flex-col gap-2" style={{ borderColor: g.color, borderRadius: '0 16px 16px 0' }}>
                   <span className="text-[11px] font-bold uppercase tracking-widest px-1" style={{ color: g.color }}>
                     SUPERSET
                   </span>
@@ -404,8 +404,8 @@ export default function EditPlanPage() {
           </div>
           <button
             onClick={() => plan?.id && openExerciseModal(plan.id)}
-            className="border border-[#2C2C2E] text-[#93032E] min-h-[48px] py-3 flex items-center justify-center gap-2 font-medium text-[15px] w-full"
-            style={{ borderRadius: '2px' }}
+            className="border border-line text-accent-soft min-h-[48px] py-3 flex items-center justify-center gap-2 font-medium text-[15px] w-full"
+            style={{ borderRadius: '10px' }}
           >
             <Plus size={20} strokeWidth={1.5} />
             Add Exercise
@@ -413,8 +413,8 @@ export default function EditPlanPage() {
           {exercises.length === 0 && (
             <button
               onClick={() => setShowTemplatePicker(true)}
-              className="border border-[#93032E]/40 text-[#93032E] min-h-[48px] py-3 flex items-center justify-center gap-2 font-medium text-[15px] w-full"
-              style={{ borderRadius: '2px' }}
+              className="border border-accent-hover/40 text-accent-soft min-h-[48px] py-3 flex items-center justify-center gap-2 font-medium text-[15px] w-full"
+              style={{ borderRadius: '10px' }}
             >
               <LayoutTemplate size={20} strokeWidth={1.5} />
               Start from a template
@@ -425,12 +425,12 @@ export default function EditPlanPage() {
         <div className="flex-1" />
 
         <section className="mt-8 flex flex-col gap-4 pb-8">
-          <button onClick={save} className="bg-[#93032E] text-white min-h-[48px] flex justify-center items-center font-medium text-[15px] w-full" style={{ borderRadius: '2px' }}>
+          <button onClick={save} className="bg-accent text-ink min-h-[48px] flex justify-center items-center font-medium text-[15px] w-full" style={{ borderRadius: '10px' }}>
             Save
           </button>
           <button
             onClick={() => plan?.id && openDeleteConfirm({ type: 'plan', id: plan.id, name: plan.title })}
-            className="text-[#FF453A] font-medium text-[15px] w-full flex justify-center py-3"
+            className="text-danger font-medium text-[15px] w-full flex justify-center py-3"
           >
             Delete Plan
           </button>
@@ -449,24 +449,24 @@ export default function EditPlanPage() {
 
       {/* Permanent exercise delete confirmation */}
       {deleteExConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#151515]/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
-            <h3 className="text-[17px] font-semibold text-white">Delete Exercise</h3>
-            <p className="text-[15px] text-[#A1A1A6]">
-              Delete <span className="text-white font-medium">"{deleteExConfirm.exercise}"</span> from this plan? This cannot be undone.
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ground/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-surface border border-line p-4 flex flex-col gap-4" style={{ borderRadius: '16px' }}>
+            <h3 className="text-[16px] font-semibold text-ink">Delete Exercise</h3>
+            <p className="text-[15px] text-muted">
+              Delete <span className="text-ink font-medium">"{deleteExConfirm.exercise}"</span> from this plan? This cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteExConfirm(null)}
-                className="flex-1 h-11 border border-[#2C2C2E] text-white font-medium text-[15px]"
-                style={{ borderRadius: '2px' }}
+                className="flex-1 h-11 border border-line text-ink font-medium text-[15px]"
+                style={{ borderRadius: '10px' }}
               >
                 Cancel
               </button>
               <button
                 onClick={() => deleteExercisePermanently(deleteExConfirm)}
-                className="flex-1 h-11 bg-[#FF453A] text-white font-medium text-[15px] flex items-center justify-center gap-2"
-                style={{ borderRadius: '2px' }}
+                className="flex-1 h-11 bg-danger-fill text-ink font-medium text-[15px] flex items-center justify-center gap-2"
+                style={{ borderRadius: '10px' }}
               >
                 <Trash2 size={16} strokeWidth={1.5} />
                 Delete

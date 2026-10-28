@@ -42,23 +42,23 @@ function DiffBar({ prev, curWeight, curReps, unit }: { prev: PrevSet | null; cur
     const trend = getOverloadTrend(prev, cw, cr)
     if (trend === 'up') indicator = <TrendingUp size={14} className="text-emerald-400" />
     else if (trend === 'down') indicator = <TrendingDown size={14} className="text-red-400" />
-    else indicator = <Minus size={14} className="text-[#A1A1A6]" />
+    else indicator = <Minus size={14} className="text-muted" />
   }
 
   return (
-    <div className="flex items-center justify-between bg-[#1C1C1E] border border-[#2C2C2E] px-3 py-2 text-[13px]" style={{ borderRadius: '2px' }}>
+    <div className="flex items-center justify-between bg-surface border border-line px-3 py-2 text-[13px]" style={{ borderRadius: '10px' }}>
       {prev ? (
         <>
-          <span className="text-[#A1A1A6]">
-            Last: <span className="text-white font-medium">{prev.weight} {unit} × {prev.reps}</span>
+          <span className="text-muted">
+            Last: <span className="text-ink font-medium">{prev.weight} {unit} × {prev.reps}</span>
           </span>
           <div className="flex items-center gap-1.5">
             {indicator}
-            <button onClick={() => setDismissed(true)} className="text-[#A1A1A6] hover:text-white ml-1 text-[11px]">×</button>
+            <button onClick={() => setDismissed(true)} className="text-muted hover:text-ink ml-1 text-[11px]">×</button>
           </div>
         </>
       ) : (
-        <span className="text-[#A1A1A6] italic">First time — set a baseline!</span>
+        <span className="text-muted italic">First time — set a baseline!</span>
       )}
     </div>
   )
@@ -86,15 +86,15 @@ function CuesPopover({ cues }: { cues: string }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
-        className={`p-1 transition-colors ${open ? 'text-[#93032E]' : 'text-[#A1A1A6] hover:text-[#93032E]'}`}
-        style={{ borderRadius: '2px' }}
+        className={`p-1 transition-colors ${open ? 'text-accent-soft' : 'text-muted hover:text-accent-soft'}`}
+        style={{ borderRadius: '10px' }}
         aria-label="Coach's cues"
       >
         <Info size={16} strokeWidth={1.5} />
       </button>
       {open && (
-        <div className="absolute left-0 top-8 z-50 w-64 bg-[#1C1C1E] border border-[#2C2C2E] p-3 animate-fadeIn" style={{ borderRadius: '4px' }}>
-          <p className="text-[13px] text-[#A1A1A6] leading-relaxed">{cues}</p>
+        <div className="absolute left-0 top-8 z-50 w-64 bg-surface border border-line p-3 animate-fadeIn" style={{ borderRadius: '16px' }}>
+          <p className="text-[13px] text-muted leading-relaxed">{cues}</p>
         </div>
       )}
     </div>
@@ -367,7 +367,7 @@ export default function StartPlanPage() {
   }
 
   function groupBorderClass(st: string) {
-    if (st === 'superset') return 'border-l-[3px] border-[#BE1755]'
+    if (st === 'superset') return 'border-l-[3px] border-warning'
     if (st === 'giant')    return 'border-l-[3px] border-purple-400'
     if (st === 'circuit')  return 'border-l-[3px] border-emerald-400'
     return ''
@@ -505,20 +505,20 @@ export default function StartPlanPage() {
     const inp = getInput(ex.exercise)
     const orm = brzycki(parseFloat(inp.weight), parseInt(inp.reps))
 
-    const currentBorder = isCurrent ? 'border-[#93032E]' : 'border-[#2C2C2E]'
+    const currentBorder = isCurrent ? 'border-accent-hover' : 'border-line'
     const warmupBorder = st === 'warmup' ? 'border-l-[3px] border-amber-400' : ''
 
     return (
       <article
         key={ex.id}
         data-ex-idx={i}
-        className={`bg-[#1C1C1E] p-3 flex flex-col gap-3 relative border ${currentBorder} ${warmupBorder || groupBorderClass(st)} ${done && !isCurrent ? 'opacity-50' : ''}`}
+        className={`bg-surface p-3 flex flex-col gap-3 relative border ${currentBorder} ${warmupBorder || groupBorderClass(st)} ${done && !isCurrent ? 'opacity-50' : ''}`}
         {...getItemProps(i)}
-        style={{ borderRadius: '4px' }}
+        style={{ borderRadius: '16px' }}
       >
         {/* Warmup pill */}
         {st === 'warmup' && (
-          <span className="absolute top-3 right-3 text-[11px] font-medium text-amber-400 bg-amber-400/10 px-2 py-0.5" style={{ borderRadius: '2px' }}>Warm-up</span>
+          <span className="absolute top-3 right-3 text-[11px] font-medium text-amber-400 bg-amber-400/10 px-2 py-0.5" style={{ borderRadius: '10px' }}>Warm-up</span>
         )}
 
         {/* Header row — clickable to expand/collapse */}
@@ -532,12 +532,12 @@ export default function StartPlanPage() {
           }}
         >
           <span {...getHandleProps(i)} data-drag-handle>
-            <GripVertical size={20} strokeWidth={1.5} className="text-[#A1A1A6] shrink-0" />
+            <GripVertical size={20} strokeWidth={1.5} className="text-muted shrink-0" />
           </span>
 
           <div className="flex-1 min-w-0 flex items-center gap-2">
-            {done && <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E] shrink-0" fill="#93032E" />}
-            <h2 className={`text-[17px] font-medium text-white truncate ${done ? 'line-through' : ''}`}>
+            {done && <CheckCircle size={18} strokeWidth={1.5} className="text-accent-soft shrink-0" fill="var(--color-accent-soft)" />}
+            <h2 className={`text-[16px] font-medium text-ink truncate ${done ? 'line-through' : ''}`}>
               {ex.exercise}
             </h2>
             {cues && isCurrent && <CuesPopover cues={cues} />}
@@ -546,7 +546,7 @@ export default function StartPlanPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/swap/${planId}/${encodeURIComponent(ex.exercise)}`) }}
-              className="text-[#A1A1A6] hover:text-[#93032E] p-1"
+              className="text-muted hover:text-accent-soft p-1"
               aria-label="Swap exercise"
             >
               <Repeat size={18} strokeWidth={1.5} />
@@ -554,14 +554,14 @@ export default function StartPlanPage() {
             {/* Fix 2: X now triggers confirmation instead of direct delete */}
             <button
               onClick={(e) => { e.stopPropagation(); setRemoveConfirmEx({ ex, idx: i }) }}
-              className="text-[#A1A1A6] hover:text-[#FF453A] p-1"
+              className="text-muted hover:text-danger p-1"
               aria-label="Remove exercise from session"
             >
               <X size={18} strokeWidth={1.5} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); toggleExpanded(i) }}
-              className="text-[#A1A1A6] hover:text-white p-1"
+              className="text-muted hover:text-ink p-1"
             >
               <ChevronDown size={18} strokeWidth={1.5} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
@@ -570,11 +570,11 @@ export default function StartPlanPage() {
 
         {/* Exercise info badges */}
         <div className="flex gap-2 flex-wrap pl-8">
-          <span className="bg-[#2C2C2E] text-white px-2 py-1 text-[11px] font-medium" style={{ borderRadius: '2px' }}>
+          <span className="bg-line text-ink px-2 py-1 text-[11px] font-medium" style={{ borderRadius: '10px' }}>
             {sets.length}/{ex.maxSets} sets
           </span>
           {isCurrent && (
-            <span className="bg-[#93032E]/20 text-[#93032E] px-2 py-1 text-[11px] font-medium" style={{ borderRadius: '2px' }}>
+            <span className="bg-accent/20 text-accent-soft px-2 py-1 text-[11px] font-medium" style={{ borderRadius: '10px' }}>
               CURRENT
             </span>
           )}
@@ -583,7 +583,7 @@ export default function StartPlanPage() {
         {/* Expanded content */}
         {isExpanded && (
           <>
-            <div className="w-full h-px bg-[#2C2C2E]" />
+            <div className="w-full h-px bg-line" />
 
             {/* Fix 1: Logged sets — each row is now tappable for inline editing */}
             {sets.length > 0 && (
@@ -595,14 +595,14 @@ export default function StartPlanPage() {
                   if (isEditingThis) {
                     // ── Inline edit form ─────────────────────────────────────
                     return (
-                      <div key={si} className="py-2 border-b border-[#2C2C2E] flex flex-col gap-2 animate-fadeIn">
+                      <div key={si} className="py-2 border-b border-line flex flex-col gap-2 animate-fadeIn">
                         <div className="flex items-center gap-2">
-                          <span className="text-[13px] font-medium text-[#93032E] w-10 shrink-0">
+                          <span className="text-[13px] font-medium text-accent-soft w-10 shrink-0">
                             Set {si + 1}
                           </span>
                           <div className="flex-1 flex gap-2">
                             <div className="relative flex-1">
-                              <label className="absolute -top-2 left-2 bg-[#1C1C1E] px-1 text-[10px] text-[#A1A1A6]">
+                              <label className="absolute -top-2 left-2 bg-surface px-1 text-[10px] text-muted">
                                 Wt ({settings.strengthUnit})
                               </label>
                               <input
@@ -610,13 +610,13 @@ export default function StartPlanPage() {
                                 inputMode="decimal"
                                 value={editWeight}
                                 onChange={e => setEditWeight(e.target.value)}
-                                className="w-full bg-[#2C2C2E] border border-[#2C2C2E] px-2 py-2 text-white text-[14px] text-center focus:border-[#93032E] focus:outline-none"
-                                style={{ borderRadius: '2px' }}
+                                className="w-full bg-line border border-line px-2 py-2 text-ink text-[14px] text-center focus:border-accent-hover focus:outline-none"
+                                style={{ borderRadius: '10px' }}
                                 autoFocus
                               />
                             </div>
                             <div className="relative flex-1">
-                              <label className="absolute -top-2 left-2 bg-[#1C1C1E] px-1 text-[10px] text-[#A1A1A6]">
+                              <label className="absolute -top-2 left-2 bg-surface px-1 text-[10px] text-muted">
                                 Reps
                               </label>
                               <input
@@ -624,8 +624,8 @@ export default function StartPlanPage() {
                                 inputMode="numeric"
                                 value={editReps}
                                 onChange={e => setEditReps(e.target.value)}
-                                className="w-full bg-[#2C2C2E] border border-[#2C2C2E] px-2 py-2 text-white text-[14px] text-center focus:border-[#93032E] focus:outline-none"
-                                style={{ borderRadius: '2px' }}
+                                className="w-full bg-line border border-line px-2 py-2 text-ink text-[14px] text-center focus:border-accent-hover focus:outline-none"
+                                style={{ borderRadius: '10px' }}
                               />
                             </div>
                           </div>
@@ -633,22 +633,22 @@ export default function StartPlanPage() {
                         <div className="flex gap-2 pl-10">
                           <button
                             onClick={handleSaveInlineEdit}
-                            className="flex-1 h-8 bg-[#93032E] text-white font-medium text-[13px]"
-                            style={{ borderRadius: '2px' }}
+                            className="flex-1 h-8 bg-accent text-ink font-medium text-[13px]"
+                            style={{ borderRadius: '10px' }}
                           >
                             Save
                           </button>
                           <button
                             onClick={handleDeleteInlineSet}
-                            className="h-8 px-3 border border-[#FF453A] text-[#FF453A] font-medium text-[13px]"
-                            style={{ borderRadius: '2px' }}
+                            className="h-8 px-3 border border-danger text-danger font-medium text-[13px]"
+                            style={{ borderRadius: '10px' }}
                           >
                             Delete
                           </button>
                           <button
                             onClick={() => setEditingSetKey(null)}
-                            className="h-8 px-3 border border-[#2C2C2E] text-[#A1A1A6] font-medium text-[13px]"
-                            style={{ borderRadius: '2px' }}
+                            className="h-8 px-3 border border-line text-muted font-medium text-[13px]"
+                            style={{ borderRadius: '10px' }}
                           >
                             Cancel
                           </button>
@@ -662,22 +662,22 @@ export default function StartPlanPage() {
                     <div
                       key={si}
                       onClick={() => s.id && startInlineEdit(ex.exercise, si, s)}
-                      className={`flex items-center justify-between py-1.5 border-b border-[#2C2C2E] transition-colors ${s.id ? 'cursor-pointer hover:bg-[#2C2C2E]/40 active:bg-[#2C2C2E]/60' : ''}`}
+                      className={`flex items-center justify-between py-1.5 border-b border-line transition-colors ${s.id ? 'cursor-pointer hover:bg-line/40 active:bg-line/60' : ''}`}
                     >
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-3">
-                          <span className="text-[13px] font-medium text-[#A1A1A6] w-10">Set {si + 1}</span>
-                          <span className="text-[15px] text-white font-medium">{s.weight} {settings.strengthUnit}</span>
-                          <span className="text-[#A1A1A6] text-sm">×</span>
-                          <span className="text-[15px] text-white font-medium">{s.reps} reps</span>
+                          <span className="text-[13px] font-medium text-muted w-10">Set {si + 1}</span>
+                          <span className="text-[15px] text-ink font-medium">{s.weight} {settings.strengthUnit}</span>
+                          <span className="text-muted text-sm">×</span>
+                          <span className="text-[15px] text-ink font-medium">{s.reps} reps</span>
                         </div>
                         {(s.rpe != null || s.rir != null) && (
-                          <span className="text-[11px] text-[#A1A1A6] pl-10">
+                          <span className="text-[11px] text-muted pl-10">
                             {s.rpe != null && `RPE ${s.rpe}`}{s.rpe != null && s.rir != null && ', '}{s.rir != null && `RIR ${s.rir}`}
                           </span>
                         )}
                       </div>
-                      <CheckCircle size={18} strokeWidth={1.5} className="text-[#93032E]" fill="#93032E" />
+                      <CheckCircle size={18} strokeWidth={1.5} className="text-accent-soft" fill="var(--color-accent-soft)" />
                     </div>
                   )
                 })}
@@ -685,29 +685,29 @@ export default function StartPlanPage() {
             )}
 
             {/* Input area — shown for ALL expanded exercises */}
-            <div className="mt-2 bg-[#151515]/50 p-3 border border-[#2C2C2E] flex flex-col gap-3 ml-8" style={{ borderRadius: '4px' }}>
+            <div className="mt-2 bg-ground/50 p-3 border border-line flex flex-col gap-3 ml-8" style={{ borderRadius: '16px' }}>
               <div className="flex items-center gap-3">
-                <span className="text-[13px] font-medium text-[#93032E] w-10 shrink-0">Set {sets.length + 1}</span>
+                <span className="text-[13px] font-medium text-accent-soft w-10 shrink-0">Set {sets.length + 1}</span>
                 <div className="flex-1 flex gap-3">
                   <div className="relative flex-1">
-                    <label className="absolute -top-2 left-3 bg-[#151515] px-1 text-[10px] text-[#A1A1A6]">
+                    <label className="absolute -top-2 left-3 bg-ground px-1 text-[10px] text-muted">
                       Weight ({settings.strengthUnit})
                     </label>
                     <input
                       type="number" inputMode="decimal" value={inp.weight}
                       onChange={e => patchInput(ex.exercise, { weight: e.target.value })}
-                      className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#93032E] focus:outline-none"
-                      style={{ borderRadius: '2px' }}
+                      className="w-full bg-transparent border border-ink/30 px-3 py-2.5 text-ink text-[15px] text-center focus:border-accent-hover focus:outline-none"
+                      style={{ borderRadius: '10px' }}
                       placeholder="0"
                     />
                   </div>
                   <div className="relative flex-1">
-                    <label className="absolute -top-2 left-3 bg-[#151515] px-1 text-[10px] text-[#A1A1A6]">Reps</label>
+                    <label className="absolute -top-2 left-3 bg-ground px-1 text-[10px] text-muted">Reps</label>
                     <input
                       type="number" inputMode="numeric" value={inp.reps}
                       onChange={e => patchInput(ex.exercise, { reps: e.target.value })}
-                      className="w-full bg-transparent border border-white/30 px-3 py-2.5 text-white text-[15px] text-center focus:border-[#93032E] focus:outline-none"
-                      style={{ borderRadius: '2px' }}
+                      className="w-full bg-transparent border border-ink/30 px-3 py-2.5 text-ink text-[15px] text-center focus:border-accent-hover focus:outline-none"
+                      style={{ borderRadius: '10px' }}
                       placeholder="0"
                     />
                   </div>
@@ -717,7 +717,7 @@ export default function StartPlanPage() {
               {/* Live 1RM chip */}
               {orm != null && (
                 <div className="flex justify-end">
-                  <span className="text-[11px] font-medium bg-[#1C1C1E]/80 text-[#93032E] border border-[#93032E]/30 px-2 py-0.5" style={{ borderRadius: '2px' }}>
+                  <span className="text-[11px] font-medium bg-surface/80 text-accent-soft border border-accent-hover/30 px-2 py-0.5" style={{ borderRadius: '10px' }}>
                     ≈ 1RM: {orm} {settings.strengthUnit}
                   </span>
                 </div>
@@ -731,7 +731,7 @@ export default function StartPlanPage() {
               {/* RPE / RIR (progressive disclosure) */}
               <button
                 onClick={() => patchInput(ex.exercise, { showMore: !inp.showMore })}
-                className="flex items-center gap-1 text-[11px] font-medium text-[#A1A1A6] hover:text-white transition-colors self-start"
+                className="flex items-center gap-1 text-[11px] font-medium text-muted hover:text-ink transition-colors self-start"
               >
                 <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform duration-150 ${inp.showMore ? 'rotate-180' : ''}`} />
                 {inp.showMore ? 'Less' : 'RPE / RIR'}
@@ -739,23 +739,23 @@ export default function StartPlanPage() {
               {inp.showMore && (
                 <div className="flex items-center gap-4 animate-fadeIn">
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-[11px] font-medium text-[#A1A1A6]">RPE</span>
+                    <span className="text-[11px] font-medium text-muted">RPE</span>
                     <input
                       type="number" inputMode="numeric" value={inp.rpe}
                       onChange={e => patchInput(ex.exercise, { rpe: e.target.value })}
                       min={1} max={10} placeholder="1-10"
-                      className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
-                      style={{ borderRadius: '2px' }}
+                      className="w-12 h-10 bg-surface border border-line text-[15px] text-ink text-center focus:outline-none focus:border-accent-hover"
+                      style={{ borderRadius: '10px' }}
                     />
                   </div>
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-[11px] font-medium text-[#A1A1A6]">RIR</span>
+                    <span className="text-[11px] font-medium text-muted">RIR</span>
                     <input
                       type="number" inputMode="numeric" value={inp.rir}
                       onChange={e => patchInput(ex.exercise, { rir: e.target.value })}
                       min={0} max={5} placeholder="0-5"
-                      className="w-12 h-10 bg-[#1C1C1E] border border-[#2C2C2E] text-[15px] text-white text-center focus:outline-none focus:border-[#93032E]"
-                      style={{ borderRadius: '2px' }}
+                      className="w-12 h-10 bg-surface border border-line text-[15px] text-ink text-center focus:outline-none focus:border-accent-hover"
+                      style={{ borderRadius: '10px' }}
                     />
                   </div>
                 </div>
@@ -769,21 +769,21 @@ export default function StartPlanPage() {
                     onChange={e => setCoachingNoteInputs(prev => ({ ...prev, [ex.exercise]: e.target.value }))}
                     placeholder="e.g., tucking elbows gives more impact on upper chest"
                     rows={2}
-                    className="w-full bg-[#2C2C2E] border border-[#2C2C2E] px-3 py-2 text-[13px] text-white placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none resize-none"
-                    style={{ borderRadius: '2px' }}
+                    className="w-full bg-line border border-line px-3 py-2 text-[13px] text-ink placeholder-muted focus:border-accent-hover focus:outline-none resize-none"
+                    style={{ borderRadius: '10px' }}
                   />
                   <div className="flex gap-2 justify-end">
                     <button
                       onClick={() => setShowNoteField(prev => ({ ...prev, [ex.exercise]: false }))}
-                      className="px-3 py-1.5 text-[12px] bg-[#2C2C2E] text-white hover:bg-opacity-80 transition-all font-medium"
-                      style={{ borderRadius: '2px' }}
+                      className="px-3 py-1.5 text-[12px] bg-line text-ink hover:bg-opacity-80 transition-all font-medium"
+                      style={{ borderRadius: '10px' }}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={() => saveCoachingNote(ex.exercise, coachingNoteInputs[ex.exercise] ?? '')}
-                      className="px-3 py-1.5 text-[12px] bg-[#93032E] text-white hover:bg-opacity-80 transition-all font-medium"
-                      style={{ borderRadius: '2px' }}
+                      className="px-3 py-1.5 text-[12px] bg-accent text-ink hover:bg-opacity-80 transition-all font-medium"
+                      style={{ borderRadius: '10px' }}
                     >
                       Save
                     </button>
@@ -794,10 +794,10 @@ export default function StartPlanPage() {
               {/* Fix 4: Camera image attachment indicator */}
               {pendingImages[ex.exercise] && (
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-medium text-[#93032E]">📷 Photo attached</span>
+                  <span className="text-[11px] font-medium text-accent-soft">📷 Photo attached</span>
                   <button
                     onClick={() => setPendingImages(prev => { const n = { ...prev }; delete n[ex.exercise]; return n })}
-                    className="text-[11px] text-[#A1A1A6] hover:text-[#FF453A]"
+                    className="text-[11px] text-muted hover:text-danger"
                   >
                     Remove
                   </button>
@@ -808,8 +808,8 @@ export default function StartPlanPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => logSet(ex, i)}
-                  className="flex-1 bg-[#93032E] text-white font-medium text-[15px] py-2.5 flex items-center justify-center gap-2"
-                  style={{ borderRadius: '2px' }}
+                  className="flex-1 bg-accent text-ink font-medium text-[15px] py-2.5 flex items-center justify-center gap-2"
+                  style={{ borderRadius: '10px' }}
                 >
                   <Plus size={18} strokeWidth={1.5} />
                   Log Set
@@ -817,8 +817,8 @@ export default function StartPlanPage() {
                 {/* Fix 4: Camera button — opens device file picker / camera */}
                 <button
                   onClick={() => handleCameraClick(ex.exercise)}
-                  className={`w-10 h-10 flex items-center justify-center transition-colors ${pendingImages[ex.exercise] ? 'bg-[#93032E]' : 'bg-[#2C2C2E]'} text-white`}
-                  style={{ borderRadius: '2px' }}
+                  className={`w-10 h-10 flex items-center justify-center transition-colors ${pendingImages[ex.exercise] ? 'bg-accent' : 'bg-line'} text-ink`}
+                  style={{ borderRadius: '10px' }}
                   title={pendingImages[ex.exercise] ? 'Photo selected — tap to change' : 'Attach photo'}
                 >
                   <Camera size={18} strokeWidth={1.5} />
@@ -832,8 +832,8 @@ export default function StartPlanPage() {
                       setCoachingNoteInputs(prev => ({ ...prev, [ex.exercise]: cuesMap[ex.exercise] ?? '' }))
                     }
                   }}
-                  className={`w-10 h-10 flex items-center justify-center transition-colors ${showNoteField[ex.exercise] ? 'bg-[#93032E]' : 'bg-[#2C2C2E]'} text-white`}
-                  style={{ borderRadius: '2px' }}
+                  className={`w-10 h-10 flex items-center justify-center transition-colors ${showNoteField[ex.exercise] ? 'bg-accent' : 'bg-line'} text-ink`}
+                  style={{ borderRadius: '10px' }}
                   title="Toggle coaching notes"
                 >
                   <FileText size={18} strokeWidth={1.5} />
@@ -845,8 +845,8 @@ export default function StartPlanPage() {
             {isCurrent && (
               <button
                 onClick={advanceExercise}
-                className="w-full mt-2 ml-8 border border-[#2C2C2E] text-white font-medium text-[15px] py-2.5 bg-transparent hover:bg-[#2C2C2E] transition-colors"
-                style={{ borderRadius: '2px' }}
+                className="w-full mt-2 ml-8 border border-line text-ink font-medium text-[15px] py-2.5 bg-transparent hover:bg-line transition-colors"
+                style={{ borderRadius: '10px' }}
               >
                 {advanceLabel}
               </button>
@@ -859,24 +859,24 @@ export default function StartPlanPage() {
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#151515] pb-8">
-      <header className="fixed top-0 w-full z-40 bg-[#151515]/90 backdrop-blur-md flex flex-col">
-        <div className="flex items-center justify-between px-3 h-14 border-b border-[#2C2C2E]">
-          <button onClick={() => navigate(-1)} className="text-white p-2 -ml-2 hover:bg-[#1C1C1E]" style={{ borderRadius: '2px' }}>
+    <div className="min-h-screen bg-ground pb-8">
+      <header className="fixed top-0 w-full z-40 bg-ground/90 backdrop-blur-md flex flex-col">
+        <div className="flex items-center justify-between px-3 h-14 border-b border-line">
+          <button onClick={() => navigate(-1)} className="text-ink p-2 -ml-2 hover:bg-surface" style={{ borderRadius: '10px' }}>
             <ArrowLeft size={20} strokeWidth={1.5} />
           </button>
-          <h1 className="text-[22px] font-medium text-white">{plan?.title}</h1>
+          <h1 className="text-[24px] font-medium text-ink">{plan?.title}</h1>
           {/* Fix 3: Finish button now checks for incomplete sets */}
-          <button onClick={handleFinishWithCheck} className="flex items-center gap-1 text-[#93032E] font-medium text-[15px] p-2 -mr-1">
+          <button onClick={handleFinishWithCheck} className="flex items-center gap-1 text-accent-soft font-medium text-[15px] p-2 -mr-1">
             <Flag size={18} strokeWidth={1.5} />
             <span className="hidden sm:inline">Finish</span>
           </button>
         </div>
-        <div className="w-full bg-[#2C2C2E] h-1.5">
-          <div className="bg-[#93032E] h-full transition-all" style={{ width: `${progress * 100}%` }} />
+        <div className="w-full bg-line h-1.5">
+          <div className="bg-accent h-full transition-all" style={{ width: `${progress * 100}%` }} />
         </div>
-        <div className="px-3 py-2 text-center bg-[#151515]">
-          <span className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest">
+        <div className="px-3 py-2 text-center bg-ground">
+          <span className="text-[13px] font-medium text-muted uppercase tracking-widest">
             {totalDone}/{exercises.length} exercises done
           </span>
         </div>
@@ -925,7 +925,7 @@ export default function StartPlanPage() {
                 return renderExerciseRow(g.ex, g.idx)
               }
               return (
-                <div key={`group-${gi}`} className="border-l-[3px] pl-2 flex flex-col gap-2" style={{ borderColor: g.color, borderRadius: '0 4px 4px 0' }}>
+                <div key={`group-${gi}`} className="border-l-[3px] pl-2 flex flex-col gap-2" style={{ borderColor: g.color, borderRadius: '0 16px 16px 0' }}>
                   <span className="text-[11px] font-bold uppercase tracking-widest px-1" style={{ color: g.color }}>
                     SUPERSET
                   </span>
@@ -939,8 +939,8 @@ export default function StartPlanPage() {
         {/* Fix 2: Add Exercise button */}
         <button
           onClick={() => openExerciseModal(planId)}
-          className="w-full mt-2 border border-[#2C2C2E] text-[#93032E] font-medium text-[15px] h-12 flex items-center justify-center gap-2 hover:border-[#93032E]/40 transition-colors"
-          style={{ borderRadius: '2px' }}
+          className="w-full mt-2 border border-line text-accent-soft font-medium text-[15px] h-12 flex items-center justify-center gap-2 hover:border-accent-hover/40 transition-colors"
+          style={{ borderRadius: '10px' }}
         >
           <Plus size={18} strokeWidth={1.5} />
           Add Exercise
@@ -949,8 +949,8 @@ export default function StartPlanPage() {
         {/* Fix 3: Finish button now checks for incomplete sets */}
         <button
           onClick={handleFinishWithCheck}
-          className="w-full bg-[#1C1C1E] border border-[#93032E] text-[#93032E] font-medium text-[15px] h-12 flex items-center justify-center gap-2"
-          style={{ borderRadius: '2px' }}
+          className="w-full bg-surface border border-accent-hover text-accent-soft font-medium text-[15px] h-12 flex items-center justify-center gap-2"
+          style={{ borderRadius: '10px' }}
         >
           <Flag size={18} strokeWidth={1.5} />
           Finish Session
@@ -960,21 +960,21 @@ export default function StartPlanPage() {
         {!confirmDiscard ? (
           <button
             onClick={() => setConfirmDiscard(true)}
-            className="w-full border border-[#2C2C2E] text-[#A1A1A6] font-medium text-[15px] h-12 flex items-center justify-center gap-2 hover:border-[#FF453A] hover:text-[#FF453A] transition-colors"
-            style={{ borderRadius: '2px' }}
+            className="w-full border border-line text-muted font-medium text-[15px] h-12 flex items-center justify-center gap-2 hover:border-danger hover:text-danger transition-colors"
+            style={{ borderRadius: '10px' }}
           >
             <Trash2 size={18} strokeWidth={1.5} />
             Discard Workout
           </button>
         ) : (
-          <div className="w-full bg-[#1C1C1E] border border-[#FF453A]/40 p-3 flex flex-col gap-3" style={{ borderRadius: '4px' }}>
-            <p className="text-[15px] text-white font-medium text-center">Discard this workout?</p>
-            <p className="text-[13px] text-[#A1A1A6] text-center">All sets logged in this session will be permanently deleted.</p>
+          <div className="w-full bg-surface border border-danger/40 p-3 flex flex-col gap-3" style={{ borderRadius: '16px' }}>
+            <p className="text-[15px] text-ink font-medium text-center">Discard this workout?</p>
+            <p className="text-[13px] text-muted text-center">All sets logged in this session will be permanently deleted.</p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmDiscard(false)} className="flex-1 h-11 border border-[#2C2C2E] text-white font-medium text-[15px]" style={{ borderRadius: '2px' }}>
+              <button onClick={() => setConfirmDiscard(false)} className="flex-1 h-11 border border-line text-ink font-medium text-[15px]" style={{ borderRadius: '10px' }}>
                 Cancel
               </button>
-              <button onClick={handleDiscard} className="flex-1 h-11 bg-[#FF453A] text-white font-medium text-[15px] flex items-center justify-center gap-2" style={{ borderRadius: '2px' }}>
+              <button onClick={handleDiscard} className="flex-1 h-11 bg-danger-fill text-ink font-medium text-[15px] flex items-center justify-center gap-2" style={{ borderRadius: '10px' }}>
                 <Trash2 size={16} strokeWidth={1.5} />
                 Discard
               </button>
@@ -1001,26 +1001,26 @@ export default function StartPlanPage() {
 
       {/* Fix 2: Remove exercise confirmation dialog */}
       {removeConfirmEx && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#151515]/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
-            <h3 className="text-[17px] font-semibold text-white">Remove Exercise</h3>
-            <p className="text-[15px] text-[#A1A1A6]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ground/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-surface border border-line p-4 flex flex-col gap-4" style={{ borderRadius: '16px' }}>
+            <h3 className="text-[16px] font-semibold text-ink">Remove Exercise</h3>
+            <p className="text-[15px] text-muted">
               Remove{' '}
-              <span className="text-white font-medium">"{removeConfirmEx.ex.exercise}"</span>{' '}
+              <span className="text-ink font-medium">"{removeConfirmEx.ex.exercise}"</span>{' '}
               from this session?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setRemoveConfirmEx(null)}
-                className="flex-1 h-11 border border-[#2C2C2E] text-white font-medium text-[15px]"
-                style={{ borderRadius: '2px' }}
+                className="flex-1 h-11 border border-line text-ink font-medium text-[15px]"
+                style={{ borderRadius: '10px' }}
               >
                 Cancel
               </button>
               <button
                 onClick={() => actualDeleteExercise(removeConfirmEx.ex)}
-                className="flex-1 h-11 bg-[#FF453A] text-white font-medium text-[15px] flex items-center justify-center gap-2"
-                style={{ borderRadius: '2px' }}
+                className="flex-1 h-11 bg-danger-fill text-ink font-medium text-[15px] flex items-center justify-center gap-2"
+                style={{ borderRadius: '10px' }}
               >
                 <X size={16} strokeWidth={1.5} />
                 Remove
@@ -1032,16 +1032,16 @@ export default function StartPlanPage() {
 
       {/* Fix 3: Incomplete-sets warning dialog */}
       {showSkipWarning && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#151515]/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-sm bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex flex-col gap-4" style={{ borderRadius: '4px' }}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ground/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-surface border border-line p-4 flex flex-col gap-4" style={{ borderRadius: '16px' }}>
             <div className="flex items-center gap-2">
               <AlertTriangle size={20} strokeWidth={1.5} className="text-amber-400 shrink-0" />
-              <h3 className="text-[17px] font-semibold text-white">Incomplete Sets</h3>
+              <h3 className="text-[16px] font-semibold text-ink">Incomplete Sets</h3>
             </div>
             <div className="flex flex-col gap-2">
               {incompleteExercises.map(ex => (
-                <div key={ex.name} className="flex items-center justify-between bg-[#151515] px-3 py-2" style={{ borderRadius: '2px' }}>
-                  <span className="text-[15px] text-[#e4e2e4] truncate flex-1 mr-3">{ex.name}</span>
+                <div key={ex.name} className="flex items-center justify-between bg-ground px-3 py-2" style={{ borderRadius: '10px' }}>
+                  <span className="text-[15px] text-ink-soft truncate flex-1 mr-3">{ex.name}</span>
                   <span className="text-[13px] font-semibold text-amber-400 shrink-0 tabular-nums">
                     {ex.logged}/{ex.max} sets
                   </span>
@@ -1051,15 +1051,15 @@ export default function StartPlanPage() {
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleLogThem}
-                className="w-full h-11 bg-[#93032E] text-white font-medium text-[15px]"
-                style={{ borderRadius: '2px' }}
+                className="w-full h-11 bg-accent text-ink font-medium text-[15px]"
+                style={{ borderRadius: '10px' }}
               >
                 Log them
               </button>
               <button
                 onClick={() => { setShowSkipWarning(false); doFinish() }}
-                className="w-full h-11 border border-[#2C2C2E] text-white font-medium text-[15px] hover:bg-[#2C2C2E] transition-colors"
-                style={{ borderRadius: '2px' }}
+                className="w-full h-11 border border-line text-ink font-medium text-[15px] hover:bg-line transition-colors"
+                style={{ borderRadius: '10px' }}
               >
                 Continue anyway
               </button>

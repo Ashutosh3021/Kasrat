@@ -10,34 +10,56 @@ interface TopBarProps {
 
 export default function TopBar({ showBack, title, showSettings = true, onSettingsClick }: TopBarProps) {
   const navigate = useNavigate()
+
   return (
-    <header className="fixed top-0 w-full z-50 bg-[#151515]/80 backdrop-blur-md flex justify-between items-center px-4 h-14 border-b border-[#2C2C2E]">
-      <div className="flex items-center gap-3">
-        {showBack ? (
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white hover:opacity-80">
-            <ArrowLeft size={20} strokeWidth={1.5} />
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-line/80 bg-ground/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          {showBack ? (
+            <>
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="icon-btn -ml-1"
+                aria-label="Go back"
+              >
+                <ArrowLeft size={19} strokeWidth={1.8} />
+              </button>
+              {title && (
+                <h1 className="truncate text-[18px] font-bold tracking-[-0.035em] text-ink">{title}</h1>
+              )}
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="group flex items-center gap-2.5 text-left"
+              aria-label="Kasrat home"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent shadow-[0_12px_28px_-16px_rgba(198,58,25,0.95)] transition-transform duration-200 group-hover:-rotate-3 group-active:scale-95">
+                <span className="text-[19px] font-black leading-none tracking-[-0.1em] text-on-accent">K</span>
+              </span>
+              <span className="flex flex-col leading-none">
+                <span className="text-[16px] font-extrabold tracking-[-0.045em] text-ink">KASRAT</span>
+                <span className="mono mt-1 text-[8px] uppercase tracking-[0.24em] text-muted">Training log</span>
+              </span>
+            </button>
+          )}
+        </div>
+
+        {showSettings ? (
+          <button
+            type="button"
+            onClick={onSettingsClick ?? (() => navigate('/settings'))}
+            className="icon-btn -mr-1"
+            aria-label="Open settings"
+          >
+            <Settings size={18} strokeWidth={1.8} />
           </button>
         ) : (
-          <div className="w-8 h-8 bg-[#353437] flex items-center justify-center overflow-hidden" style={{ borderRadius: '2px' }}>
-            <span className="text-xs font-medium text-[#93032E]">K</span>
-          </div>
-        )}
-        {!showBack && (
-          <span className="text-xl font-semibold tracking-tight text-[#93032E]">KASRAT</span>
-        )}
-        {showBack && title && (
-          <span className="font-medium text-[22px] leading-7 text-white absolute left-1/2 -translate-x-1/2">{title}</span>
+          <span className="h-11 w-11" aria-hidden="true" />
         )}
       </div>
-      {showSettings && (
-        <button
-          onClick={onSettingsClick ?? (() => navigate('/settings'))}
-          className="text-[#A1A1A6] hover:opacity-80 transition-opacity p-2"
-        >
-          <Settings size={20} strokeWidth={1.5} />
-        </button>
-      )}
     </header>
   )
 }
-

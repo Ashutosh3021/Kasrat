@@ -108,11 +108,11 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-24 pt-14">
+    <div className="min-h-screen bg-ground pb-32 pt-14">
       <TopBar />
       <main className="px-4 pt-6 max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white">History</h1>
+          <h1 className="text-[40px] font-semibold leading-10 tracking-tight text-ink">History</h1>
         </div>
 
         <div className="flex gap-3 mb-8">
@@ -121,15 +121,15 @@ export default function HistoryPage() {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-[#1C1C1E] border border-[#2C2C2E] text-white pl-10 pr-3 py-3 text-[17px] focus:border-[#93032E] focus:outline-none placeholder:text-zinc-500"
-              style={{ borderRadius: '2px' }}
+              className="w-full bg-surface border border-line text-ink pl-10 pr-3 py-3 text-[16px] focus:border-accent-hover focus:outline-none placeholder:text-zinc-500"
+              style={{ borderRadius: '10px' }}
               placeholder="Search workouts..."
             />
           </div>
           <button
             onClick={() => setFilterOpen(true)}
-            className="bg-[#1C1C1E] border border-[#2C2C2E] p-3 text-zinc-400 hover:text-white"
-            style={{ borderRadius: '2px' }}
+            className="bg-surface border border-line p-3 text-zinc-400 hover:text-ink"
+            style={{ borderRadius: '10px' }}
           >
             <Filter size={20} strokeWidth={1.5} />
           </button>
@@ -137,7 +137,7 @@ export default function HistoryPage() {
 
         {Object.keys(grouped).length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-[#A1A1A6] text-[15px]">
+            <p className="text-muted text-[15px]">
               {debouncedSearch ? `No results for "${debouncedSearch}"` : 'No history yet. Start logging sets!'}
             </p>
           </div>
@@ -145,18 +145,18 @@ export default function HistoryPage() {
           <div className="space-y-8">
             {Object.entries(grouped).map(([date, items]) => (
               <section key={date}>
-                <h2 className="text-[22px] font-medium text-white mb-4 border-b border-[#2C2C2E] pb-2">{date}</h2>
-                <div className="bg-[#1C1C1E] border border-[#2C2C2E] overflow-hidden" style={{ borderRadius: '4px' }}>
+                <h2 className="text-[24px] font-medium text-ink mb-4 border-b border-line pb-2">{date}</h2>
+                <div className="bg-surface border border-line overflow-hidden" style={{ borderRadius: '16px' }}>
                   {(items as GymSet[]).map((s, i) => (
                     <div
                       key={s.id}
-                      className={`flex items-center justify-between p-3 hover:bg-[#2a2a2c] transition-colors cursor-pointer ${i < items.length - 1 ? 'border-b border-[#2C2C2E]' : ''}`}
+                      className={`flex items-center justify-between p-3 hover:bg-surface-high transition-colors cursor-pointer ${i < items.length - 1 ? 'border-b border-line' : ''}`}
                     >
                       <button
                         onClick={() => navigate(`/edit-set/${s.id}`)}
                         className="flex flex-col text-left flex-1"
                       >
-                        <span className="text-[17px] text-white font-medium">{s.name}</span>
+                        <span className="text-[16px] text-ink font-medium">{s.name}</span>
                         <span className="text-[13px] font-medium text-zinc-400">
                           {s.cardio ? `${s.distance} ${s.unit} · ${s.duration}s` : `${s.weight} ${s.unit} × ${s.reps} reps`}
                         </span>
@@ -179,7 +179,7 @@ export default function HistoryPage() {
             {/* Infinite scroll sentinel */}
             <div ref={sentinelRef} className="h-4" />
             {!hasMore && sets.length > 0 && (
-              <p className="text-center text-[13px] text-[#424754] pb-4">All sets loaded</p>
+              <p className="text-center text-[13px] text-muted-dim pb-4">All sets loaded</p>
             )}
           </div>
         )}

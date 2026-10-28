@@ -8,7 +8,7 @@ import { useRef, useState, useCallback } from 'react'
  *                  time to decide whether the gesture is a scroll or a drag.
  *                  If the finger moves more than TOUCH_SLOP px before the
  *                  timer fires, the gesture is treated as a scroll and the
- *                  drag is cancelled — exactly like @dnd-kit TouchSensor.
+ *                  drag is cancelled â€” exactly like @dnd-kit TouchSensor.
  */
 
 const LONG_PRESS_DELAY = 250  // ms before touch drag activates
@@ -21,7 +21,7 @@ export function useDragToReorder<T>(
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
 
-  // ── Refs (never go stale in pointer handlers) ──────────────────────────────
+  // â”€â”€ Refs (never go stale in pointer handlers) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const dragIndexRef  = useRef<number | null>(null)
   const overIndexRef  = useRef<number | null>(null)
   const itemsRef      = useRef(items)
@@ -35,7 +35,7 @@ export function useDragToReorder<T>(
 
   itemsRef.current = items
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function clearTimer() {
     if (timerRef.current !== null) {
@@ -84,11 +84,11 @@ export function useDragToReorder<T>(
     }
   }
 
-  // ── Handle props (spread onto the grip icon) ───────────────────────────────
+  // â”€â”€ Handle props (spread onto the grip icon) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const getHandleProps = useCallback((index: number) => {
     return {
-      // ── Pointer down: start long-press timer for touch, immediate for mouse ──
+      // â”€â”€ Pointer down: start long-press timer for touch, immediate for mouse â”€â”€
       onPointerDown: (e: React.PointerEvent) => {
         // Ignore non-primary buttons (right-click, etc.)
         if (e.button !== 0) return
@@ -101,7 +101,7 @@ export function useDragToReorder<T>(
         const isTouch = e.pointerType === 'touch'
 
         if (isTouch) {
-          // ── Touch: wait for long-press before activating ──────────────────
+          // â”€â”€ Touch: wait for long-press before activating â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           pendingIdRef.current = e.pointerId
           captureElRef.current = el
           startYRef.current    = e.clientY
@@ -112,10 +112,10 @@ export function useDragToReorder<T>(
             activate(index, captureElRef.current!, pendingIdRef.current)
           }, LONG_PRESS_DELAY)
 
-          // Do NOT call preventDefault here — let the browser handle scroll
+          // Do NOT call preventDefault here â€” let the browser handle scroll
           // until the long-press fires.
         } else {
-          // ── Mouse: activate immediately ───────────────────────────────────
+          // â”€â”€ Mouse: activate immediately â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           el.setPointerCapture(e.pointerId)
           activatedRef.current = true
           dragIndexRef.current = index
@@ -126,17 +126,17 @@ export function useDragToReorder<T>(
         }
       },
 
-      // ── Pointer move ───────────────────────────────────────────────────────
+      // â”€â”€ Pointer move â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       onPointerMove: (e: React.PointerEvent) => {
         const isTouch = e.pointerType === 'touch'
 
         if (isTouch && !activatedRef.current) {
-          // Long-press hasn't fired yet — check if finger moved too far (scroll intent)
+          // Long-press hasn't fired yet â€” check if finger moved too far (scroll intent)
           if (pendingIdRef.current === null) return
           const dx = Math.abs(e.clientX - startXRef.current)
           const dy = Math.abs(e.clientY - startYRef.current)
           if (dx > TOUCH_SLOP || dy > TOUCH_SLOP) {
-            // User is scrolling — cancel the pending drag
+            // User is scrolling â€” cancel the pending drag
             clearTimer()
             pendingIdRef.current = null
             captureElRef.current = null
@@ -149,10 +149,10 @@ export function useDragToReorder<T>(
         hitTest(e.clientY)
       },
 
-      // ── Pointer up ─────────────────────────────────────────────────────────
+      // â”€â”€ Pointer up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       onPointerUp: (e: React.PointerEvent) => {
         if (!activatedRef.current) {
-          // Long-press never fired — treat as a tap, clean up timer
+          // Long-press never fired â€” treat as a tap, clean up timer
           resetState()
           return
         }
@@ -169,14 +169,14 @@ export function useDragToReorder<T>(
         resetState()
       },
 
-      // ── Pointer cancel (e.g. incoming call on iOS) ─────────────────────────
+      // â”€â”€ Pointer cancel (e.g. incoming call on iOS) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       onPointerCancel: () => {
         resetState()
       },
 
       style: {
         // touch-action: none on the handle tells the browser this element
-        // does NOT participate in scroll/zoom — required for pointer capture
+        // does NOT participate in scroll/zoom â€” required for pointer capture
         // to work on touch. We set it always (not just during drag) so the
         // browser knows before the first touch event fires.
         touchAction:       'none',
@@ -188,7 +188,7 @@ export function useDragToReorder<T>(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dragIndex, onReorder])
 
-  // ── Item props (spread onto each list row) ─────────────────────────────────
+  // â”€â”€ Item props (spread onto each list row) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const getItemProps = useCallback((index: number) => {
     const isDragging = dragIndex === index
@@ -198,7 +198,7 @@ export function useDragToReorder<T>(
       style: {
         opacity:          isDragging ? 0.4 : 1,
         transition:       'opacity 0.15s',
-        outline:          isOver ? '2px solid #4d8eff' : undefined,
+        outline:          isOver ? '2px solid var(--color-accent-soft)' : undefined,
         borderRadius:     isOver ? '8px' : undefined,
         // Allow touch scrolling on the row itself - only the handle has touch-action: none
         userSelect:       'none',

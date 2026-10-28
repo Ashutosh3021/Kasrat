@@ -55,9 +55,9 @@ export default function SyncStatusBadge() {
 
   if (!status.isOnline) {
     return (
-      <div className="flex items-center gap-1.5 px-2 py-1 rounded-[2px] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30">
-        <CloudOff size={12} strokeWidth={1.5} className="text-[#FF9F0A]" />
-        <span className="text-[11px] font-medium text-[#FF9F0A]">Offline</span>
+      <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-warning/10 border border-warning/30">
+        <CloudOff size={12} strokeWidth={1.5} className="text-warning" />
+        <span className="text-[11px] font-medium text-warning">Offline</span>
       </div>
     )
   }
@@ -66,14 +66,14 @@ export default function SyncStatusBadge() {
     return (
       <button
         onClick={handleManualSync}
-        className="flex items-center gap-1.5 px-2 py-1 rounded-[2px] bg-[#0A84FF]/10 border border-[#0A84FF]/30"
+        className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-info/10 border border-info/30"
       >
         {syncing ? (
-          <RefreshCw size={12} strokeWidth={1.5} className="text-[#0A84FF] animate-spin" />
+          <RefreshCw size={12} strokeWidth={1.5} className="text-info animate-spin" />
         ) : (
-          <Cloud size={12} strokeWidth={1.5} className="text-[#0A84FF]" />
+          <Cloud size={12} strokeWidth={1.5} className="text-info" />
         )}
-        <span className="text-[11px] font-medium text-[#0A84FF]">
+        <span className="text-[11px] font-medium text-info">
           {syncing ? 'Syncing…' : `${status.pendingCount} pending`}
         </span>
       </button>
@@ -82,8 +82,8 @@ export default function SyncStatusBadge() {
 
   return (
     <div className="flex items-center gap-1 opacity-60">
-      <CheckCircle size={12} strokeWidth={1.5} className="text-[#30D158]" />
-      <span className="text-[11px] font-medium text-[#30D158]">Synced</span>
+      <CheckCircle size={12} strokeWidth={1.5} className="text-success" />
+      <span className="text-[11px] font-medium text-success">Synced</span>
     </div>
   )
 }

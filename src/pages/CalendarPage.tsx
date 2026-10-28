@@ -17,9 +17,9 @@ function firstDayOfMonth(year: number, month: number): number {
   return new Date(year, month, 1).getDay() // 0=Sun
 }
 
-/** Interpolate between #1C1C1E (no volume) and #93032E (max volume) */
+/** Interpolate between var(--color-surface) (no volume) and var(--color-accent-soft) (max volume) */
 function heatColor(volume: number, max: number): string {
-  if (max === 0 || volume === 0) return '#1C1C1E'
+  if (max === 0 || volume === 0) return 'var(--color-surface)'
   const t = Math.min(volume / max, 1)
   // Lerp from rgb(28,28,30) → rgb(59,130,246)
   const r = Math.round(28  + (59  - 28)  * t)
@@ -55,30 +55,30 @@ function DaySheet({ date, sets, onClose, onViewAll }: DaySheetProps) {
   const totalVol = sets.reduce((acc, s) => acc + s.weight * s.reps, 0)
 
   return (
-    <div className="fixed inset-0 bg-[#151515]/70 z-[80] flex flex-col justify-end animate-fadeIn" onClick={onClose}>
+    <div className="fixed inset-0 bg-ground/70 z-[80] flex flex-col justify-end animate-fadeIn" onClick={onClose}>
       <div
-        className="bg-[#1C1C1E] rounded-t-[4px] border-t border-[#2C2C2E] p-3 flex flex-col gap-3 animate-slideUp max-h-[70dvh] overflow-y-auto"
+        className="bg-surface rounded-t-[4px] border-t border-line p-3 flex flex-col gap-3 animate-slideUp max-h-[70dvh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
-        <div className="w-12 h-1 bg-[#353437] rounded-full mx-auto" />
+        <div className="w-12 h-1 bg-line-strong rounded-full mx-auto" />
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[17px] font-semibold text-white">{label}</p>
-            <p className="text-[13px] text-[#A1A1A6]">{sets.length} sets · {Math.round(totalVol).toLocaleString()} kg volume</p>
+            <p className="text-[16px] font-semibold text-ink">{label}</p>
+            <p className="text-[13px] text-muted">{sets.length} sets · {Math.round(totalVol).toLocaleString()} kg volume</p>
           </div>
-          <button onClick={onClose} className="p-2 text-[#A1A1A6] hover:text-white">
+          <button onClick={onClose} className="p-2 text-muted hover:text-ink">
             <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
         {exercises.length === 0 ? (
-          <p className="text-[#A1A1A6] text-[15px] text-center py-4">Rest day</p>
+          <p className="text-muted text-[15px] text-center py-4">Rest day</p>
         ) : (
           <div className="flex flex-col gap-2">
             {exercises.map(([name, count]) => (
-              <div key={name} className="flex items-center justify-between bg-[#131315] rounded-[4px] px-3 py-2">
-                <span className="text-[15px] text-white">{name}</span>
-                <span className="text-[13px] font-medium text-[#A1A1A6]">{count} {count === 1 ? 'set' : 'sets'}</span>
+              <div key={name} className="flex items-center justify-between bg-ground-deep rounded-2xl px-3 py-2">
+                <span className="text-[15px] text-ink">{name}</span>
+                <span className="text-[13px] font-medium text-muted">{count} {count === 1 ? 'set' : 'sets'}</span>
               </div>
             ))}
           </div>
@@ -87,7 +87,7 @@ function DaySheet({ date, sets, onClose, onViewAll }: DaySheetProps) {
         {exercises.length > 0 && (
           <button
             onClick={onViewAll}
-            className="w-full h-11 bg-[#93032E] text-white rounded-[2px] font-semibold text-[15px]"
+            className="w-full h-11 bg-accent text-ink rounded-lg font-semibold text-[15px]"
           >
             View in History
           </button>
@@ -162,13 +162,13 @@ export default function CalendarPage() {
     : []
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-24">
+    <div className="min-h-screen bg-ground pb-32">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#151515]/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
+      <header className="sticky top-0 z-50 bg-ground/90 backdrop-blur-md border-b border-line flex items-center justify-between px-3 h-14">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-ink">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
-        <h1 className="text-[22px] font-semibold text-white absolute left-1/2 -translate-x-1/2">
+        <h1 className="text-[24px] font-semibold text-ink absolute left-1/2 -translate-x-1/2">
           Workout Calendar
         </h1>
         <div className="w-10" />
@@ -178,27 +178,27 @@ export default function CalendarPage() {
 
         {/* Month navigator */}
         <div className="flex items-center justify-between">
-          <button onClick={prevMonth} className="p-2 text-[#93032E] hover:opacity-80">
+          <button onClick={prevMonth} className="p-2 text-accent-soft hover:opacity-80">
             <ChevronLeft size={22} strokeWidth={1.5} />
           </button>
           <div className="flex items-center gap-3">
-            <span className="text-[22px] font-semibold text-white">
+            <span className="text-[24px] font-semibold text-ink">
               {MONTH_NAMES[month]} {year}
             </span>
             {/* Heat-map legend */}
             <div className="flex items-center gap-1.5 ml-2">
-              <span className="text-[11px] text-[#A1A1A6]">Low</span>
+              <span className="text-[11px] text-muted">Low</span>
               <div
                 className="w-16 h-2 rounded-full"
-                style={{ background: 'linear-gradient(to right, #1C1C1E, #93032E)' }}
+                style={{ background: 'linear-gradient(to right, var(--color-surface), var(--color-accent-soft))' }}
               />
-              <span className="text-[11px] text-[#A1A1A6]">High</span>
+              <span className="text-[11px] text-muted">High</span>
             </div>
           </div>
           <button
             onClick={nextMonth}
             disabled={year === today.getFullYear() && month === today.getMonth()}
-            className="p-2 text-[#93032E] disabled:opacity-30"
+            className="p-2 text-accent-soft disabled:opacity-30"
           >
             <ChevronRight size={22} strokeWidth={1.5} />
           </button>
@@ -207,7 +207,7 @@ export default function CalendarPage() {
         {/* Day-of-week labels */}
         <div className="grid grid-cols-7 gap-1">
           {DAY_LABELS.map(d => (
-            <div key={d} className="text-center text-[11px] font-medium text-[#A1A1A6] py-1">{d}</div>
+            <div key={d} className="text-center text-[11px] font-medium text-muted py-1">{d}</div>
           ))}
         </div>
 
@@ -228,11 +228,11 @@ export default function CalendarPage() {
                 onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                 style={{ backgroundColor: bg }}
                 className={`
-                  aspect-square rounded-[4px] flex items-center justify-center text-[13px] font-semibold
+                  aspect-square rounded-2xl flex items-center justify-center text-[13px] font-semibold
                   transition-all active:scale-90 min-h-[44px]
-                  ${isToday ? 'ring-2 ring-[#93032E] ring-offset-1 ring-offset-black' : ''}
-                  ${isSelected ? 'ring-2 ring-white ring-offset-1 ring-offset-black' : ''}
-                  ${hasData ? 'text-white' : 'text-[#424754]'}
+                  ${isToday ? 'ring-2 ring-accent-soft ring-offset-1 ring-offset-black' : ''}
+                  ${isSelected ? 'ring-2 ring-ink ring-offset-1 ring-offset-black' : ''}
+                  ${hasData ? 'text-ink' : 'text-muted-dim'}
                 `}
               >
                 {day}
@@ -244,7 +244,7 @@ export default function CalendarPage() {
         {/* Recent workout days strip */}
         {recentDays.length > 0 && (
           <section>
-            <p className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest mb-3">Recent Workouts</p>
+            <p className="text-[13px] font-medium text-muted uppercase tracking-widest mb-3">Recent Workouts</p>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {recentDays.map(d => {
                 const date = new Date(d + 'T00:00:00')
@@ -259,10 +259,10 @@ export default function CalendarPage() {
                       setMonth(date.getMonth())
                       setSelectedDate(d)
                     }}
-                    className="shrink-0 bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] px-3 py-2 flex flex-col items-center gap-0.5 hover:border-[#93032E]/50 transition-colors"
+                    className="shrink-0 bg-surface border border-line rounded-2xl px-3 py-2 flex flex-col items-center gap-0.5 hover:border-accent-hover/50 transition-colors"
                   >
-                    <span className="text-[13px] font-semibold text-white">{label}</span>
-                    <span className="text-[11px] text-[#A1A1A6]">{exCount} ex</span>
+                    <span className="text-[13px] font-semibold text-ink">{label}</span>
+                    <span className="text-[11px] text-muted">{exCount} ex</span>
                   </button>
                 )
               })}

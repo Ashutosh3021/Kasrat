@@ -7,30 +7,32 @@ import { addBodyMeasurement } from '../supabase/writeSync'
 
 const TOTAL_STEPS = 3
 
-// ─── Progress bar ─────────────────────────────────────────────────────────────
+const STEP_META = [
+  { number: '01', label: 'Profile', detail: 'Who you are' },
+  { number: '02', label: 'Units', detail: 'How you measure' },
+  { number: '03', label: 'Baseline', detail: 'Where you start' },
+]
+
 function ProgressBar({ step }: { step: number }) {
-  const pct = Math.round(((step + 1) / TOTAL_STEPS) * 100)
   return (
-    <div className="w-full h-1 bg-[#2C2C2E] overflow-hidden" style={{ borderRadius: '2px' }}>
-      <div
-        className="h-full transition-all duration-300"
-        style={{ width: `${pct}%`, background: '#BE1755', borderRadius: '2px' }}
-      />
+    <div
+      className="grid grid-cols-3 gap-1.5"
+      role="progressbar"
+      aria-label="Onboarding progress"
+      aria-valuemin={1}
+      aria-valuemax={TOTAL_STEPS}
+      aria-valuenow={step + 1}
+    >
+      {STEP_META.map((meta, i) => (
+        <span
+          key={meta.number}
+          className={`h-1 rounded-full transition-colors duration-300 ${i <= step ? 'bg-accent' : 'bg-line'}`}
+        />
+      ))}
     </div>
   )
 }
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
-const inputCls =
-  'w-full bg-[#2C2C2E] border border-[#2C2C2E] px-3 py-3 text-[17px] text-white ' +
-  'placeholder-[#A1A1A6] focus:border-[#93032E] focus:outline-none'
-
-const unitBtn = (active: boolean) =>
-  `flex-1 h-11 font-medium text-[15px] border transition-colors ${
-    active ? 'bg-[#93032E] border-[#93032E] text-white' : 'bg-[#2C2C2E] border-[#2C2C2E] text-[#A1A1A6]'
-  }`
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
   const navigate = useNavigate()
   const { updateSetting } = useSettingsStore()
@@ -49,14 +51,14 @@ export default function OnboardingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Step 1 – Name
+  // Step 1 â€“ Name
   const [name, setName] = useState('')
 
-  // Step 2 – Units
+  // Step 2 â€“ Units
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg')
   const [distanceUnit, setDistanceUnit] = useState<'km' | 'mi'>('km')
 
-  // Step 3 – Body & Macros
+  // Step 3 â€“ Body & Macros
   const [bodyWeight, setBodyWeight] = useState('')
   const [calories, setCalories] = useState('2000')
   const [protein, setProtein] = useState('150')
@@ -120,211 +122,285 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] flex flex-col items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm flex flex-col gap-6">
-
-        {/* Progress bar + step label */}
-        <div className="flex flex-col gap-2">
-          <ProgressBar step={step} />
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest">
-              Step {step + 1} of {TOTAL_STEPS}
-            </p>
-            <p className="text-[13px] font-medium text-[#E05C85]">
-              {Math.round(((step + 1) / TOTAL_STEPS) * 100)}%
-            </p>
-          </div>
+    <div className="min-h-[100dvh] bg-ground lg:grid lg:grid-cols-[0.86fr_1.14fr]">
+      <aside className="hero-panel relative hidden flex-col justify-between overflow-hidden border-r border-line bg-surface p-10 lg:flex xl:p-14">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent">
+            <span className="text-[21px] font-black leading-none tracking-[-0.1em] text-on-accent">K</span>
+          </span>
+          <span className="flex flex-col leading-none">
+            <span className="text-[17px] font-extrabold tracking-[-0.05em] text-ink">KASRAT</span>
+            <span className="mono mt-1 text-[8px] uppercase tracking-[0.24em] text-muted">Training log</span>
+          </span>
         </div>
 
-        {/* Card */}
-        <div className="bg-[#1C1C1E] border border-[#2C2C2E] p-4 flex flex-col gap-6" style={{ borderRadius: '4px' }}>
+        <div className="relative z-10 -mt-8">
+          <p className="kicker text-accent-soft">Set the baseline</p>
+          <p className="display mt-5 max-w-[8ch] text-[clamp(3.8rem,5.6vw,6rem)] text-ink">
+            Three steps. Then the work.
+          </p>
 
-          {/* ── Step 0: Name ── */}
-          {step === 0 && (
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-[24px] font-semibold text-white leading-tight">What should we call you?</h2>
-                <p className="text-[15px] text-[#A1A1A6]">Stored in your profile.</p>
-              </div>
+          <ol className="mt-9 space-y-4">
+            {STEP_META.map((meta, i) => {
+              const done = i < step
+              const active = i === step
+              return (
+                <li key={meta.number} className="flex items-center gap-4">
+                  <span
+                    className={`mono flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-[10px] tracking-[0.08em] ${
+                      done
+                        ? 'border-accent bg-accent text-on-accent'
+                        : active
+                          ? 'border-accent-soft text-accent-soft'
+                          : 'border-line-strong text-muted-dim'
+                    }`}
+                  >
+                    {done ? <Check size={13} strokeWidth={2.2} /> : meta.number}
+                  </span>
+                  <span className="min-w-0">
+                    <span className={`block text-[13px] font-semibold ${active || done ? 'text-ink' : 'text-muted'}`}>
+                      {meta.label}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-muted">{meta.detail}</span>
+                  </span>
+                </li>
+              )
+            })}
+          </ol>
+        </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[13px] font-medium text-[#A1A1A6]">First Name</label>
-                <input
-                  autoFocus
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && name.trim() && next()}
-                  placeholder="e.g. Alex"
-                  className={inputCls}
-                  style={{ borderRadius: '2px' }}
-                />
-              </div>
+        <p className="mono relative z-10 text-[9px] uppercase tracking-[0.18em] text-muted-dim">
+          Change any of it later in settings
+        </p>
+      </aside>
 
-              {name.trim() && (
-                <div className="bg-[#151515] border border-[#2C2C2E] px-4 py-3" style={{ borderRadius: '4px' }}>
-                  <p className="text-[20px] font-semibold text-white">
-                    Ready to lift, <span className="text-[#93032E]">{name.trim()}</span>?
+      <main className="flex min-h-[100dvh] flex-col px-4 py-6 sm:px-6 lg:justify-center lg:px-10 lg:py-10">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5 lg:hidden">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent">
+                <span className="text-[18px] font-black leading-none tracking-[-0.1em] text-on-accent">K</span>
+              </span>
+              <span className="text-[15px] font-extrabold tracking-[-0.04em] text-ink">KASRAT</span>
+            </div>
+            <p className="mono text-[9px] uppercase tracking-[0.18em] text-muted max-lg:ml-auto">
+              Setup {step + 1} / {TOTAL_STEPS}
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/', { replace: true })}
+              className="text-[11px] font-medium text-muted-dim transition-colors hover:text-ink"
+            >
+              Skip
+            </button>
+          </div>
+
+          <ProgressBar step={step} />
+
+          <div key={step} className="card mt-4 animate-rise p-6">
+            {step === 0 && (
+              <div className="flex flex-col gap-5">
+                <div>
+                  <p className="kicker">Profile</p>
+                  <h1 className="display mt-2 text-[32px] text-ink">What should we call you?</h1>
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted">
+                    Just a first name. It shows up on your home screen and nowhere else.
                   </p>
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* ── Step 1: Units ── */}
-          {step === 1 && (
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-[24px] font-semibold text-white leading-tight">Default Units</h2>
-                <p className="text-[15px] text-[#A1A1A6]">You can change these later in Settings.</p>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[13px] font-medium text-[#A1A1A6]">Weight</label>
-                  <div className="flex gap-2">
-                    {(['kg', 'lbs'] as const).map(u => (
-                      <button key={u} onClick={() => setWeightUnit(u)}
-                        className={unitBtn(weightUnit === u)} style={{ borderRadius: '2px' }}>
-                        {u}
-                      </button>
-                    ))}
-                  </div>
+                <div className="field">
+                  <label htmlFor="onboarding-name" className="field-label">First name</label>
+                  <input
+                    id="onboarding-name"
+                    autoFocus
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && name.trim() && next()}
+                    placeholder="e.g. Alex"
+                    className="input"
+                  />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-[13px] font-medium text-[#A1A1A6]">Distance</label>
-                  <div className="flex gap-2">
-                    {(['km', 'mi'] as const).map(u => (
-                      <button key={u} onClick={() => setDistanceUnit(u)}
-                        className={unitBtn(distanceUnit === u)} style={{ borderRadius: '2px' }}>
-                        {u}
-                      </button>
-                    ))}
+                {name.trim() && (
+                  <div className="rounded-2xl border border-accent/25 bg-accent/[0.07] p-4">
+                    <p className="kicker text-accent-soft">Preview</p>
+                    <p className="mt-2 text-[22px] font-bold leading-tight tracking-[-0.04em] text-ink">
+                      Ready to lift, <span className="text-accent-soft">{name.trim()}</span>?
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="flex flex-col gap-5">
+                <div>
+                  <p className="kicker">Units</p>
+                  <h1 className="display mt-2 text-[32px] text-ink">How do you measure?</h1>
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted">
+                    Pick the numbers you already think in. Everything converts cleanly if you switch later.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="field-label">Weight</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['kg', 'lbs'] as const).map(u => (
+                        <button
+                          key={u}
+                          type="button"
+                          onClick={() => setWeightUnit(u)}
+                          aria-pressed={weightUnit === u}
+                          className={`flex h-[64px] flex-col items-start justify-center rounded-2xl border px-4 text-left transition-colors ${
+                            weightUnit === u
+                              ? 'border-accent bg-accent text-on-accent'
+                              : 'border-line bg-surface-high text-ink hover:border-line-strong'
+                          }`}
+                        >
+                          <span className="text-[17px] font-bold uppercase">{u}</span>
+                          <span className={`text-[10px] ${weightUnit === u ? 'text-on-accent/70' : 'text-muted'}`}>
+                            {u === 'kg' ? 'Kilograms' : 'Pounds'}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="field-label">Distance</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['km', 'mi'] as const).map(u => (
+                        <button
+                          key={u}
+                          type="button"
+                          onClick={() => setDistanceUnit(u)}
+                          aria-pressed={distanceUnit === u}
+                          className={`flex h-[64px] flex-col items-start justify-center rounded-2xl border px-4 text-left transition-colors ${
+                            distanceUnit === u
+                              ? 'border-accent bg-accent text-on-accent'
+                              : 'border-line bg-surface-high text-ink hover:border-line-strong'
+                          }`}
+                        >
+                          <span className="text-[17px] font-bold uppercase">{u}</span>
+                          <span className={`text-[10px] ${distanceUnit === u ? 'text-on-accent/70' : 'text-muted'}`}>
+                            {u === 'km' ? 'Kilometres' : 'Miles'}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* ── Step 2: Body & Macros ── */}
-          {step === 2 && (
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-[24px] font-semibold text-white leading-tight">Body & Nutrition</h2>
-                <p className="text-[15px] text-[#A1A1A6]">Set your baseline. Macros are optional.</p>
-              </div>
+            {step === 2 && (
+              <div className="flex flex-col gap-5">
+                <div>
+                  <p className="kicker">Baseline</p>
+                  <h1 className="display mt-2 text-[32px] text-ink">Where are you starting?</h1>
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted">
+                    One body weight to anchor the trend. Macros are optional and editable.
+                  </p>
+                </div>
 
-              <div className="flex flex-col gap-4">
-                {/* Body weight — mandatory */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[13px] font-medium text-[#A1A1A6]">
-                    Body Weight <span className="text-[#FF453A]">*</span>
+                <div className="field">
+                  <label htmlFor="onboarding-weight" className="field-label">
+                    Body weight <span className="text-danger">*</span>
                   </label>
                   <div className="relative">
                     <input
+                      id="onboarding-weight"
                       autoFocus
                       type="number"
                       inputMode="decimal"
                       value={bodyWeight}
                       onChange={e => setBodyWeight(e.target.value)}
                       placeholder="75"
-                      className={`${inputCls} pr-12`}
-                      style={{ borderRadius: '2px' }}
+                      className="input pr-12"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[#A1A1A6]">
+                    <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[12px] font-medium text-muted">
                       {weightUnit}
                     </span>
                   </div>
                 </div>
 
-                {/* Macro targets */}
-                <div className="flex flex-col gap-1">
-                  <p className="text-[13px] font-medium text-[#A1A1A6] uppercase tracking-widest mb-1">
-                    Daily Macro Targets (optional)
-                  </p>
-                  {([
-                    ['Calories', calories, setCalories, 'kcal'],
-                    ['Protein',  protein,  setProtein,  'g'],
-                    ['Carbs',    carbs,    setCarbs,    'g'],
-                    ['Fats',     fats,     setFats,     'g'],
-                    ['Water',    water,    setWater,    'L'],
-                  ] as [string, string, (v: string) => void, string][]).map(([label, val, setter, unit]) => (
-                    <div key={label} className="flex items-center gap-3 py-1.5 border-b border-[#2C2C2E] last:border-0">
-                      <span className="text-[15px] text-white w-20 shrink-0">{label}</span>
-                      <div className="relative flex-1">
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          value={val}
-                          onChange={e => setter(e.target.value)}
-                          className="w-full bg-[#151515] border border-[#2C2C2E] px-3 py-2 text-[15px] text-white text-right pr-10 focus:border-[#93032E] focus:outline-none"
-                          style={{ borderRadius: '2px' }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[#A1A1A6]">
-                          {unit}
-                        </span>
+                <div className="rounded-2xl border border-line bg-surface-raised p-3.5">
+                  <p className="field-label">Daily macro targets · optional</p>
+                  <div className="mt-2 divide-y divide-line">
+                    {([
+                      ['Calories', calories, setCalories, 'kcal'],
+                      ['Protein', protein, setProtein, 'g'],
+                      ['Carbs', carbs, setCarbs, 'g'],
+                      ['Fats', fats, setFats, 'g'],
+                      ['Water', water, setWater, 'L'],
+                    ] as [string, string, (v: string) => void, string][]).map(([label, val, setter, unit]) => (
+                      <div key={label} className="flex items-center gap-3 py-2 first:pt-0 last:pb-0">
+                        <label className="w-20 shrink-0 text-[13px] font-medium text-ink-soft">{label}</label>
+                        <div className="relative flex-1">
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            value={val}
+                            onChange={e => setter(e.target.value)}
+                            aria-label={label}
+                            className="input min-h-10 py-2 pr-12 text-right text-[13px]"
+                          />
+                          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted">
+                            {unit}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
+            )}
+
+            {error && (
+              <p role="alert" className="mt-4 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2.5 text-[12px] font-medium leading-snug text-danger">
+                {error}
+              </p>
+            )}
+
+            <div className="mt-6 flex gap-2.5">
+              {step > 0 && (
+                <button type="button" onClick={back} className="btn btn-secondary">
+                  <ChevronLeft size={16} strokeWidth={1.8} />
+                  Back
+                </button>
+              )}
+
+              {step < TOTAL_STEPS - 1 ? (
+                <button
+                  type="button"
+                  onClick={next}
+                  disabled={step === 0 && !name.trim()}
+                  className="btn btn-primary flex-1"
+                >
+                  Continue
+                  <ChevronRight size={16} strokeWidth={1.8} />
+                </button>
+              ) : (
+                <button type="button" onClick={finish} disabled={saving} className="btn btn-primary flex-1">
+                  {saving ? (
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    <>
+                      <Check size={16} strokeWidth={2} />
+                      Start training
+                    </>
+                  )}
+                </button>
+              )}
             </div>
-          )}
-
-          {/* Error */}
-          {error && <p className="text-[#FF453A] text-[13px] font-medium">{error}</p>}
-
-          {/* Navigation */}
-          <div className="flex gap-3 pt-1">
-            {step > 0 && (
-              <button
-                onClick={back}
-                className="h-12 px-4 border border-[#2C2C2E] text-[#A1A1A6] font-medium text-[15px] flex items-center gap-1 hover:border-[#93032E]/40 transition-colors"
-                style={{ borderRadius: '2px' }}
-              >
-                <ChevronLeft size={18} strokeWidth={1.5} />
-                Back
-              </button>
-            )}
-
-            {step < TOTAL_STEPS - 1 ? (
-              <button
-                onClick={next}
-                disabled={step === 0 && !name.trim()}
-                className="flex-1 h-12 bg-[#93032E] text-white font-semibold text-[15px] flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity"
-                style={{ borderRadius: '2px' }}
-              >
-                Next
-                <ChevronRight size={18} strokeWidth={1.5} />
-              </button>
-            ) : (
-              <button
-                onClick={finish}
-                disabled={saving}
-                className="flex-1 h-12 bg-[#93032E] text-white font-semibold text-[15px] flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity"
-                style={{ borderRadius: '2px' }}
-              >
-                {saving ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Check size={18} strokeWidth={1.5} />
-                    Let's go
-                  </>
-                )}
-              </button>
-            )}
           </div>
-        </div>
 
-        {/* Skip */}
-        <button
-          onClick={() => navigate('/', { replace: true })}
-          className="text-[13px] text-[#424754] hover:text-[#A1A1A6] transition-colors text-center"
-        >
-          Skip for now
-        </button>
-      </div>
+          <p className="mono mt-6 text-center text-[9px] uppercase tracking-[0.16em] text-muted-dim">
+            Your data stays yours · Change everything later
+          </p>
+        </div>
+      </main>
     </div>
   )
 }

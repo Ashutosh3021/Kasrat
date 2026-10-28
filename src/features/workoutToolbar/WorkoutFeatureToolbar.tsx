@@ -56,7 +56,7 @@ export default function WorkoutFeatureToolbar({
   return (
     <>
       {/* ── Toolbar row ── */}
-      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-[#2C2C2E] bg-[#151515]/80 backdrop-blur-sm">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-line bg-ground/80 backdrop-blur-sm">
         {/* Feature 14: Precision toggle */}
         <PrecisionToggle />
 
@@ -66,7 +66,7 @@ export default function WorkoutFeatureToolbar({
             onClick={() => setEstimationOpen(true)}
             title="1RM Calculator"
             aria-label="Open estimation calculator"
-            className="p-2 rounded-[2px] text-[#A1A1A6] hover:text-[#93032E] hover:bg-[#93032E]/10 transition-colors"
+            className="p-2 rounded-lg text-muted hover:text-accent-soft hover:bg-accent/10 transition-colors"
           >
             <Calculator size={18} strokeWidth={1.5} />
           </button>
@@ -76,7 +76,7 @@ export default function WorkoutFeatureToolbar({
             onClick={() => setCustomExOpen(true)}
             title="Add Custom Exercise"
             aria-label="Add custom exercise"
-            className="p-2 rounded-[2px] text-[#A1A1A6] hover:text-[#93032E] hover:bg-[#93032E]/10 transition-colors"
+            className="p-2 rounded-lg text-muted hover:text-accent-soft hover:bg-accent/10 transition-colors"
           >
             <Plus size={18} strokeWidth={1.5} />
           </button>
@@ -87,10 +87,10 @@ export default function WorkoutFeatureToolbar({
               onClick={() => setAiExpanded(e => !e)}
               title="AI Suggestions"
               aria-label="Toggle AI suggestions"
-              className={`p-2 rounded-[2px] transition-colors ${
+              className={`p-2 rounded-lg transition-colors ${
                 aiExpanded
-                  ? 'text-[#BF5AF2] bg-[#BF5AF2]/10'
-                  : 'text-[#A1A1A6] hover:text-[#BF5AF2] hover:bg-[#BF5AF2]/10'
+                  ? 'text-violet bg-violet/10'
+                  : 'text-muted hover:text-violet hover:bg-violet/10'
               }`}
             >
               <Sparkles size={18} strokeWidth={1.5} />

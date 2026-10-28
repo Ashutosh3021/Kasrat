@@ -6,7 +6,7 @@ import { db, type GymSet } from '../db/database'
 import { useUIStore } from '../store/uiStore'
 import GraphsFilter from '../overlays/GraphsFilter'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface ExerciseSummary {
   name: string
@@ -34,7 +34,7 @@ const SORT_LABELS: Record<SortMode, string> = {
   sessions: 'Sessions',
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Best value (max weight or max distance) per calendar day, last 6 days, chronological */
 function bestPerDayFor(sets: GymSet[]): number[] {
@@ -49,7 +49,7 @@ function bestPerDayFor(sets: GymSet[]): number[] {
 
 /**
  * Plan-session volume: group ALL real sets by calendar day,
- * sum weight×reps (or distance) for every set that day.
+ * sum weightÃ—reps (or distance) for every set that day.
  * Returns last 8 days that had activity, chronological.
  */
 function planSessionPoints(sets: GymSet[]): SessionPoint[] {
@@ -67,10 +67,10 @@ function planSessionPoints(sets: GymSet[]): SessionPoint[] {
     .map(d => ({ date: d.slice(5), volume: byDay[d] })) // "MM-DD"
 }
 
-// ─── Sparkline ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Sparkline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Matches the demo: path-based, always renders even with 1 point (flat line)
 
-function Sparkline({ values, color = '#93032E' }: { values?: number[]; color?: string }) {
+function Sparkline({ values, color = 'var(--color-accent-soft)' }: { values?: number[]; color?: string }) {
   if (!values || values.length === 0) return null
 
   const W = 60, H = 30
@@ -78,7 +78,7 @@ function Sparkline({ values, color = '#93032E' }: { values?: number[]; color?: s
   const min = Math.min(...values)
   const range = max - min || 1
 
-  // Build SVG path string — works for 1 or more points
+  // Build SVG path string â€” works for 1 or more points
   const points = values.map((v, i) => {
     const x = values.length === 1 ? W / 2 : (i / (values.length - 1)) * W
     const y = H - 4 - ((v - min) / range) * (H - 8)
@@ -106,13 +106,13 @@ function Sparkline({ values, color = '#93032E' }: { values?: number[]; color?: s
   )
 }
 
-// ─── Sessions bar chart ───────────────────────────────────────────────────────
+// â”€â”€â”€ Sessions bar chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function SessionsChart({ points }: { points: SessionPoint[] }) {
   if (points.length === 0) {
     return (
-      <div className="w-full bg-[#1C1C1E] rounded-xl p-4 border border-[#2C2C2E] text-center">
-        <p className="text-[13px] text-[#8c909f]">No session data yet — log some sets first!</p>
+      <div className="w-full bg-surface rounded-xl p-4 border border-line text-center">
+        <p className="text-[13px] text-muted-dim">No session data yet â€” log some sets first!</p>
       </div>
     )
   }
@@ -120,12 +120,12 @@ function SessionsChart({ points }: { points: SessionPoint[] }) {
   const max = Math.max(...points.map(p => p.volume))
 
   return (
-    <div className="w-full bg-[#1C1C1E] rounded-xl p-4 border border-[#2C2C2E] flex flex-col gap-3">
+    <div className="w-full bg-surface rounded-xl p-4 border border-line flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-[#8c909f] uppercase tracking-widest">
+        <p className="text-[13px] font-semibold text-muted-dim uppercase tracking-widest">
           Total volume per session
         </p>
-        <p className="text-[13px] text-[#a78bfa] font-semibold">
+        <p className="text-[13px] text-accent-soft font-semibold">
           Peak {max.toLocaleString()} kg
         </p>
       </div>
@@ -136,16 +136,16 @@ function SessionsChart({ points }: { points: SessionPoint[] }) {
           const pct = max > 0 ? (p.volume / max) * 100 : 4
           return (
             <div key={p.date} className="flex-1 flex flex-col items-center gap-1.5">
-              <p className="text-[10px] text-[#a78bfa] font-semibold leading-none">
+              <p className="text-[10px] text-accent-soft font-semibold leading-none">
                 {p.volume >= 1000 ? `${(p.volume / 1000).toFixed(1)}k` : p.volume}
               </p>
               <div className="w-full flex flex-col justify-end" style={{ height: '60px' }}>
                 <div
-                  className="w-full rounded-t-[3px] bg-[#a78bfa] transition-all duration-300"
+                  className="w-full rounded-t-[3px] bg-accent-soft transition-all duration-300"
                   style={{ height: `${Math.max(pct, 4)}%` }}
                 />
               </div>
-              <p className="text-[9px] text-[#8c909f] font-medium leading-none">{p.date}</p>
+              <p className="text-[9px] text-muted-dim font-medium leading-none">{p.date}</p>
             </div>
           )
         })}
@@ -154,7 +154,7 @@ function SessionsChart({ points }: { points: SessionPoint[] }) {
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function GraphsPage() {
   const navigate = useNavigate()
@@ -168,7 +168,7 @@ export default function GraphsPage() {
     async function load() {
       const allSets = await db.gym_sets.toArray()
 
-      // Sessions chart — plan-level daily volume
+      // Sessions chart â€” plan-level daily volume
       setSessionPoints(planSessionPoints(allSets))
 
       // Per-exercise summaries
@@ -224,7 +224,7 @@ export default function GraphsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-24 pt-14">
+    <div className="min-h-screen bg-ground pb-32 pt-14">
       <TopBar />
       <main className="px-4 pt-6 max-w-3xl mx-auto flex flex-col gap-6">
 
@@ -234,8 +234,8 @@ export default function GraphsPage() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full h-12 bg-[#1C1C1E] border border-white/20 pl-12 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-[#93032E] text-[17px]"
-            style={{ borderRadius: '2px' }}
+            className="w-full h-12 bg-surface border border-ink/20 pl-12 pr-4 text-ink placeholder-zinc-500 focus:outline-none focus:border-accent-hover text-[16px]"
+            style={{ borderRadius: '10px' }}
             placeholder="Search exercises..."
           />
         </div>
@@ -248,24 +248,24 @@ export default function GraphsPage() {
               onClick={() => setSort(s)}
               className={`whitespace-nowrap px-4 py-2 font-medium text-[15px] transition-colors ${
                 sort === s
-                  ? 'bg-[#93032E]/10 border border-[#93032E] text-[#93032E]'
-                  : 'bg-[#1C1C1E] border border-[#2C2C2E] text-zinc-400'
+                  ? 'bg-accent/10 border border-accent-hover text-accent-soft'
+                  : 'bg-surface border border-line text-zinc-400'
               }`}
-              style={{ borderRadius: '2px' }}
+              style={{ borderRadius: '10px' }}
             >
               {SORT_LABELS[s]}
             </button>
           ))}
         </div>
 
-        {/* Sessions view — chart replaces the exercise list */}
+        {/* Sessions view â€” chart replaces the exercise list */}
         {sort === 'sessions' ? (
           <SessionsChart points={sessionPoints} />
         ) : (
           /* Exercise list for all other sort modes */
           filtered.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-[#c6c6cb] text-[15px]">No exercises yet. Log some sets first!</p>
+              <p className="text-ink-soft text-[15px]">No exercises yet. Log some sets first!</p>
             </div>
           ) : (
             <div className="flex flex-col">
@@ -278,23 +278,23 @@ export default function GraphsPage() {
                         : `/graphs/${encodeURIComponent(ex.name)}`
                     )}
                     className={`flex items-center justify-between py-4 hover:bg-zinc-900/30 transition-colors px-2 -mx-2 group ${
-                      i < filtered.length - 1 ? 'border-b border-[#2C2C2E]' : ''
+                      i < filtered.length - 1 ? 'border-b border-line' : ''
                     }`}
-                    style={{ borderRadius: '4px' }}
+                    style={{ borderRadius: '16px' }}
                   >
                     {/* Left: name + muscle chip */}
                     <div className="flex flex-col gap-1 text-left">
-                      <span className="text-[17px] text-white font-normal group-hover:text-[#93032E] transition-colors">
+                      <span className="text-[16px] text-ink font-normal group-hover:text-accent-soft transition-colors">
                         {ex.name}
                       </span>
-                      <span className="inline-block px-2 py-0.5 bg-[#2C2C2E] text-white text-[11px] w-fit" style={{ borderRadius: '2px' }}>
+                      <span className="inline-block px-2 py-0.5 bg-line text-ink text-[11px] w-fit" style={{ borderRadius: '10px' }}>
                         {ex.primaryMuscle}
                       </span>
                     </div>
 
                     {/* Right: sparkline + trailing label */}
                     <div className="flex items-center gap-4">
-                      <Sparkline values={ex.bestPerDay} color="#93032E" />
+                      <Sparkline values={ex.bestPerDay} color="var(--color-accent-soft)" />
                       <span className="text-[13px] font-medium text-zinc-500 w-20 text-right">
                         {timeAgo(ex.lastUsed)}
                       </span>
@@ -308,16 +308,16 @@ export default function GraphsPage() {
 
       <button
         onClick={() => navigate('/add-exercise')}
-        className="fixed bottom-20 right-6 w-14 h-14 bg-[#93032E] flex items-center justify-center active:scale-95 transition-transform z-40"
-        style={{ borderRadius: '2px' }}
+        className="fixed bottom-20 right-6 w-14 h-14 bg-accent flex items-center justify-center active:scale-95 transition-transform z-40"
+        style={{ borderRadius: '10px' }}
       >
-        <Plus size={24} strokeWidth={1.5} className="text-white" />
+        <Plus size={24} strokeWidth={1.5} className="text-ink" />
       </button>
 
       <button
         onClick={openGraphsFilter}
-        className="fixed bottom-20 right-24 w-12 h-12 bg-[#1C1C1E] border border-[#2C2C2E] flex items-center justify-center active:scale-95 transition-transform z-40"
-        style={{ borderRadius: '2px' }}
+        className="fixed bottom-20 right-24 w-12 h-12 bg-surface border border-line flex items-center justify-center active:scale-95 transition-transform z-40"
+        style={{ borderRadius: '10px' }}
       >
         <SlidersHorizontal size={20} strokeWidth={1.5} className="text-zinc-400" />
       </button>

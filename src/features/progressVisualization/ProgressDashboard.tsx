@@ -28,20 +28,20 @@ type Tab = 'volume' | 'weight' | 'comparison'
 
 function RoutineVolumeCard({ series }: { series: RoutineVolumeSeries }) {
   const tooltipStyle = {
-    background: '#1C1C1E',
-    border: '1px solid #2C2C2E',
+    background: 'var(--color-surface)',
+    border: '1px solid var(--color-line)',
     borderRadius: 4,
-    color: '#e4e2e4',
+    color: 'var(--color-ink-soft)',
   }
 
   const gradId = `grad-${series.routineName.replace(/\s+/g, '-')}`
 
   return (
-    <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3">
+    <div className="bg-surface border border-line rounded-2xl p-3">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[15px] font-semibold text-white">{series.routineName}</p>
+        <p className="text-[15px] font-semibold text-ink">{series.routineName}</p>
         <span
-          className="text-[11px] font-medium px-2 py-0.5 rounded-[2px]"
+          className="text-[11px] font-medium px-2 py-0.5 rounded-lg"
           style={{ background: `${series.color}20`, color: series.color }}
         >
           {series.points.length} sessions
@@ -56,17 +56,17 @@ function RoutineVolumeCard({ series }: { series: RoutineVolumeSeries }) {
                 <stop offset="100%" stopColor={series.color} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2C2C2E" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line)" vertical={false} />
             <XAxis
               dataKey="date"
-              tick={{ fill: '#A1A1A6', fontSize: 10 }}
+              tick={{ fill: 'var(--color-muted)', fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v: string) => v.slice(5)}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fill: '#A1A1A6', fontSize: 10 }}
+              tick={{ fill: 'var(--color-muted)', fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               width={40}
@@ -97,7 +97,7 @@ function RoutineVolumeCard({ series }: { series: RoutineVolumeSeries }) {
 function VolumeTab({ series }: { series: RoutineVolumeSeries[] }) {
   if (series.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16 text-[#A1A1A6] text-[15px]">
+      <div className="flex items-center justify-center py-16 text-muted text-[15px]">
         Log your first workout to see volume trends.
       </div>
     )
@@ -118,7 +118,7 @@ function ComparisonCards({ comparisons }: { comparisons: RoutineComparison[] }) 
   if (comparisons.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-[#A1A1A6] text-[15px]">No data for this week yet.</p>
+        <p className="text-muted text-[15px]">No data for this week yet.</p>
       </div>
     )
   }
@@ -128,14 +128,14 @@ function ComparisonCards({ comparisons }: { comparisons: RoutineComparison[] }) 
       {comparisons.map(c => {
         const up = c.delta >= 0
         const DeltaIcon = up ? TrendingUp : TrendingDown
-        const color = up ? '#30D158' : '#FF453A'
+        const color = up ? 'var(--color-success)' : 'var(--color-danger)'
         return (
           <div
             key={c.routineName}
-            className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3 flex flex-col gap-2"
+            className="bg-surface border border-line rounded-2xl p-3 flex flex-col gap-2"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[17px] font-semibold text-white">{c.routineName}</span>
+              <span className="text-[16px] font-semibold text-ink">{c.routineName}</span>
               <div className="flex items-center gap-1">
                 <DeltaIcon size={14} strokeWidth={1.5} style={{ color }} />
                 <span className="text-[13px] font-semibold" style={{ color }}>
@@ -146,14 +146,14 @@ function ComparisonCards({ comparisons }: { comparisons: RoutineComparison[] }) 
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col gap-0.5">
-                <span className="text-[11px] text-[#A1A1A6]">This Week</span>
-                <span className="text-[17px] font-semibold text-white">
+                <span className="text-[11px] text-muted">This Week</span>
+                <span className="text-[16px] font-semibold text-ink">
                   {c.thisWeekVolume.toLocaleString()} kg
                 </span>
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-[11px] text-[#A1A1A6]">Last Week</span>
-                <span className="text-[17px] font-semibold text-[#A1A1A6]">
+                <span className="text-[11px] text-muted">Last Week</span>
+                <span className="text-[16px] font-semibold text-muted">
                   {c.lastWeekVolume > 0 ? `${c.lastWeekVolume.toLocaleString()} kg` : '—'}
                 </span>
               </div>
@@ -185,12 +185,12 @@ export default function ProgressDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-24">
-      <header className="sticky top-0 z-50 bg-[#151515]/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center justify-between px-3 h-14">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
+    <div className="min-h-screen bg-ground pb-32">
+      <header className="sticky top-0 z-50 bg-ground/90 backdrop-blur-md border-b border-line flex items-center justify-between px-3 h-14">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-ink">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
-        <h1 className="text-[20px] font-semibold text-white absolute left-1/2 -translate-x-1/2">
+        <h1 className="text-[20px] font-semibold text-ink absolute left-1/2 -translate-x-1/2">
           Progress
         </h1>
         <div className="w-10" />
@@ -198,13 +198,13 @@ export default function ProgressDashboard() {
 
       <main className="px-3 pt-4 max-w-2xl mx-auto flex flex-col gap-5">
         {/* Tab bar */}
-        <div className="flex bg-[#1C1C1E] rounded-[4px] p-1 gap-1">
+        <div className="flex bg-surface rounded-2xl p-1 gap-1">
           {TABS.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 rounded-[2px] text-[14px] font-semibold transition-colors ${
-                tab === t.key ? 'bg-[#93032E] text-white' : 'text-[#A1A1A6]'
+              className={`flex-1 py-2 rounded-lg text-[14px] font-semibold transition-colors ${
+                tab === t.key ? 'bg-accent text-ink' : 'text-muted'
               }`}
             >
               {t.label}

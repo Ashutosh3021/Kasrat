@@ -48,20 +48,20 @@ export default function TabSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] flex justify-center">
-      <div className="w-full max-w-[390px] min-h-screen bg-[#151515] relative flex flex-col">
-        <nav className="fixed top-0 left-0 w-full z-50 border-b border-neutral-900 bg-[#151515] flex items-center justify-between h-14 px-3 sm:max-w-[390px] sm:left-1/2 sm:-translate-x-1/2">
-          <button onClick={() => navigate(-1)} className="text-[#93032E] hover:text-blue-400 p-2 -ml-2 rounded-[2px]">
+    <div className="min-h-screen bg-ground flex justify-center">
+      <div className="w-full max-w-[390px] min-h-screen bg-ground relative flex flex-col">
+        <nav className="fixed top-0 left-0 w-full z-50 border-b border-neutral-900 bg-ground flex items-center justify-between h-14 px-3 sm:max-w-[390px] sm:left-1/2 sm:-translate-x-1/2">
+          <button onClick={() => navigate(-1)} className="text-accent-soft hover:text-blue-400 p-2 -ml-2 rounded-lg">
             <ArrowLeft size={22} strokeWidth={1.5} />
           </button>
-          <div className="text-xl font-black italic tracking-tighter text-[#93032E] uppercase">KASRAT</div>
+          <div className="text-xl font-black italic tracking-tighter text-accent-soft uppercase">KASRAT</div>
           <div className="w-10" />
         </nav>
 
         <main className="flex-1 pt-[72px] pb-safe flex flex-col">
           <header className="px-3 mb-8">
-            <h1 className="text-[32px] font-semibold leading-10 tracking-tight text-white">Tab Settings</h1>
-            <p className="text-[17px] text-[#A1A1A6] mt-2 max-w-[90%]">Toggle tabs to show or hide them. Drag to reorder.</p>
+            <h1 className="text-[40px] font-semibold leading-10 tracking-tight text-ink">Tab Settings</h1>
+            <p className="text-[16px] text-muted mt-2 max-w-[90%]">Toggle tabs to show or hide them. Drag to reorder.</p>
           </header>
 
           <div className="px-3 flex flex-col gap-3 flex-1" data-drag-list>
@@ -70,20 +70,20 @@ export default function TabSettingsPage() {
               return (
                 <div
                   key={tab.key}
-                  className={`bg-[#1C1C1E] rounded-[4px] p-3 flex items-center justify-between border border-[#2C2C2E] transition-colors ${isHidden ? 'opacity-60' : ''}`}
+                  className={`bg-surface rounded-2xl p-3 flex items-center justify-between border border-line transition-colors ${isHidden ? 'opacity-60' : ''}`}
                   {...getItemProps(i)}
                 >
                   <div className="flex items-center gap-3">
                     <span {...getHandleProps(i)}>
-                      <GripVertical size={20} strokeWidth={1.5} className="text-[#A1A1A6]" />
+                      <GripVertical size={20} strokeWidth={1.5} className="text-muted" />
                     </span>
-                    <span className={`text-[17px] font-medium ${isHidden ? 'text-[#A1A1A6] line-through' : 'text-white'}`}>{tab.label}</span>
+                    <span className={`text-[16px] font-medium ${isHidden ? 'text-muted line-through' : 'text-ink'}`}>{tab.label}</span>
                   </div>
                   <button
                     onClick={() => toggleTab(tab.key)}
-                    className="w-10 h-10 rounded-[2px] flex items-center justify-center hover:bg-[#2C2C2E] transition-colors text-[#93032E]"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-line transition-colors text-accent-soft"
                   >
-                    {isHidden ? <EyeOff size={20} strokeWidth={1.5} className="text-[#A1A1A6]" /> : <Eye size={20} strokeWidth={1.5} />}
+                    {isHidden ? <EyeOff size={20} strokeWidth={1.5} className="text-muted" /> : <Eye size={20} strokeWidth={1.5} />}
                   </button>
                 </div>
               )
@@ -93,7 +93,7 @@ export default function TabSettingsPage() {
           <div className="px-3 pb-8 pt-8 mt-auto">
             <button
               onClick={reset}
-              className="w-full h-12 rounded-[2px] border border-[#93032E] text-[#93032E] font-semibold text-[15px] flex items-center justify-center gap-2 hover:bg-[#2C2C2E] transition-colors"
+              className="w-full h-12 rounded-lg border border-accent-hover text-accent-soft font-semibold text-[15px] flex items-center justify-center gap-2 hover:bg-line transition-colors"
             >
               <RotateCcw size={18} strokeWidth={1.5} />
               Reset to default

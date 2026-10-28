@@ -46,9 +46,9 @@ function calcResult(m: Metrics): ReadinessResult {
 // ─── Label copy ───────────────────────────────────────────────────────────────
 
 const LABEL_META = {
-  green:  { emoji: '🟢', text: 'Primed to Perform',              color: '#22c55e' as const },
-  yellow: { emoji: '🟡', text: 'Baseline / Accumulating Fatigue', color: '#eab308' as const },
-  red:    { emoji: '🔴', text: 'Danger Zone',                     color: '#FF453A' as const },
+  green:  { emoji: '🟢', text: 'Primed to Perform',              color: 'var(--color-success)' as const },
+  yellow: { emoji: '🟡', text: 'Baseline / Accumulating Fatigue', color: 'var(--color-warning)' as const },
+  red:    { emoji: '🔴', text: 'Danger Zone',                     color: 'var(--color-danger)' as const },
 }
 
 function buildSummary(m: Metrics, result: ReadinessResult): string {
@@ -129,20 +129,20 @@ function MetricSlider({
     : RATING_LABELS[value]
 
   const dotColor =
-    value >= 4 ? '#22c55e'
-    : value === 3 ? '#eab308'
-    : '#FF453A'
+    value >= 4 ? 'var(--color-success)'
+    : value === 3 ? 'var(--color-warning)'
+    : 'var(--color-danger)'
 
   return (
-    <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3 flex flex-col gap-3">
+    <div className="bg-surface border border-line rounded-2xl p-3 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon size={18} strokeWidth={1.5} className="text-[#A1A1A6]" />
-          <span className="text-[15px] font-semibold text-white">{label}</span>
+          <Icon size={18} strokeWidth={1.5} className="text-muted" />
+          <span className="text-[15px] font-semibold text-ink">{label}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full" style={{ background: dotColor }} />
-          <span className="text-[13px] font-medium text-[#A1A1A6]">
+          <span className="text-[13px] font-medium text-muted">
             {value} – {displayValue}
           </span>
         </div>
@@ -153,10 +153,10 @@ function MetricSlider({
           <button
             key={n}
             onClick={() => onChange(n)}
-            className={`flex-1 h-9 rounded-[2px] border text-[13px] font-semibold transition-colors ${
+            className={`flex-1 h-9 rounded-lg border text-[13px] font-semibold transition-colors ${
               n === value
-                ? 'bg-[#93032E] border-[#93032E] text-white'
-                : 'bg-[#2C2C2E] border-[#2C2C2E] text-[#A1A1A6] hover:border-[#93032E]/60'
+                ? 'bg-accent border-accent-hover text-ink'
+                : 'bg-line border-line text-muted hover:border-accent-hover/60'
             }`}
           >
             {n}
@@ -193,19 +193,19 @@ function ResultCard({
 
       {/* Label & Score */}
       <div
-        className="bg-[#1C1C1E] border rounded-[4px] p-4 flex flex-col gap-2"
+        className="bg-surface border rounded-2xl p-4 flex flex-col gap-2"
         style={{ borderColor: `${meta.color}60` }}
       >
         <div className="flex items-center gap-3">
           <ResultIcon size={28} strokeWidth={1.5} style={{ color: meta.color }} />
           <div>
-            <p className="text-[20px] font-semibold text-white leading-tight">{meta.emoji} {meta.text}</p>
+            <p className="text-[20px] font-semibold text-ink leading-tight">{meta.emoji} {meta.text}</p>
             <p className="text-[13px] font-medium" style={{ color: meta.color }}>Score: {result.total}/25</p>
           </div>
         </div>
 
         {/* Score bar */}
-        <div className="h-2 bg-[#2C2C2E] rounded-full overflow-hidden mt-1">
+        <div className="h-2 bg-line rounded-full overflow-hidden mt-1">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{ width: `${((result.total - 5) / 20) * 100}%`, background: meta.color }}
@@ -214,24 +214,24 @@ function ResultCard({
       </div>
 
       {/* Summary */}
-      <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3 flex flex-col gap-1">
-        <p className="text-[11px] font-semibold text-[#A1A1A6] uppercase tracking-widest">Summary</p>
-        <p className="text-[15px] text-[#e4e2e4] leading-relaxed">{buildSummary(metrics, result)}</p>
+      <div className="bg-surface border border-line rounded-2xl p-3 flex flex-col gap-1">
+        <p className="text-[11px] font-semibold text-muted uppercase tracking-widest">Summary</p>
+        <p className="text-[15px] text-ink-soft leading-relaxed">{buildSummary(metrics, result)}</p>
       </div>
 
       {/* Action Plan */}
-      <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3 flex flex-col gap-1">
-        <p className="text-[11px] font-semibold text-[#A1A1A6] uppercase tracking-widest">Action Plan</p>
-        <p className="text-[15px] text-[#e4e2e4] leading-relaxed">{ACTION_PLAN[result.label]}</p>
+      <div className="bg-surface border border-line rounded-2xl p-3 flex flex-col gap-1">
+        <p className="text-[11px] font-semibold text-muted uppercase tracking-widest">Action Plan</p>
+        <p className="text-[15px] text-ink-soft leading-relaxed">{ACTION_PLAN[result.label]}</p>
       </div>
 
       {/* Coach's Note */}
       <div
-        className="bg-[#1C1C1E] border rounded-[4px] p-3 flex flex-col gap-1"
+        className="bg-surface border rounded-2xl p-3 flex flex-col gap-1"
         style={{ borderColor: `${meta.color}40` }}
       >
         <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: meta.color }}>Coach's Note</p>
-        <p className="text-[15px] text-[#e4e2e4] leading-relaxed">{buildCoachNote(metrics, result)}</p>
+        <p className="text-[15px] text-ink-soft leading-relaxed">{buildCoachNote(metrics, result)}</p>
       </div>
 
       {/* Actions */}
@@ -239,14 +239,14 @@ function ResultCard({
         <>
           <button
             onClick={() => setShowRecovery(v => !v)}
-            className="w-full h-12 bg-[#1C1C1E] border border-[#2C2C2E] text-white font-semibold text-[15px] rounded-[2px] hover:border-[#93032E]/60 transition-colors"
+            className="w-full h-12 bg-surface border border-line text-ink font-semibold text-[15px] rounded-lg hover:border-accent-hover/60 transition-colors"
           >
             {showRecovery ? 'Hide Recovery Ideas' : 'View Active Recovery Ideas'}
           </button>
           {showRecovery && (
-            <div className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-[4px] p-3 flex flex-col gap-2">
+            <div className="bg-surface border border-line rounded-2xl p-3 flex flex-col gap-2">
               {ACTIVE_RECOVERY_IDEAS.map((idea, i) => (
-                <p key={i} className="text-[14px] text-[#e4e2e4]">{idea}</p>
+                <p key={i} className="text-[14px] text-ink-soft">{idea}</p>
               ))}
             </div>
           )}
@@ -254,7 +254,7 @@ function ResultCard({
       ) : (
         <button
           onClick={() => navigate('/plans')}
-          className="w-full h-12 bg-[#93032E] text-white font-semibold text-[15px] rounded-[2px]"
+          className="w-full h-12 bg-accent text-ink font-semibold text-[15px] rounded-lg"
         >
           Start Workout
         </button>
@@ -262,7 +262,7 @@ function ResultCard({
 
       <button
         onClick={onRetake}
-        className="w-full h-10 flex items-center justify-center gap-2 text-[#A1A1A6] font-medium text-[14px]"
+        className="w-full h-10 flex items-center justify-center gap-2 text-muted font-medium text-[14px]"
       >
         <RotateCcw size={14} strokeWidth={1.5} />
         Retake Assessment
@@ -270,7 +270,7 @@ function ResultCard({
 
       <button
         onClick={() => navigate('/plans')}
-        className="text-center text-[13px] text-[#A1A1A6] underline underline-offset-2 py-1"
+        className="text-center text-[13px] text-muted underline underline-offset-2 py-1"
       >
         Skip and go straight to workout
       </button>
@@ -345,22 +345,22 @@ export default function ReadinessPage() {
 
   if (loadingToday) {
     return (
-      <div className="min-h-screen bg-[#151515] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#93032E] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-ground flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-accent-hover border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] pb-24">
-      <header className="sticky top-0 z-50 bg-[#151515]/90 backdrop-blur-md border-b border-[#2C2C2E] flex items-center px-3 h-14 gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-white">
+    <div className="min-h-screen bg-ground pb-32">
+      <header className="sticky top-0 z-50 bg-ground/90 backdrop-blur-md border-b border-line flex items-center px-3 h-14 gap-3">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-ink">
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
         <div className="flex-1">
-          <h1 className="text-[17px] font-semibold text-white leading-tight">Daily Readiness Check</h1>
+          <h1 className="text-[16px] font-semibold text-ink leading-tight">Daily Readiness Check</h1>
           {todayEntry && !result && (
-            <p className="text-[11px] text-[#A1A1A6]">Completed today · tap to view result</p>
+            <p className="text-[11px] text-muted">Completed today · tap to view result</p>
           )}
         </div>
       </header>
@@ -371,8 +371,8 @@ export default function ReadinessPage() {
         ) : (
           <>
             <div className="flex flex-col gap-1">
-              <h2 className="text-[22px] font-semibold text-white">How are you feeling today?</h2>
-              <p className="text-[14px] text-[#A1A1A6]">Rate each metric (1 = Poor, 5 = Excellent)</p>
+              <h2 className="text-[24px] font-semibold text-ink">How are you feeling today?</h2>
+              <p className="text-[14px] text-muted">Rate each metric (1 = Poor, 5 = Excellent)</p>
             </div>
 
             <MetricSlider label="Sleep Quality"   icon={Moon}     value={metrics.sleep}      onChange={v => setMetric('sleep', v)} />
@@ -383,7 +383,7 @@ export default function ReadinessPage() {
 
             {/* Progress hint */}
             {!allAnswered && (
-              <p className="text-[13px] text-[#A1A1A6] text-center">
+              <p className="text-[13px] text-muted text-center">
                 {Object.values(metrics).filter(v => v >= 1).length}/5 rated
               </p>
             )}
@@ -391,14 +391,14 @@ export default function ReadinessPage() {
             <button
               onClick={handleSubmit}
               disabled={!allAnswered || saving}
-              className="w-full h-12 bg-[#93032E] text-white font-semibold text-[15px] rounded-[2px] disabled:opacity-50 transition-opacity mt-2"
+              className="w-full h-12 bg-accent text-ink font-semibold text-[15px] rounded-lg disabled:opacity-50 transition-opacity mt-2"
             >
               {saving ? 'Saving…' : 'Get Recommendation'}
             </button>
 
             <button
               onClick={() => navigate('/plans')}
-              className="text-center text-[13px] text-[#A1A1A6] underline underline-offset-2 py-1"
+              className="text-center text-[13px] text-muted underline underline-offset-2 py-1"
             >
               Skip and go straight to workout
             </button>

@@ -17,23 +17,38 @@ export default function BottomNav() {
   const hidden = settings.hiddenTabs ? settings.hiddenTabs.split(',') : []
   const tabs = ALL_TABS.filter(t => !hidden.includes(t.key))
 
+  if (tabs.length === 0) return null
+
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe bg-[#151515] border-t border-[#2C2C2E] h-16">
-      {tabs.map(tab => {
-        const isActive = location.pathname === tab.path || (tab.path !== '/' && location.pathname.startsWith(tab.path))
-        const Icon = tab.icon
-        return (
-          <button
-            key={tab.key}
-            onClick={() => navigate(tab.path)}
-            className={`flex flex-col items-center justify-center w-16 h-full transition-colors ${isActive ? 'text-[#93032E]' : 'text-[#A1A1A6]'}`}
-          >
-            <Icon size={20} strokeWidth={1.5} />
-            <span className="text-[10px] font-medium mt-1">{tab.label}</span>
-          </button>
-        )
-      })}
-    </nav>
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-safe pt-2">
+      <nav
+        aria-label="Primary"
+        className="pointer-events-auto mx-auto grid w-full max-w-lg gap-1 rounded-[22px] border border-line/90 bg-surface/95 p-1.5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur-2xl"
+        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+      >
+        {tabs.map(tab => {
+          const isActive = location.pathname === tab.path || (tab.path !== '/' && location.pathname.startsWith(tab.path))
+          const Icon = tab.icon
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => navigate(tab.path)}
+              aria-current={isActive ? 'page' : undefined}
+              className={`group relative flex h-[52px] flex-col items-center justify-center gap-1 rounded-[16px] transition-all duration-200 active:scale-[0.96] ${
+                isActive
+                  ? 'bg-accent text-on-accent shadow-[0_8px_20px_-12px_rgba(198,58,25,0.9)]'
+                  : 'text-muted hover:bg-ink/5 hover:text-ink'
+              }`}
+            >
+              <Icon size={19} strokeWidth={isActive ? 2 : 1.7} />
+              <span className={`text-[9px] font-semibold leading-none tracking-[0.04em] ${isActive ? 'text-on-accent' : ''}`}>
+                {tab.label}
+              </span>
+            </button>
+          )
+        })}
+      </nav>
+    </div>
   )
 }
-
